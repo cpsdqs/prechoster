@@ -1,0 +1,128 @@
+.module-graph {
+    display: grid;
+    overflow: auto;
+    padding: 1em;
+    box-sizing: border-box;
+
+    .i-columns {
+        grid-area: ~"1 / 1";
+        display: flex;
+
+        .i-graph-column {
+            & > * + * {
+                margin-top: calc(var(--row-gap) * 1px);
+            }
+        }
+    }
+
+    .i-connections {
+        width: 100%;
+        height: 100%;
+        grid-area: ~"1 / 1";
+        overflow: visible;
+
+        .i-connection {
+            fill: none;
+            stroke: var(--graph-connection);
+            stroke-width: 2px;
+
+            &.is-highlighted {
+                stroke: var(--graph-connection-highlighted);
+                stroke-width: 4px;
+            }
+        }
+    }
+
+    .i-module-item {
+        background: var(--graph-node-bg);
+        --shading: inset 0 1px rgba(255, 255, 255, 0.3), inset 0 -1px rgba(0, 0, 0, 0.3);
+        --conn-port: var(--accent);
+        box-shadow: var(--shading);
+        border-radius: .5em;
+        overflow: hidden;
+
+        &.is-selected {
+            background: var(--graph-node-selected-bg);
+            box-shadow: var(--shading), 0 0 0 2px var(--accent);
+        }
+
+        .i-header {
+            height: calc(var(--height) * 1px);
+            line-height: calc(var(--height) * 1px);
+            padding: 0 0.2em;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+
+            .i-index {
+                font-weight: bold;
+                display: inline-block;
+                min-width: 1em;
+                text-align: right;
+                margin-right: 0.2em;
+            }
+        }
+        .i-input, .i-output {
+            height: calc(var(--height) * 1px);
+            line-height: calc(var(--height) * 1px);
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            font-size: smaller;
+            padding: 0 0.5em;
+            position: relative;
+
+            &::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 50%;
+                margin-top: -0.5em;
+                border: 0.5em solid transparent;
+                border-left-color: var(--conn-port);
+            }
+        }
+
+        .i-input {
+            padding-left: 0.7em;
+        }
+
+        .i-output {
+            text-align: right;
+            padding-right: 0.7em;
+
+            &::before {
+                left: auto;
+                right: 0;
+                border-left-color: transparent;
+                border-right-color: var(--conn-port);
+            }
+        }
+
+        .i-named-inputs {
+            box-shadow: inset 0 1px var(--separator);
+
+            .i-named-input {
+                height: calc(var(--height) * 1px);
+                line-height: calc(var(--height) * 1px);
+                font-size: smaller;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                padding: 0 0.5em;
+                padding-left: 0.7em;
+                position: relative;
+
+                &::before {
+                    content: '';
+                    position: absolute;
+                    left: 0;
+                    top: 50%;
+                    margin-top: -0.5em;
+                    border: 0.5em solid transparent;
+                    border-left-color: var(--conn-port);
+                }
+            }
+        }
+    }
+}

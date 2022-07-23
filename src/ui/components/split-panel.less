@@ -1,0 +1,94 @@
+.split-panel {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    height: 100%;
+
+    & > .inner-container {
+        overflow: hidden;
+
+        & > * {
+            width: 100%;
+            height: 100%;
+        }
+    }
+
+    & > .inner-resizer {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-basis: 1em;
+        flex-shrink: 0;
+        cursor: col-resize;
+
+        &::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            transform: scaleX(0);
+            background: var(--separator);
+            transition: transform 0.1s cubic-bezier(.5, 0, .7, .5);
+        }
+        &:hover::before {
+            transform: scaleX(0.5);
+            transition: transform 0.3s cubic-bezier(.5, 2, .5, 1);
+        }
+
+        & > .inner-affordance {
+            position: relative;
+            width: 1em;
+            height: 1em;
+            --line-pos: 30%;
+            --line-weight: 2px;
+
+            &::before, &::after {
+                position: absolute;
+                content: '';
+                background: currentColor;
+            }
+        }
+    }
+
+    &.is-horizontal > .inner-resizer > .inner-affordance {
+        &::before, &::after {
+            height: 1em;
+            width: var(--line-weight);
+            top: 0;
+        }
+        &::before {
+            left: var(--line-pos);
+        }
+        &::after {
+            right: var(--line-pos);
+        }
+    }
+    &.is-vertical > .inner-resizer > .inner-affordance {
+        &::before, &::after {
+            width: 1em;
+            height: var(--line-weight);
+            left: 0;
+        }
+        &::before {
+            top: var(--line-pos);
+        }
+        &::after {
+            bottom: var(--line-pos);
+        }
+    }
+
+    &.is-vertical {
+        flex-direction: column;
+
+        & > .inner-resizer {
+            cursor: row-resize;
+
+            &::before {
+                transform: scaleY(0);
+            }
+            &:hover::before {
+                transform: scaleY(0.5);
+            }
+        }
+    }
+}

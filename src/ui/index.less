@@ -1,0 +1,110 @@
+@font-face {
+    font-family: 'Atkinson Hyperlegible';
+    src: url('../assets/AtkinsonHyperlegible-Regular.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Atkinson Hyperlegible';
+    font-style: italic;
+    src: url('../assets/AtkinsonHyperlegible-Italic.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Atkinson Hyperlegible';
+    font-weight: bold;
+    src: url('../assets/AtkinsonHyperlegible-Bold.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Atkinson Hyperlegible';
+    font-weight: bold;
+    font-style: italic;
+    src: url('../assets/AtkinsonHyperlegible-BoldItalic.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'League Mono';
+    // I don't know what version of League Mono this is, so this is stolen from cohost
+    src: url('../assets/cohost-leaguemono.woff') format('woff');
+}
+
+html {
+    font-family: 'Atkinson Hyperlegible', system-ui, sans-serif;
+
+    --cohost-bg: rgb(255 249 242);
+    --cohost-dark-bg: rgb(25 25 25);
+    --accent: #7960df;
+    --accent-content-fg: white;
+    --item-bg: #eee;
+    --item-selected-bg: #ddd;
+    --separator: rgba(0, 0, 0, 0.2);
+    --dialog-bg: #eee;
+    --dialog-outline: rgba(0, 0, 0, 0.2);
+    --graph-node-bg: rgba(0, 0, 0, 0.2);
+    --graph-node-selected-bg: rgba(0, 0, 0, 0.3);
+    --graph-connection: rgba(0, 0, 0, 0.7);
+    --graph-connection-highlighted: var(--accent);
+
+    background: #ddd;
+
+    @media (prefers-color-scheme: dark) {
+        background: #222;
+        color: white;
+        color-scheme: dark;
+        --item-bg: rgba(255, 255, 255, 0.1);
+        --item-selected-bg: rgba(255, 255, 255, 0.15);
+        --separator: rgba(255, 255, 255, 0.2);
+        --dialog-bg: #333;
+        --dialog-outline: rgba(255, 255, 255, 0.5);
+        --graph-node-bg: rgba(255, 255, 255, 0.2);
+        --graph-node-selected-bg: rgba(255, 255, 255, 0.3);
+        --graph-connection: rgba(255, 255, 255, 0.5);
+        --graph-connection-highlighted: white;
+    }
+}
+
+#prechoster-root {
+    position: fixed;
+    inset: 0;
+
+    .prechoster {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+
+        & > .menu-bar {
+            flex-shrink: 0;
+            background: black;
+            color: white;
+            font-size: smaller;
+            padding: 0.2em;
+
+            button {
+                background: none;
+                font: inherit;
+                color: inherit;
+                border: none;
+                padding: .2em .3em;
+                border-radius: .5em;
+                margin: 0;
+
+                &:disabled {
+                    opacity: 0.5;
+                }
+
+                &:active {
+                    background: rgba(255, 255, 255, 0.3);
+                }
+            }
+        }
+
+        & > .split-panel {
+            flex: 1;
+            flex-basis: 0;
+            height: 0;
+        }
+
+        .top-preview {
+            box-sizing: border-box;
+            padding: 1em;
+            overflow: auto;
+        }
+    }
+}

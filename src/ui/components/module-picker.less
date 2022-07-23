@@ -1,0 +1,60 @@
+.module-picker-items {
+    width: 400px;
+
+    .module-picker-item {
+        padding: .75em 1em;
+        display: flex;
+        gap: 0.5em;
+        align-items: center;
+        position: relative;
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 1em;
+            right: 1em;
+            border-bottom: 1px solid var(--separator);
+        }
+
+        & > .i-details {
+            flex: 1;
+
+            h3, p {
+                margin: 0;
+            }
+            h3 {
+                font-size: inherit;
+            }
+            p {
+                font-size: smaller;
+            }
+        }
+
+        & > .i-add-button {
+            width: 2.3em;
+            height: 2.3em;
+            background: var(--separator);
+            border: none;
+            padding: 0;
+            margin: 0;
+            color: inherit;
+            position: relative;
+            border-radius: 50%;
+
+            &::before, &::after {
+                content: '';
+                position: absolute;
+                width: 1.2em;
+                height: 2px;
+                background: currentColor;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+            &::after {
+                transform: translate(-50%, -50%) rotate(90deg);
+            }
+        }
+    }
+}
