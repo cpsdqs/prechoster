@@ -80,7 +80,7 @@ html {
                 background: none;
                 font: inherit;
                 color: inherit;
-                border: none;
+                border: 1px solid transparent;
                 padding: .2em .3em;
                 border-radius: .5em;
                 margin: 0;
@@ -91,6 +91,19 @@ html {
 
                 &:active {
                     background: rgba(255, 255, 255, 0.3);
+                }
+
+                &.is-drop-highlighted {
+                    background: rgba(255, 255, 255, 0.3);
+                    animation: menu-bar-button-drop-highlight .5s infinite;
+                    @keyframes menu-bar-button-drop-highlight {
+                        0%, 100% {
+                            border-color: white;
+                        }
+                        50% {
+                            border-color: fade(white, 50%);
+                        }
+                    }
                 }
             }
         }

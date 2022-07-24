@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { PureComponent, useState } from 'preact/compat';
+import { Fragment, PureComponent, useState } from 'preact/compat';
 import { SplitPanel } from './components/split-panel';
 import { ModuleList } from './components/module-list';
 import { ModuleGraph } from './components/module-graph';
@@ -59,6 +59,7 @@ export default class Prechoster extends PureComponent<Prechoster.Props, Prechost
         this.setState({ rendering: true });
 
         try {
+            await this.props.document.resolveUnloaded();
             const rendered = await this.props.document.evalMdOutput();
 
             if (renderId !== this.renderId) return;
@@ -79,6 +80,7 @@ export default class Prechoster extends PureComponent<Prechoster.Props, Prechost
                 <div class="menu-bar">
                     <button disabled={!doc.canUndo} onClick={() => doc.undo()}>undo</button>
                     <button disabled={!doc.canRedo} onClick={() => doc.redo()}>redo</button>
+                    <SaveLoad document={doc} />
                 </div>
                 <SplitPanel initialPos={Math.min(0.7, Math.max(500 / innerWidth, 1 - 700 / innerWidth))}>
                     <ModuleList
@@ -107,4 +109,115 @@ namespace Prechoster {
     export interface Props {
         document: Document;
     }
+}
+
+function SaveLoad({ document }: { document: Document }) {
+    const [hoveringWithFile, setHoveringWithFile] = useState(false);
+
+    const onLoadDragEnter = () => {
+        setHoveringWithFile(true);
+    };
+    const onLoadDragLeave = () => {
+        setHoveringWithFile(false);
+    };
+    const onLoadDragOver = (e: DragEvent) => {
+        e.preventDefault();
+    };
+    const loadFile = (file: File) => {
+        return new Promise<void>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.addEventListener('load', () => {
+                try {
+                    const result = JSON.parse(reader.result as string);
+                    document.cloneFrom(Document.deserialize(result));
+                    resolve();
+                } catch (err) {
+                    reject(new Error('could not parse file as JSON\n\n' + err));
+                }
+            });
+            reader.addEventListener('error', () => {
+                reject(new Error('could not read file\n\n' + reader.error));
+            });
+            reader.readAsText(file);
+        });
+    };
+
+    const onLoadDrop = async (e: DragEvent) => {
+        setHoveringWithFile(false);
+        e.preventDefault();
+
+        let didRead = false;
+        let errors: unknown[] = [];
+        for (let i = 0; i < e.dataTransfer!.items.length; i++) {
+            const item = e.dataTransfer!.items[i];
+
+            if (item.kind === 'file') {
+                try {
+                    await loadFile(item.getAsFile()!);
+                    didRead = true;
+                    break;
+                } catch (err) {
+                    errors.push(err);
+                }
+            } else if (item.kind === 'string') {
+                try {
+                    const asString = await new Promise<string>(resolve => {
+                        item.getAsString(resolve);
+                    });
+
+                    document.cloneFrom(Document.deserialize(JSON.parse(asString)));
+                    didRead = true;
+                    break;
+                } catch (err) {
+                    errors.push(new Error(`could not parse data as JSON\n\n` + err));
+                }
+            }
+        }
+
+        if (!didRead) {
+            alert(errors.join('\n\n'));
+        }
+    };
+
+    const load = () => {
+        const input = window.document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/json';
+        input.click();
+        input.addEventListener('change', () => {
+            const file = input.files![0];
+            if (!file) {
+                return;
+            }
+        });
+    };
+    const save = () => {
+        const a = window.document.createElement('a');
+        const file = new File([JSON.stringify(document.serialize())], 'document', {
+            type: 'application/json',
+        });
+        const objectURL = a.href = URL.createObjectURL(file);
+        a.download = 'document.json';
+        a.click();
+        URL.revokeObjectURL(objectURL);
+    };
+    const loadNew = () => {
+        document.cloneFrom(new Document());
+    };
+
+    return (
+        <Fragment>
+            <button
+                className={hoveringWithFile ? 'is-drop-highlighted' : ''}
+                onDragEnter={onLoadDragEnter}
+                onDragLeave={onLoadDragLeave}
+                onDragOver={onLoadDragOver}
+                onDrop={onLoadDrop}
+                onClick={load}>
+                load file
+            </button>
+            <button onClick={save}>save file</button>
+            <button onClick={loadNew}>new file</button>
+        </Fragment>
+    );
 }

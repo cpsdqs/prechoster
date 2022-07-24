@@ -1,8 +1,7 @@
 import { AnyComponent } from 'preact';
+import { MODULES } from './plugins';
 
-export interface ShallowClone {
-    shallowClone(): this;
-}
+export type JsonValue = null | boolean | number | string | JsonValue[] | { [k: string]: JsonValue };
 
 type DocEvalState = {
     steps: number,
@@ -15,7 +14,7 @@ export const MAX_HISTORY_LEN = 300;
 export const MOD_OUTPUT: ModuleId = 'output';
 
 export class Document extends EventTarget {
-    history: Module<unknown>[][] = [[]];
+    history: AnyModule[][] = [[]];
     historyCursor = 0;
 
     get modules() {
@@ -53,7 +52,7 @@ export class Document extends EventTarget {
     emitChange() {
         this.dispatchEvent(new CustomEvent('change'));
     }
-    setModules(modules: Module<unknown>[]) {
+    setModules(modules: AnyModule[]) {
         if (!modules) throw new Error('setModules argument missing');
         this.history[this.historyCursor] = modules;
         this.emitChange();
@@ -81,7 +80,7 @@ export class Document extends EventTarget {
     }
 
     /** Lazily evaluates the output of the given module. */
-    cacheEvalModule<T>(mod: Module<T>, state: DocEvalState) {
+    cacheEvalModule<T extends JsonValue>(mod: Module<T>, state: DocEvalState) {
         if (!state.cache.has(mod.id)) {
             if (++state.steps > MAX_EVAL_STEPS) throw new Error('exceeded max eval step limit');
 
@@ -174,9 +173,38 @@ export class Document extends EventTarget {
 
         return { markdown, nodes };
     }
+
+    async resolveUnloaded() {
+        for (const module of this.modules) {
+            if (module.plugin instanceof UnloadedPlugin) {
+                if (MODULES[module.plugin.id]) {
+                    module.plugin = await MODULES[module.plugin.id].load();
+                } else {
+                    throw new Error(`Unknown plugin ${module.plugin.id}`);
+                }
+            }
+        }
+    }
+
+    cloneFrom(doc: Document) {
+        this.beginChange();
+        this.setModules(doc.modules);
+    }
+
+    static deserialize(_data: JsonValue): Document {
+        const data = _data as any; // just assume it's fine
+
+        const doc = new Document();
+        doc.setModules(data.modules.map((module: JsonValue) => Module.deserialize(doc, module)));
+        return doc;
+    }
+
+    serialize(): JsonValue {
+        return { modules: this.modules.map(module => module.serialize()) };
+    }
 }
 
-export class Module<T> implements ShallowClone {
+export class Module<T extends JsonValue> {
     /** The module ID; used to refer to this module from elsewhere. */
     id: ModuleId = Module.genModuleId();
     /** The data for this module plugin. */
@@ -205,9 +233,37 @@ export class Module<T> implements ShallowClone {
         mod.namedSends = this.namedSends;
         return mod as this;
     }
+
+    static deserialize(document: Document, _data: JsonValue): Module<JsonValue> {
+        // just assume it's fine
+        const data = _data as any;
+
+        const module = new Module(new UnloadedPlugin(data.pluginId, document), data.data);
+        module.id = data.id;
+        module.sends = data.sends;
+        for (const k in data.namedSends) {
+            module.namedSends.set(k, new Set(data.namedSends[k]));
+        }
+        // TODO: validate sends
+        return module;
+    }
+
+    serialize(): JsonValue {
+        const namedSends: JsonValue = {};
+        for (const [k, v] of this.namedSends) namedSends[k] = [...v];
+
+        return {
+            id: this.id,
+            data: this.data,
+            pluginId: this.plugin.id,
+            sends: this.sends,
+            namedSends,
+        };
+    }
 }
 
 export type ModuleId = string;
+export type AnyModule = Module<JsonValue>;
 
 export type NamedSends = Map<ModuleId, Set<string>>;
 export type NamedInputData = Map<string, Data>;
@@ -231,6 +287,29 @@ export interface ModulePlugin<T> {
     description(data: T): string;
 
     eval(data: T, inputs: Data[], namedInputs: NamedInputData): Promise<Data>;
+}
+
+export class UnloadedPlugin implements ModulePlugin<JsonValue> {
+    id: string;
+    acceptsInputs = false;
+    acceptsNamedInputs = false;
+    document: Document;
+    constructor(id: string, document: Document) {
+        this.id = id;
+        this.document = document;
+    }
+    component() {
+        return null;
+    }
+    initialData(): JsonValue {
+        throw new Error('plugin not loaded');
+    }
+    description() {
+        return 'Loading';
+    }
+    eval(): Promise<Data> {
+        throw new Error('plugin not loaded');
+    }
 }
 
 export interface ModulePluginProps<T> {

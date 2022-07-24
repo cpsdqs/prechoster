@@ -1,54 +1,47 @@
 import { h, render } from 'preact';
-import { Document, Module, MOD_OUTPUT } from './document';
+import { Document, Module, AnyModule, JsonValue, MOD_OUTPUT } from './document';
 import { MODULES } from './plugins';
 import Prechoster from './ui';
 
-async function initDefaultDoc() {
-    const doc = new Document();
-    const text = await MODULES['source.text'].load();
-    const styleInliner = await MODULES['transform.style-inliner'].load();
-    const svgToBgs = await MODULES['transform.svg-to-background'].load();
-    const lesscss = await MODULES['source.lesscss'].load();
-    const fileDataUrl = await MODULES['source.file-data-url'].load();
+const localStorageName = 'prechosterDocument';
 
-    const svgToBgsModule = new Module(svgToBgs);
-    svgToBgsModule.sends.push(MOD_OUTPUT);
+async function init() {
+    try {
+        if (window.localStorage[localStorageName]) {
+            return Document.deserialize(JSON.parse(window.localStorage[localStorageName]));
+        }
+    } catch {
+        console.warn('could not read document from local storage');
+    }
 
-    const inliner = new Module(styleInliner);
-    inliner.sends.push(svgToBgsModule.id);
-
-    const htmlModule = new Module(text);
-    htmlModule.data.language = 'html';
-    htmlModule.data.contents = `<div class="a-thing">\n  get\n  <span class="spaced-out">preprocessed</span>!!!\n</div>`;
-    htmlModule.sends.push(inliner.id);
-
-    const cssModule = new Module(text);
-    cssModule.data.language = 'css';
-    cssModule.data.contents = `.a-thing {\n  color: red;\n}\n.spaced-out {\n  letter-spacing: 0.06em;\n}`;
-    cssModule.sends.push(inliner.id);
-
-    const lesscssModule = new Module(lesscss);
-    lesscssModule.data.contents = '.a-thing {\n  background: url(@eggbug);\n  background-repeat: no-repeat;\n  background-position: right center;\n}';
-    lesscssModule.sends.push(inliner.id);
-
-    const fduModule = new Module(fileDataUrl);
-    fduModule.data.url = `data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+Cjxzdmcgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDE2OCAxODIiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgeG1sbnM6c2VyaWY9Imh0dHA6Ly93d3cuc2VyaWYuY29tLyIgc3R5bGU9ImZpbGwtcnVsZTpldmVub2RkO2NsaXAtcnVsZTpldmVub2RkO3N0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1taXRlcmxpbWl0OjI7Ij4KICAgIDxnIHRyYW5zZm9ybT0ibWF0cml4KDEsMCwwLDEsLTQ5LC0zMikiPgogICAgICAgIDxnIHRyYW5zZm9ybT0ibWF0cml4KDAuMjU2MTkyLDAsMCwwLjI2OTAzLDg2NS44MzEsMjU4LjAzNikiPgogICAgICAgICAgICA8ZyB0cmFuc2Zvcm09Im1hdHJpeCgtMS4zMDAzMSwwLDAsMS4yODI0LC01MjA0LjQyLC0xNS4xMTc5KSI+CiAgICAgICAgICAgICAgICA8cGF0aCBkPSJNLTE2MDMsLTIwNC41NzFDLTE1NzguNTgsLTIwNC4yODEgLTE1NjguNjQsLTE4OS41MDIgLTE1NjUuOTMsLTE2Ny41MDIiIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOnJnYigyNSwyNSwyNSk7c3Ryb2tlLXdpZHRoOjExLjM4cHg7Ii8+CiAgICAgICAgICAgIDwvZz4KICAgICAgICAgICAgPGcgdHJhbnNmb3JtPSJtYXRyaXgoLTEuMjk3MywtMC45NTM1ODIsLTAuOTY2OTAyLDEuMjc5NDMsLTQ2MTUuOTksLTgxNS44OSkiPgogICAgICAgICAgICAgICAgPHBhdGggZD0iTS05MzksLTQ4NkMtOTM5LC00ODYgLTkwMi4wOTcsLTY1OS45MDYgLTc5NiwtNTk3Qy02ODkuOTAzLC01MzQuMDk0IC05MjYuMDg4LC00NjYuNzg5IC05MjksLTQ2OCIgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6cmdiKDI1LDI1LDI1KTtzdHJva2Utd2lkdGg6OS4zcHg7Ii8+CiAgICAgICAgICAgIDwvZz4KICAgICAgICAgICAgPGcgdHJhbnNmb3JtPSJtYXRyaXgoODE2LjY1MywtMjQwLjY5OSwyNDQuMDYxLDgwNS40MDMsLTMyMjYuOTIsLTExMC42OTQpIj4KICAgICAgICAgICAgICAgIDxwYXRoIGQ9Ik0wLjUyNSwwLjAxMUMwLjQ1MywwLjAxMSAwLjM4OCwwLjAwMSAwLjMyOSwtMC4wMThDMC4yNzEsLTAuMDM4IDAuMjI0LC0wLjA2NyAwLjE5LC0wLjEwNkMwLjE1NSwtMC4xNDQgMC4xMzgsLTAuMTkzIDAuMTM4LC0wLjI1MUMwLjEzOCwtMC4zMSAwLjE1NSwtMC4zNTggMC4xOSwtMC4zOTdDMC4yMjQsLTAuNDM1IDAuMjcxLC0wLjQ2NCAwLjMyOSwtMC40ODNDMC4zODgsLTAuNTAyIDAuNDUzLC0wLjUxMiAwLjUyNSwtMC41MTJDMC41OTcsLTAuNTEyIDAuNjYyLC0wLjUwMiAwLjcyLC0wLjQ4M0MwLjc3OCwtMC40NjQgMC44MjUsLTAuNDM1IDAuODYsLTAuMzk2QzAuODk0LC0wLjM1OCAwLjkxMiwtMC4zMDkgMC45MTIsLTAuMjUxQzAuOTEyLC0wLjE5MyAwLjg5NCwtMC4xNDQgMC44NiwtMC4xMDZDMC44MjUsLTAuMDY3IDAuNzc4LC0wLjAzOCAwLjcyLC0wLjAxOEMwLjY2MiwwLjAwMSAwLjU5NywwLjAxMSAwLjUyNSwwLjAxMVoiIHN0eWxlPSJmaWxsOnJnYigxMzEsMzcsNzkpO2ZpbGwtcnVsZTpub256ZXJvOyIvPgogICAgICAgICAgICA8L2c+CiAgICAgICAgICAgIDxnIHRyYW5zZm9ybT0ibWF0cml4KDEuMzAwMzEsMCwwLDEuMjgyNCwtOTMyLjM4MSwtMzA4LjAyKSI+CiAgICAgICAgICAgICAgICA8Y2lyY2xlIGN4PSItMTY2OS41IiBjeT0iLTc0LjUiIHI9IjE3LjUiIHN0eWxlPSJmaWxsOnJnYigyNSwyNSwyNSk7c3Ryb2tlOnJnYigyNSwyNSwyNSk7c3Ryb2tlLXdpZHRoOjExLjM4cHg7c3Ryb2tlLWxpbmVjYXA6c3F1YXJlO3N0cm9rZS1saW5lam9pbjpyb3VuZDsiLz4KICAgICAgICAgICAgPC9nPgogICAgICAgICAgICA8ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLjMwMDMxLDAsMCwxLjI4MjQsLTgwMS4wNSwtMjg1LjU3OCkiPgogICAgICAgICAgICAgICAgPGNpcmNsZSBjeD0iLTE2NjkuNSIgY3k9Ii03NC41IiByPSIxNy41IiBzdHlsZT0iZmlsbDpyZ2IoMjUsMjUsMjUpO3N0cm9rZTpyZ2IoMjUsMjUsMjUpO3N0cm9rZS13aWR0aDoxMS4zOHB4O3N0cm9rZS1saW5lY2FwOnNxdWFyZTtzdHJva2UtbGluZWpvaW46cm91bmQ7Ii8+CiAgICAgICAgICAgIDwvZz4KICAgICAgICAgICAgPGcgdHJhbnNmb3JtPSJtYXRyaXgoMS42MTc5OSwwLDAsMS41OTU3LC0xMzE2LjYzLDIyMy4yNjMpIj4KICAgICAgICAgICAgICAgIDxwYXRoIGQ9Ik0tOTM5LC00ODZDLTkzOSwtNDg2IC05MDIuMDk3LC02NTkuOTA2IC03OTYsLTU5N0MtNjg5LjkwMywtNTM0LjA5NCAtOTI2LjA4OCwtNDY2Ljc4OSAtOTI5LC00NjgiIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOnJnYigyNSwyNSwyNSk7c3Ryb2tlLXdpZHRoOjkuMTVweDsiLz4KICAgICAgICAgICAgPC9nPgogICAgICAgICAgICA8ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLjMwMDMxLDAsMCwxLjI4MjQsLTc3NS42MjksMzQuMTM4NikiPgogICAgICAgICAgICAgICAgPHBhdGggZD0iTS0xNjAzLC0yMDQuNTcxQy0xNTc4LjU4LC0yMDQuMjgxIC0xNTY4LjY0LC0xODkuNTAyIC0xNTY1LjkzLC0xNjcuNTAyIiBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTpyZ2IoMjUsMjUsMjUpO3N0cm9rZS13aWR0aDoxMS4zOHB4OyIvPgogICAgICAgICAgICA8L2c+CiAgICAgICAgICAgIDxnIHRyYW5zZm9ybT0ibWF0cml4KDEuMzAwMzEsMCwwLDEuMjgyNCwtNjYxLjg4OCwtMTMuMzk5OCkiPgogICAgICAgICAgICAgICAgPHBhdGggZD0iTS0xNjAzLC0yMDQuNTcxQy0xNTc4LjU4LC0yMDQuMjgxIC0xNTY4LjY0LC0xODkuNTAyIC0xNTY1LjkzLC0xNjcuNTAyIiBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTpyZ2IoMjUsMjUsMjUpO3N0cm9rZS13aWR0aDoxMS4zOHB4OyIvPgogICAgICAgICAgICA8L2c+CiAgICAgICAgICAgIDxnIHRyYW5zZm9ybT0ibWF0cml4KDEuMjU3NywtMC4zMjU1OTksMC4zMzAxNDcsMS4yNDAzNywtNTc3LjYwMiwtNTc5LjU2KSI+CiAgICAgICAgICAgICAgICA8cGF0aCBkPSJNLTE2MDMsLTIwNC41NzFDLTE1NzguNTgsLTIwNC4yODEgLTE1NjguNjQsLTE4OS41MDIgLTE1NjUuOTMsLTE2Ny41MDIiIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOnJnYigyNSwyNSwyNSk7c3Ryb2tlLXdpZHRoOjExLjQ4cHg7Ii8+CiAgICAgICAgICAgIDwvZz4KICAgICAgICAgICAgPGcgdHJhbnNmb3JtPSJtYXRyaXgoMC44NDcyMDMsMC4wNjA3Nzc4LC0wLjA2MTYyNjcsMC44MzU1MzMsLTIwNDguMDcsLTE3MS4zODUpIj4KICAgICAgICAgICAgICAgIDxwYXRoIGQ9Ik0tMTIyNSwtMTIwQy0xMjI0LjkyLC0xMTguODg3IC0xMjEwLjk5LC0xMDUuNTIzIC0xMTk0LC0xMjBDLTExOTMuNDcsLTEyMC4xMzYgLTExNzkuNTMsLTEwNi4yNDEgLTExNjMuMTQsLTExOS4xNCIgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6cmdiKDI1LDI1LDI1KTtzdHJva2Utd2lkdGg6MTcuMzhweDtzdHJva2UtbGluZWpvaW46cm91bmQ7Ii8+CiAgICAgICAgICAgIDwvZz4KICAgICAgICA8L2c+CiAgICA8L2c+Cjwvc3ZnPgo=`;
-    fduModule.namedSends.set(lesscssModule.id, new Set(['eggbug']));
-
-    doc.modules.push(htmlModule as Module<unknown>);
-    doc.modules.push(cssModule as Module<unknown>);
-    doc.modules.push(fduModule as Module<unknown>);
-    doc.modules.push(lesscssModule as Module<unknown>);
-    doc.modules.push(inliner as Module<unknown>);
-    doc.modules.push(svgToBgsModule as Module<unknown>);
-
-    return doc;
+    const res = await fetch(new URL('../assets/default-doc.json', import.meta.url));
+    if (!res.ok) throw new Error(await res.text());
+    const result = await res.json();
+    return Document.deserialize(result);
 }
 
 const container = document.createElement('div');
 container.id = 'prechoster-root';
 document.body.appendChild(container);
 
-initDefaultDoc().then(doc => {
+init().then(doc => {
+    let scheduledSave = false;
+    const scheduleSave = () => {
+        if (scheduledSave) return;
+        scheduledSave = true;
+        setTimeout(() => {
+            scheduledSave = false;
+            try {
+                window.localStorage[localStorageName] = JSON.stringify(doc.serialize());
+            } catch {}
+        }, 1000);
+    };
+
+    doc.addEventListener('change', () => {
+        scheduleSave();
+    });
+
     render(<Prechoster document={doc} />, container);
+}).catch(err => {
+    alert('Error during initialization\n\n' + err);
 });

@@ -1,16 +1,16 @@
 import { h, createRef, VNode } from 'preact';
 import { PureComponent } from 'preact/compat';
-import { Document, Module, ModuleId, Data, MOD_OUTPUT } from '../../document';
+import { Document, Module, ModuleId, AnyModule, Data, MOD_OUTPUT } from '../../document';
 import './module-graph.less';
 
-function toposortDoc(doc: Document, backwards: boolean = false): Module<unknown>[] {
+function toposortDoc(doc: Document, backwards: boolean = false): AnyModule[] {
     const indexedNodes = new Map();
     for (const node of doc.modules) indexedNodes.set(node.id, node);
     const unmarkedNodes = new Set(doc.modules);
     const tmpMarkedNodes = new Set();
-    const sorted: Module<unknown>[] = [];
+    const sorted: AnyModule[] = [];
 
-    const visit = (node: Module<unknown>) => {
+    const visit = (node: AnyModule) => {
         if (!unmarkedNodes.has(node)) return;
         if (tmpMarkedNodes.has(node)) return;
         tmpMarkedNodes.add(node);
@@ -52,12 +52,12 @@ type NodeLayout = {
     namedInputs: Set<string>,
 };
 type GraphLayout = {
-    columns: Module<unknown>[][],
+    columns: AnyModule[][],
     layouts: Map<ModuleId, NodeLayout>,
     indices: Map<ModuleId, number>,
 };
 function layoutNodes(doc: Document): GraphLayout {
-    const columns: Module<unknown>[][] = [];
+    const columns: AnyModule[][] = [];
     const nodeLayouts = new Map<ModuleId, NodeLayout>();
 
     const indices = new Map();
@@ -207,7 +207,7 @@ function GraphColumn({ column, layout, selected, onSelect, nodeOutputs }: GraphC
 }
 namespace GraphColumn {
     export interface Props {
-        column: Module<unknown>[];
+        column: AnyModule[];
         layout: GraphLayout;
         selected: ModuleId | null;
         onSelect: (m: ModuleId | null) => void;
@@ -249,7 +249,7 @@ function ModuleItem({ index, module, namedInputs, selected, onSelect, currentOut
 namespace ModuleItem {
     export interface Props {
         index: number;
-        module: Module<unknown>;
+        module: AnyModule;
         namedInputs: Set<string>;
         selected?: boolean;
         onSelect: () => void;

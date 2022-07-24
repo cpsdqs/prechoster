@@ -1,6 +1,16 @@
 import { h, createRef, AnyComponent } from 'preact';
 import { PureComponent, useState, useRef } from 'preact/compat';
-import { Document, Module, ModuleId, ModulePlugin, ModulePluginProps, NamedSends, MOD_OUTPUT } from '../../document';
+import {
+    Document,
+    Module,
+    ModuleId,
+    AnyModule,
+    JsonValue,
+    ModulePlugin,
+    ModulePluginProps,
+    NamedSends,
+    MOD_OUTPUT,
+} from '../../document';
 import { ModulePicker } from './module-picker';
 import './module-list.less';
 
@@ -131,7 +141,7 @@ namespace ModuleList {
     }
 }
 
-function AddModule({ onAdd }: { onAdd: (m: Module<unknown>) => void }) {
+function AddModule({ onAdd }: { onAdd: (m: AnyModule) => void }) {
     const [open, setOpen] = useState(false);
     const button = useRef<HTMLElement>();
 
@@ -175,7 +185,7 @@ function ModuleItem({ document, index, module, onSelect, onChange, onMove, onRem
                 <Editor
                     data={module.data}
                     namedInputKeys={new Set(document.findModuleInputIds(module.id).namedInputs.keys())}
-                    onChange={(data: unknown) => {
+                    onChange={(data: JsonValue) => {
                         const mod = module.shallowClone();
                         mod.data = data;
                         onChange(mod);
@@ -206,9 +216,9 @@ namespace ModuleItem {
     export interface Props {
         document: Document;
         index: number;
-        module: Module<unknown>;
+        module: AnyModule;
         onSelect: () => void;
-        onChange: (m: Module<unknown>) => void;
+        onChange: (m: AnyModule) => void;
         onMove: (delta: number) => void;
         onRemove: () => void;
         selection: ModuleSelection;

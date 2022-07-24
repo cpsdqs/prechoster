@@ -1,7 +1,7 @@
 import { h } from 'preact';
 import { Popover } from './popover';
 import { ModuleDef, MODULES } from '../../plugins';
-import { ModulePlugin } from '../../document';
+import { ModulePlugin, JsonValue } from '../../document';
 import './module-picker.less';
 
 export function ModulePicker({ open, anchor, onClose, onPick }: ModulePicker.Props) {
@@ -25,7 +25,7 @@ namespace ModulePicker {
         open: boolean;
         anchor?: HTMLElement | null;
         onClose: () => void;
-        onPick: (m: ModulePlugin<unknown>) => void;
+        onPick: (m: ModulePlugin<JsonValue>) => void;
     }
 }
 

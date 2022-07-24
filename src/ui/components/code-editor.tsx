@@ -28,7 +28,10 @@ export class CodeEditor extends PureComponent<CodeEditor.Props> {
             <div class="code-editor">
                 <CodeMirror
                     value={value}
-                    onChange={onChange}
+                    onChange={(newValue: string) => {
+                        if (newValue === value) return;
+                        onChange(newValue);
+                    }}
                     theme={theme}
                     extensions={extensions} />
             </div>
