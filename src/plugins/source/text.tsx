@@ -10,13 +10,14 @@ import {
     PlainTextData,
 } from '../../document';
 import { CodeEditor } from '../../ui/components/code-editor';
+import { EditorView } from '@codemirror/view';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
 import { javascript } from '@codemirror/lang-javascript';
 
 const LANGUAGES: { [k: string]: () => unknown[] } = {
     text: () => [],
-    html: () => [html()],
+    html: () => [html(), EditorView.lineWrapping],
     css: () => [css()],
     javascript: () => [javascript()],
 };

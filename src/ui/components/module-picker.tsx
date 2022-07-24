@@ -36,7 +36,7 @@ function Module({ module, onPick }: { module: ModuleDef, onPick: () => void }) {
                 <h3>{module.title}</h3>
                 <p>{module.description}</p>
             </div>
-            <button class="i-add-button" onClick={onPick}></button>
+            <button class="i-add-button" onClick={onPick} aria-label="Select" />
         </div>
     );
 }

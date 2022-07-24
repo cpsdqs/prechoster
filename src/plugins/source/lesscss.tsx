@@ -5,12 +5,12 @@ import { CodeEditor } from '../../ui/components/code-editor';
 import { css } from '@codemirror/lang-css';
 import './lesscss.less';
 
-// @ts-ignore-line
+// @ts-ignore
 import Less from 'less/lib/less';
-// @ts-ignore-line
+// @ts-ignore
 import apl from 'less/lib/less/environment/abstract-plugin-loader';
 
-// I have no idea what's going on here. sometimes it resolve to default and sometimes it doesn’t.
+// I have no idea what's going on here. sometimes rollup resolves it to default and sometimes it doesn’t
 const AbstractPluginLoader = apl.default || apl;
 
 const less = Less();
@@ -71,6 +71,7 @@ export default {
                 eval: () => ({
                     value: plain.contents.trim(),
                     genCSS: (context: any, output: any) => output.add(plain.contents.trim()),
+                    toCSS: () => plain.contents.trim(),
                 }),
             };
         }

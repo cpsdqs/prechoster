@@ -1,7 +1,7 @@
 import { h } from 'preact';
 import { PureComponent } from 'preact/compat';
 import { ModulePlugin, ModulePluginProps, HtmlData, Data } from '../../document';
-// @ts-ignore-line
+// @ts-ignore
 import { optimize } from 'svgo/dist/svgo.browser';
 
 export type SvgToBackgroundData = {

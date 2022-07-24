@@ -10,6 +10,7 @@ type SvelteComponents = Map<string, { contents: string }>;
 
 let worker: Worker | null = null;
 
+/** Bundles Svelte components into one Javascript file. */
 function bundleComponents(components: SvelteComponents, main: string): Promise<string> {
     return new Promise((resolve, reject) => {
         if (!worker) {
@@ -87,8 +88,8 @@ export default {
         return 'Svelte';
     },
     async eval(data: SveltePluginData, inputs: Data[], namedInputs: NamedInputData) {
+        // don't collide with user variables for the entry point
         const componentName = `Main${Math.random().toString(36).replace(/[^\w]/g, '')}`;
-        const messageId = Math.random().toString(36);
 
         const components: SvelteComponents = new Map();
         components.set(componentName, data);
@@ -98,8 +99,9 @@ export default {
 
         const jsUrl = `data:application/javascript;base64,${btoa(script)}`;
 
+        // run the script inside of an invisible iframe
         const iframe = document.createElement('iframe');
-        iframe.setAttribute('sandbox', 'allow-popups-to-escape-sandbox allow-scripts allow-popups allow-forms allow-pointer-lock allow-top-navigation allow-modals');
+        iframe.setAttribute('sandbox', 'allow-scripts allow-popups allow-modals');
         iframe.className = 'svelte-execution-sandbox';
         Object.assign(iframe.style, {
             position: 'fixed',
@@ -125,6 +127,8 @@ window.addEventListener('message', e => {
 
         try {
             const result = await new Promise<any>((resolve, reject) => {
+                const messageId = Math.random().toString(36);
+
                 let didReturn = false;
                 const onMessage = (e: MessageEvent) => {
                     if (e.data.id === messageId) {
@@ -152,12 +156,14 @@ window.process = { env: { NODE_ENV: "production" } };
     const svelteScript = document.createElement('script');
     svelteScript.src = "${jsUrl}";
 
+    // called by the svelteScript (see above)
     window.${componentName}_init = function(component) {
         new component.default({
             target: document.body,
             props: {},
         });
 
+        // send rendered HTML back to parent
         setTimeout(() => {
             window.parent.postMessage({
                 id: messageId,
@@ -177,7 +183,7 @@ window.process = { env: { NODE_ENV: "production" } };
                         reject(new Error('Svelte execution timed out'));
                         window.removeEventListener('message', onMessage);
                     }
-                }, 100000);
+                }, 1000);
             });
 
             iframe.remove();

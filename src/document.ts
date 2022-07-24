@@ -257,6 +257,20 @@ export abstract class Data {
     abstract typeDescription(): string;
 }
 
+export class ByteSliceData extends Data {
+    type = 'application/octet-stream';
+    contents: Uint8Array;
+
+    constructor(contents: Uint8Array) {
+        super();
+        this.contents = contents;
+    }
+
+    typeDescription() {
+        return '[u8]';
+    }
+}
+
 export class PlainTextData extends Data {
     typeId = 'text/plain';
     contents: string;
@@ -264,6 +278,16 @@ export class PlainTextData extends Data {
     constructor(contents: string) {
         super();
         this.contents = contents;
+    }
+
+    into<T extends Data>(type: Class<T>): T | null {
+        if (this instanceof type) {
+            return this as unknown as T;
+        }
+        if (type === ByteSliceData as Class<unknown> as Class<T>) {
+            return new ByteSliceData(new TextEncoder().encode(this.contents)) as unknown as T;
+        }
+        return null;
     }
 
     typeDescription() {
