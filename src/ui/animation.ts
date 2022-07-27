@@ -76,6 +76,8 @@ export class Spring {
     }
 
     update(dt: number) {
+        if (Number.isNaN(this.value)) this.value = this.target;
+
         this.timeLeft += Math.max(0, Math.min(1, dt));
 
         while (this.timeLeft > Spring.FIXED_DT) {

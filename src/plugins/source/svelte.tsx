@@ -187,7 +187,12 @@ window.process = { env: { NODE_ENV: "production" } };
             });
 
             iframe.remove();
-            return new HtmlData(`<style>${result.styles.join('\n')}</style>` + result.html);
+
+            let html = result.html;
+            if (result.styles.length) {
+                html += `<style>${result.styles.join('\n')}</style>`;
+            }
+            return new HtmlData(html);
         } catch (err) {
             iframe.remove();
             throw err;

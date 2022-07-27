@@ -219,7 +219,15 @@ function ModuleItem({ index, module, namedInputs, selected, onSelect, currentOut
     return (
         <div
             class={'i-module-item' + (selected ? ' is-selected' : '')}
+            tabIndex={0}
+            role="button"
             data-id={module.id}
+            onKeyDown={e => {
+                if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    onSelect();
+                }
+            }}
             onClick={onSelect}
             style={{
                 width: MOD_BASE_WIDTH,

@@ -1,4 +1,5 @@
 import { h } from 'preact';
+import { useState } from 'preact/compat';
 import { Popover } from './popover';
 import { ModuleDef, MODULES } from '../../plugins';
 import { ModulePlugin, JsonValue } from '../../document';
@@ -30,13 +31,18 @@ namespace ModulePicker {
 }
 
 function Module({ module, onPick }: { module: ModuleDef, onPick: () => void }) {
+    const [titleId] = useState(Math.random().toString(36));
+
     return (
-        <div class="module-picker-item">
+        <div class="module-picker-item" aria-labelledby={titleId}>
             <div class="i-details">
-                <h3>{module.title}</h3>
+                <h3 id={titleId}>{module.title}</h3>
                 <p>{module.description}</p>
             </div>
-            <button class="i-add-button" onClick={onPick} aria-label="Select" />
+            <button
+                class="i-add-button"
+                onClick={onPick}
+                aria-label={`Select ${module.title}`} />
         </div>
     );
 }

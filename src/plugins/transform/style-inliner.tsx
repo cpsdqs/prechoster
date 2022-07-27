@@ -166,16 +166,15 @@ export default {
 
         if (data.mode === 'attr') {
             stylesToAttrs(doc);
+
+            // cleanup for cohost
+            // TODO: this should probably be a separate module
+            for (const node of doc.querySelectorAll('[class]') as unknown as Iterable<Element>) {
+                node.removeAttribute('class');
+            }
         } else if (data.mode === 'element') {
             stylesToBody(doc);
         }
-
-        // cleanup for cohost
-        // TODO: this should probably be a separate module
-        for (const node of doc.querySelectorAll('[class]') as unknown as Iterable<Element>) {
-            node.removeAttribute('class');
-        }
-
         return new HtmlData(doc.body.innerHTML);
     },
 } as ModulePlugin<StyleInlinerData>;

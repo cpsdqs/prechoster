@@ -45,7 +45,7 @@ export default class Prechoster extends PureComponent<Prechoster.Props, Prechost
 
     renderTimeout: any = null;
     scheduleRender() {
-        const debounceTime = this.props.document.wantsDebounce() ? 250 : 50;
+        const debounceTime = this.props.document.wantsDebounce() ? 500 : 250;
         clearTimeout(this.renderTimeout);
         this.renderTimeout = setTimeout(() => {
             this.renderTimeout = null;

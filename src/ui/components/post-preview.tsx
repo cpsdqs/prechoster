@@ -47,7 +47,7 @@ export function PostPreview({ markdown, error, stale }: PostPreview.Props) {
             <hr />
             <div class="post-footer">
                 <ByteSize size={html.length} />
-                <CopyToClipboard disabled={!!error} data={html} label="Copy HTML to clipboard" />
+                <CopyToClipboard disabled={!!error} data={markdown} label="Copy HTML to clipboard" />
             </div>
         </div>
     );
