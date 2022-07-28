@@ -20,13 +20,58 @@
         background: rgba(0, 0, 0, 0.2);
     }
 
+    & > .i-arrow {
+        position: absolute;
+        top: 0;
+        left: 0;
+        --arrow-size: 16px;
+        --arrow-color: var(--dialog-bg);
+
+        &::before,
+        &::after {
+            content: '';
+            position: absolute;
+            top: calc(var(--arrow-size) * -0.5);
+            left: calc(var(--arrow-size) * -0.5);
+            border: calc(var(--arrow-size) * 0.5) solid transparent;
+        }
+
+        &::before {
+            --arrow-size: 19px;
+            --arrow-color: var(--dialog-outline);
+        }
+
+        &[data-type="left"]::before,
+        &[data-type="left"]::after {
+            border-right-color: var(--arrow-color);
+            left: calc(var(--arrow-size) * -1);
+        }
+        &[data-type="top"]::before,
+        &[data-type="top"]::after {
+            border-bottom-color: var(--arrow-color);
+            top: calc(var(--arrow-size) * -1);
+        }
+        &[data-type="bottom"]::before,
+        &[data-type="bottom"]::after {
+            border-top-color: var(--arrow-color);
+            top: calc(var(--arrow-size) * -0);
+        }
+    }
+
     & > .inner-popover {
         position: absolute;
-        max-width: calc(100% - 2em);
-        max-height: calc(100% - 2em);
         background: var(--dialog-bg);
         box-shadow: 0 0.5em 1em rgba(0, 0, 0, 0.3), 0 0 0 1px var(--dialog-outline);
         border-radius: .5rem;
-        overflow: hidden auto;
+        overflow: hidden;
+
+        & > .i-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            max-width: calc(100vw - 2em);
+            max-height: calc(100vh - 4em);
+            overflow: hidden auto;
+        }
     }
 }
