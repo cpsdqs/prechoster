@@ -8,14 +8,14 @@ const predefinedModules = {
     'svelte/internal': sSvelteInternal,
 };
 
-async function bundleComponents(components, main) {
+async function bundleModules(modules, main, mainId) {
     const index = { ...predefinedModules };
-    for (const [k, component] of components) {
-        index[`./${k}.svelte`] = component.contents;
+    for (const [k, module] of modules) {
+        index[`./${k}`] = module.contents;
     }
 
     const bundle = await rollup({
-        input: `./${main}.svelte`,
+        input: `./${main}`,
         plugins: [{
             resolveId(id) {
                 if (id in index) {
@@ -45,7 +45,7 @@ async function bundleComponents(components, main) {
 
     const generated = await bundle.generate({
         format: 'iife',
-        name: main,
+        name: mainId,
         exports: 'named',
     });
     return generated.output[0].code;
@@ -53,7 +53,7 @@ async function bundleComponents(components, main) {
 
 addEventListener('message', e => {
     if (e.data.type === 'bundle') {
-        bundleComponents(e.data.components, e.data.main).then(result => {
+        bundleModules(e.data.modules, e.data.main, e.data.mainId).then(result => {
             postMessage({ id: e.data.id, success: true, result });
         }).catch(error => {
             console.error(error);

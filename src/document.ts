@@ -393,3 +393,11 @@ export class CssData extends PlainTextData {
     }
 }
 
+export class JavascriptData extends PlainTextData {
+    typeId = 'application/javascript';
+
+    typeDescription() {
+        return 'Javascript';
+    }
+}
+

@@ -50,6 +50,7 @@ export default {
     ].filter(x => x),
 };
 
+/** The `string:` loader can be used to load files as strings */
 function string() {
     const scheme = 'string:';
 
@@ -76,6 +77,7 @@ function string() {
     };
 }
 
+/** Fix svelte's incorrect use of `window`, which does not exist in web workers */
 function hackToFixSvelteWebWorker() {
     return {
         transform(code, id) {

@@ -1,17 +1,26 @@
 import { h } from 'preact';
 import { PureComponent } from 'preact/compat';
-import { ModulePlugin, ModulePluginProps, Data, NamedInputData, PlainTextData, HtmlData } from '../../document';
+import {
+    ModulePlugin,
+    ModulePluginProps,
+    Data,
+    NamedInputData,
+    PlainTextData,
+    HtmlData,
+    JavascriptData,
+} from '../../document';
 import { CodeEditor } from '../../ui/components/code-editor';
+import { SvelteComponentData } from './svelte-component';
 import { html } from '@codemirror/lang-html';
 // @ts-ignore
 import svelteWorker from 'omt:./svelte-worker.js';
 
-type SvelteComponents = Map<string, { contents: string }>;
+type SvelteModules = Map<string, { contents: string }>;
 
 let worker: Worker | null = null;
 
-/** Bundles Svelte components into one Javascript file. */
-function bundleComponents(components: SvelteComponents, main: string): Promise<string> {
+/** Bundles Svelte modules into one Javascript file. */
+function bundleModules(modules: SvelteModules, main: string, mainId: string): Promise<string> {
     return new Promise((resolve, reject) => {
         if (!worker) {
             worker = new Worker(new URL(svelteWorker, import.meta.url), {
@@ -44,8 +53,9 @@ function bundleComponents(components: SvelteComponents, main: string): Promise<s
         worker.postMessage({
             id: messageId,
             type: 'bundle',
-            components,
+            modules,
             main,
+            mainId,
         });
 
         setTimeout(() => {
@@ -65,7 +75,6 @@ class SvelteEditor extends PureComponent<ModulePluginProps<SveltePluginData>> {
     render({ data, namedInputKeys, onChange }: ModulePluginProps<SveltePluginData>) {
         return (
             <div class="plugin-less-editor">
-                TODO modules
                 <CodeEditor
                     value={data.contents}
                     onChange={contents => onChange({ ...data, contents })}
@@ -77,8 +86,8 @@ class SvelteEditor extends PureComponent<ModulePluginProps<SveltePluginData>> {
 
 export default {
     id: 'source.svelte',
-    acceptsInputs: false,
-    acceptsNamedInputs: false,
+    acceptsInputs: true,
+    acceptsNamedInputs: true,
     wantsDebounce: true,
     component: SvelteEditor as unknown, // typescript cant figure it out
     initialData(): SveltePluginData {
@@ -91,10 +100,34 @@ export default {
         // don't collide with user variables for the entry point
         const componentName = `Main${Math.random().toString(36).replace(/[^\w]/g, '')}`;
 
-        const components: SvelteComponents = new Map();
-        components.set(componentName, data);
+        const modules: SvelteModules = new Map();
+        modules.set(`${componentName}.svelte`, data);
 
-        let script = await bundleComponents(components, componentName);
+        for (const value of inputs) {
+            const component = value.into(SvelteComponentData);
+            if (!component) {
+                throw new Error(`could not convert input to svelte component`);
+            }
+            const fileName = `${component.name}.svelte`;
+            if (modules.has(fileName)) throw new Error(`duplicate component name ${component.name}`);
+            modules.set(fileName, component);
+        }
+        for (const [name, value] of namedInputs) {
+            let data;
+            if (data = value.into(SvelteComponentData)) {
+                const fileName = `${data.name}.svelte`;
+                if (modules.has(fileName)) throw new Error(`duplicate component name ${data.name}`);
+                modules.set(fileName, data);
+            } else if (data = value.into(JavascriptData)) {
+                modules.set(name, data);
+            } else if (data = value.into(PlainTextData)) {
+                modules.set(name, { contents: `export default ${JSON.stringify(data.contents)};` });
+            } else {
+                throw new Error(`don’t know how to deal with input ${name} of type ${value.typeId}`);
+            }
+        }
+
+        let script = await bundleModules(modules, componentName + '.svelte', componentName);
         script += `window.${componentName}_init(${componentName});`;
 
         const jsUrl = `data:application/javascript;base64,${btoa(script)}`;

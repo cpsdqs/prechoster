@@ -7,6 +7,7 @@ import {
     NamedInputData,
     HtmlData,
     CssData,
+    JavascriptData,
     PlainTextData,
 } from '../../document';
 import { CodeEditor } from '../../ui/components/code-editor';
@@ -59,11 +60,13 @@ export default {
     description(data: TextPluginData) {
         if (data.language === 'html') return 'HTML';
         else if (data.language === 'css') return 'CSS';
+        else if (data.language === 'javascript') return 'Javascript';
         return 'Plain Text Data';
     },
     async eval(data: TextPluginData) {
         if (data.language === 'html') return new HtmlData(data.contents);
         else if (data.language === 'css') return new CssData(data.contents);
+        else if (data.language === 'javascript') return new JavascriptData(data.contents);
         return new PlainTextData(data.contents);
     }
 } as ModulePlugin<TextPluginData>;
