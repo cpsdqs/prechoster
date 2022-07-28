@@ -17,7 +17,6 @@ export function ModulePicker({ open, anchor, onClose, onPick }: ModulePicker.Pro
                     onPick(await MODULES[moduleId].load());
                 }} />)}
             </div>
-            <div>gonna have to add more of these…</div>
         </Popover>
     );
 }

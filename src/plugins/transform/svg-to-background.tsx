@@ -22,7 +22,7 @@ function SvgToBackground({ data, onChange }: ModulePluginProps<SvgToBackgroundDa
                         onChange({ ...data, useSvgo: (e.target as HTMLInputElement).checked });
                     }} />
                 {' '}
-                <label for={useSvgoId}>Use SVGO</label>
+                <label for={useSvgoId}>Use SVG Optimizer</label>
             </div>
         </div>
     );

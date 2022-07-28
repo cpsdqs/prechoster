@@ -52,6 +52,11 @@ export const MODULES: { [k: string]: ModuleDef } = {
         description: 'Given HTML input, converts SVG elements tagged with `data-background` to background images on their parent element.',
         load: lazy(() => import('./transform/svg-to-background')),
     },
+    'transform.svgo': {
+        title: 'SVG Optimizer',
+        description: 'Given text input, applies SVGO optimizations and outputs the result.',
+        load: lazy(() => import('./transform/svgo')),
+    },
     'transform.to-data-url': {
         title: 'To data URL',
         description: 'Converts input to a `data:` URL with a MIME type.',

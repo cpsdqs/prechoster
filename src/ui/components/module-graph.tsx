@@ -82,7 +82,9 @@ function layoutNodes(doc: Document): GraphLayout {
         let column = 0;
         for (const otherNodeId of outgoingEdges.get(node)) {
             const otherLoc = nodeLayouts.get(otherNodeId)!;
-            column = Math.max(column, otherLoc.column + 1);
+            if (otherLoc) {
+                column = Math.max(column, otherLoc.column + 1);
+            }
         }
 
         const { namedInputs } = doc.findModuleInputIds(node.id);
