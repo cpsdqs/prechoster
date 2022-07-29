@@ -282,7 +282,8 @@ function ModuleOutput({ data }: { data: Data | null }) {
 
 function Connections({ document, selected, layout }: Connections.Props) {
     const getNodeLoc = (nodeId: ModuleId) => {
-        const nodeLayout = layout.layouts.get(nodeId)!;
+        const nodeLayout = layout.layouts.get(nodeId);
+        if (!nodeLayout) return [0, 0];
         const colIndex = layout.columns.length - 1 - nodeLayout.column;
         const x = (MOD_BASE_WIDTH + COL_GAP) * colIndex;
 
@@ -290,10 +291,13 @@ function Connections({ document, selected, layout }: Connections.Props) {
         const column = layout.columns[colIndex];
         for (const item of column) {
             if (item.id === nodeId) break;
+            const itemLayout = layout.layouts.get(item.id)!;
+            if (!itemLayout) continue;
+
             y += MOD_HEADER_HEIGHT;
-            if (nodeLayout.acceptsInputs) y += MOD_INPUT_HEIGHT;
+            if (itemLayout.acceptsInputs) y += MOD_INPUT_HEIGHT;
             y += MOD_OUTPUT_HEIGHT;
-            for (const _ of layout.layouts.get(item.id)!.namedInputs) y += MOD_NAMED_INPUT_HEIGHT;
+            for (const _ of itemLayout.namedInputs) y += MOD_NAMED_INPUT_HEIGHT;
             y += ROW_GAP;
         }
 

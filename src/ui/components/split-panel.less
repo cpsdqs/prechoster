@@ -21,6 +21,7 @@
         flex-basis: 1em;
         flex-shrink: 0;
         cursor: col-resize;
+        box-shadow: inset 1px 0 var(--resizer-rim), inset -1px 0 var(--resizer-rim);
 
         &::before {
             content: '';
@@ -82,6 +83,7 @@
 
         & > .inner-resizer {
             cursor: row-resize;
+            box-shadow: inset 0 1px var(--resizer-rim), inset 0 -1px var(--resizer-rim);
 
             &::before {
                 transform: scaleY(0);

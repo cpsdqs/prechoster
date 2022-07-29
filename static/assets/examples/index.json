@@ -1,0 +1,22 @@
+{
+    "lesscss-files.json": {
+        "title": "LessCSS & Files",
+        "description": "Include files as background images using LessCSS."
+    },
+    "svelte-templates.json": {
+        "title": "Svelte Templating",
+        "description": "Use Svelte components for various kinds of templating."
+    },
+    "svelte-chat-log.json": {
+        "title": "Chat Log",
+        "description": "Use Svelte to create a simple chat log."
+    },
+    "animated-svg-background.json": {
+        "title": "Animated SVG Background",
+        "description": "Use @keyframes to animate SVG elements and embed them as a background image."
+    },
+    "default.json": {
+        "title": "Default",
+        "description": "The default document when you open the application."
+    }
+}

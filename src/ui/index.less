@@ -31,6 +31,7 @@ html {
     --cohost-dark-bg: rgb(25 25 25);
     --accent: #7960df;
     --accent-content-fg: white;
+    --error-text: #f43;
     --item-bg: #eee;
     --item-selected-bg: #ddd;
     --separator: rgba(0, 0, 0, 0.2);
@@ -40,6 +41,7 @@ html {
     --graph-node-selected-bg: rgba(0, 0, 0, 0.3);
     --graph-connection: rgba(0, 0, 0, 0.7);
     --graph-connection-highlighted: var(--accent);
+    --resizer-rim: fade(black, 10%);
 
     background: #ddd;
 
@@ -56,6 +58,7 @@ html {
         --graph-node-selected-bg: rgba(255, 255, 255, 0.3);
         --graph-connection: rgba(255, 255, 255, 0.5);
         --graph-connection-highlighted: white;
+        --resizer-rim: fade(white, 10%);
     }
 }
 
@@ -76,7 +79,7 @@ html {
             font-size: smaller;
             padding: 0.2em;
 
-            button {
+            & > button {
                 background: none;
                 font: inherit;
                 color: inherit;

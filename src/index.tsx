@@ -14,7 +14,7 @@ async function init() {
         console.warn('could not read document from local storage');
     }
 
-    const res = await fetch(new URL('../assets/default-doc.json', import.meta.url));
+    const res = await fetch(new URL('../assets/examples/default.json', import.meta.url));
     if (!res.ok) throw new Error(await res.text());
     const result = await res.json();
     return Document.deserialize(result);
@@ -44,4 +44,5 @@ init().then(doc => {
     render(<Prechoster document={doc} />, container);
 }).catch(err => {
     alert('Error during initialization\n\n' + err);
+    console.error(err);
 });

@@ -12,6 +12,7 @@ import {
 import { CodeEditor } from '../../ui/components/code-editor';
 import { SvelteComponentData } from './svelte-component';
 import { html } from '@codemirror/lang-html';
+import base64js from 'base64-js';
 // @ts-ignore
 import svelteWorker from 'omt:./svelte-worker.js';
 
@@ -130,7 +131,9 @@ export default {
         let script = await bundleModules(modules, componentName + '.svelte', componentName);
         script += `window.${componentName}_init(${componentName});`;
 
-        const jsUrl = `data:application/javascript;base64,${btoa(script)}`;
+        const scriptBase64 = base64js.fromByteArray(new TextEncoder().encode(script));
+
+        const jsUrl = `data:application/javascript;charset=utf-8;base64,${scriptBase64}`;
 
         // run the script inside of an invisible iframe
         const iframe = document.createElement('iframe');
