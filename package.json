@@ -7,7 +7,7 @@
     "watch": "rollup -c --watch",
     "build": "NODE_ENV=production rollup -c"
   },
-  "author": "",
+  "homepage": "https://github.com/cpsdqs/prechoster",
   "license": "MIT",
   "devDependencies": {
     "@rollup/plugin-babel": "^5.3.1",

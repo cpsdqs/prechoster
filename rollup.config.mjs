@@ -42,7 +42,7 @@ export default {
         }),
         hackToFixSvelteWebWorker(),
         typescript({}),
-        json({ namedExports: false }),
+        json(),
         string(),
         nodeResolve(),
         commonjs(),

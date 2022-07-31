@@ -7,6 +7,8 @@ import { PostPreview } from './components/post-preview';
 import { Document, Module, ModuleId, Data, MOD_OUTPUT } from '../document';
 import { MODULES } from '../plugins';
 import { Examples } from './examples';
+// @ts-ignore
+import { homepage as sourceLink } from '../../package.json';
 import './index.less';
 
 interface PrechosterState {
@@ -79,10 +81,15 @@ export default class Prechoster extends PureComponent<Prechoster.Props, Prechost
         return (
             <div class="prechoster">
                 <div class="menu-bar">
-                    <button disabled={!doc.canUndo} onClick={() => doc.undo()}>undo</button>
-                    <button disabled={!doc.canRedo} onClick={() => doc.redo()}>redo</button>
-                    <SaveLoad document={doc} />
-                    <Examples document={doc} />
+                    <div class="i-buttons">
+                        <button disabled={!doc.canUndo} onClick={() => doc.undo()}>undo</button>
+                        <button disabled={!doc.canRedo} onClick={() => doc.redo()}>redo</button>
+                        <SaveLoad document={doc} />
+                        <Examples document={doc} />
+                    </div>
+                    <div class="i-links">
+                        <a href={sourceLink} target="_blank" rel="nofollow noreferrer">source</a>
+                    </div>
                 </div>
                 <SplitPanel initialPos={Math.min(0.7, Math.max(500 / innerWidth, 1 - 700 / innerWidth))}>
                     <ModuleList

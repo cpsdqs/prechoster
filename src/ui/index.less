@@ -73,13 +73,16 @@ html {
         flex-direction: column;
 
         & > .menu-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             flex-shrink: 0;
             background: black;
             color: white;
             font-size: smaller;
             padding: 0.2em;
 
-            & > button {
+            & > .i-buttons > button {
                 background: none;
                 font: inherit;
                 color: inherit;
@@ -107,6 +110,14 @@ html {
                             border-color: fade(white, 50%);
                         }
                     }
+                }
+            }
+
+            & > .i-links {
+                padding-right: 0.5em;
+
+                & > a {
+                    color: #18f;
                 }
             }
         }
