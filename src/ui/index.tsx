@@ -3,8 +3,8 @@ import { Fragment, PureComponent, useState } from 'preact/compat';
 import { SplitPanel } from './components/split-panel';
 import { ModuleList } from './components/module-list';
 import { ModuleGraph } from './components/module-graph';
-import { PostPreview } from './components/post-preview';
-import { Document, Module, ModuleId, Data, MOD_OUTPUT } from '../document';
+import { Preview } from './components/preview';
+import { Document, Module, ModuleId, Data, MOD_OUTPUT, RenderState } from '../document';
 import { MODULES } from '../plugins';
 import { Examples } from './examples';
 // @ts-ignore
@@ -12,17 +12,19 @@ import { homepage as sourceLink } from '../../package.json';
 import './index.less';
 
 interface PrechosterState {
-    rendering: boolean;
-    rendered: { markdown: string, nodes: Map<ModuleId, Data> } | null;
-    renderError: unknown | null;
+    render: RenderState;
     selected: ModuleId | null;
 };
 
 export default class Prechoster extends PureComponent<Prechoster.Props, PrechosterState> {
     state = {
-        rendering: false,
-        rendered: null,
-        renderError: null,
+        render: {
+            target: null,
+            live: true,
+            rendering: false,
+            output: null,
+            error: null,
+        },
         selected: null,
     };
 
@@ -42,7 +44,9 @@ export default class Prechoster extends PureComponent<Prechoster.Props, Prechost
     }
 
     onDocumentChange = () => {
-        this.scheduleRender();
+        if (this.state.render.live) {
+            this.scheduleRender();
+        }
         this.forceUpdate();
     };
 
@@ -59,24 +63,54 @@ export default class Prechoster extends PureComponent<Prechoster.Props, Prechost
     renderId = 0;
     async renderPreview() {
         const renderId = ++this.renderId;
-        this.setState({ rendering: true });
+        this.setState({
+            render: {
+                ...this.state.render,
+                rendering: true,
+            },
+        });
 
         try {
             await this.props.document.resolveUnloaded();
-            const rendered = await this.props.document.evalMdOutput();
+            const result = await this.props.document.eval(this.state.render.target);
+            let output = null;
+            let error = null;
+            if (result.type === 'output') {
+                output = result;
+            } else if (result.type === 'error') {
+                error = result;
+            }
 
             if (renderId !== this.renderId) return;
-            this.setState({ rendering: false, rendered, renderError: null });
+            this.setState({
+                render: {
+                    ...this.state.render,
+                    rendering: false,
+                    output,
+                    error,
+                },
+            });
         } catch (err) {
-            console.error(err);
             if (renderId !== this.renderId) return;
-            this.setState({ rendering: false, rendered: null, renderError: err });
+            console.error(err);
+            this.setState({
+                render: {
+                    ...this.state.render,
+                    rendering: false,
+                    output: null,
+                    error: {
+                        type: 'error',
+                        source: null,
+                        error: err,
+                    },
+                },
+            });
         }
     }
 
     render() {
         const doc = this.props.document;
-        const rendered = this.state.rendered || { markdown: '', nodes: new Map() };
+        const { render } = this.state;
 
         return (
             <div class="prechoster">
@@ -97,16 +131,24 @@ export default class Prechoster extends PureComponent<Prechoster.Props, Prechost
                         selected={this.state.selected}
                         onSelect={selected => this.setState({ selected })} />
                     <SplitPanel vertical initialPos={Math.max(0.6, 1 - 300 / innerHeight)}>
-                        <div class="top-preview">
-                            <PostPreview
-                                stale={this.state.rendering}
-                                markdown={rendered.markdown}
-                                error={this.state.renderError} />
-                        </div>
+                        <Preview
+                            document={doc}
+                            render={render}
+                            onLiveChange={live => {
+                                this.setState({ render: { ...this.state.render, live } }, () => {
+                                    if (live) this.renderPreview();
+                                });
+                            }}
+                            onRender={() => this.renderPreview()}
+                            onTargetChange={target => {
+                                this.setState({ render: { ...this.state.render, target } }, () => {
+                                    this.renderPreview();
+                                });
+                            }} />
                         <ModuleGraph
                             document={doc}
                             selected={this.state.selected}
-                            nodeOutputs={rendered.nodes}
+                            render={render}
                             onSelect={selected => this.setState({ selected })} />
                     </SplitPanel>
                 </SplitPanel>

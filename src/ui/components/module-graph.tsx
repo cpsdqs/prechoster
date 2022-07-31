@@ -1,6 +1,6 @@
 import { h, createRef, VNode } from 'preact';
 import { PureComponent } from 'preact/compat';
-import { Document, Module, ModuleId, AnyModule, Data, MOD_OUTPUT } from '../../document';
+import { Document, Module, ModuleId, AnyModule, Data, MOD_OUTPUT, RenderState } from '../../document';
 import './module-graph.less';
 
 function toposortDoc(doc: Document, backwards: boolean = false): AnyModule[] {
@@ -146,7 +146,7 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
         this.forceUpdate();
     };
 
-    render({ document, selected, onSelect, nodeOutputs }: ModuleGraph.Props) {
+    render({ document, selected, onSelect, render }: ModuleGraph.Props) {
         const layout = layoutNodes(document);
 
         return (
@@ -165,7 +165,7 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
                             layout={layout}
                             selected={selected}
                             onSelect={onSelect}
-                            nodeOutputs={nodeOutputs} />
+                            render={render} />
                     ))}
                 </div>
             </div>
@@ -176,24 +176,26 @@ namespace ModuleGraph {
     export interface Props {
         document: Document;
         selected: ModuleId | null;
-        nodeOutputs: Map<ModuleId, Data>,
+        render: RenderState;
         onSelect: (m: ModuleId | null) => void;
     }
 }
 
-function GraphColumn({ column, layout, selected, onSelect, nodeOutputs }: GraphColumn.Props) {
+function GraphColumn({ column, layout, selected, onSelect, render }: GraphColumn.Props) {
     const items = [];
     let y = 0;
     for (let i = 0; i < column.length; i++) {
         const module = column[i];
         const nodeLayout = layout.layouts.get(module.id)!;
-        const output = nodeOutputs.get(module.id) || null;
+        const output = render.output ? (render.output.outputs.get(module.id) || null) : null;
+        const error = (render.error && render.error.source === module.id) ? render.error.error : null;
 
         items.push(
             <ModuleItem
                 key={i}
                 module={module}
                 currentOutput={output}
+                currentError={error}
                 index={layout.indices.get(module.id)!}
                 namedInputs={nodeLayout.namedInputs}
                 selected={selected === module.id}
@@ -213,14 +215,14 @@ namespace GraphColumn {
         layout: GraphLayout;
         selected: ModuleId | null;
         onSelect: (m: ModuleId | null) => void;
-        nodeOutputs: Map<ModuleId, Data>,
+        render: RenderState;
     }
 }
 
-function ModuleItem({ index, module, namedInputs, selected, onSelect, currentOutput }: ModuleItem.Props) {
+function ModuleItem({ index, module, namedInputs, selected, onSelect, currentOutput, currentError }: ModuleItem.Props) {
     return (
         <div
-            class={'i-module-item' + (selected ? ' is-selected' : '')}
+            class={'i-module-item' + (selected ? ' is-selected' : '') + (currentError ? ' is-error' : '')}
             tabIndex={0}
             role="button"
             data-id={module.id}
@@ -264,6 +266,7 @@ namespace ModuleItem {
         selected?: boolean;
         onSelect: () => void;
         currentOutput: Data | null;
+        currentError: unknown | null;
     }
 }
 

@@ -36,14 +36,26 @@
     .i-module-item {
         background: var(--graph-node-bg);
         --shading: inset 0 1px rgba(255, 255, 255, 0.3), inset 0 -1px rgba(0, 0, 0, 0.3);
-        --conn-port: var(--accent);
+        --conn-port-in: var(--accent);
+        --conn-port-out: var(--accent);
+        --selected: var(--accent);
         box-shadow: var(--shading);
         border-radius: .5em;
         overflow: hidden;
 
         &.is-selected {
             background: var(--graph-node-selected-bg);
-            box-shadow: var(--shading), 0 0 0 2px var(--accent);
+            box-shadow: var(--shading), 0 0 0 2px var(--selected);
+        }
+
+        &.is-error {
+            --selected: var(--error);
+            --conn-port-out: var(--error);
+
+            .i-header {
+                background: var(--error);
+                color: var(--error-content-fg);
+            }
         }
 
         .i-header {
@@ -79,7 +91,7 @@
                 top: 50%;
                 margin-top: -0.5em;
                 border: 0.5em solid transparent;
-                border-left-color: var(--conn-port);
+                border-left-color: var(--conn-port-in);
             }
         }
 
@@ -95,7 +107,7 @@
                 left: auto;
                 right: 0;
                 border-left-color: transparent;
-                border-right-color: var(--conn-port);
+                border-right-color: var(--conn-port-out);
             }
         }
 
@@ -120,7 +132,7 @@
                     top: 50%;
                     margin-top: -0.5em;
                     border: 0.5em solid transparent;
-                    border-left-color: var(--conn-port);
+                    border-left-color: var(--conn-port-in);
                 }
             }
         }

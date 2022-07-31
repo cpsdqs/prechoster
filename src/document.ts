@@ -81,7 +81,7 @@ export class Document extends EventTarget {
 
     /** Lazily evaluates the output of the given module. */
     cacheEvalModule<T extends JsonValue>(mod: Module<T>, state: DocEvalState) {
-        if (!state.cache.has(mod.id)) {
+        if (!state.asyncCache.has(mod.id)) {
             if (++state.steps > MAX_EVAL_STEPS) throw new Error('exceeded max eval step limit');
 
             const { inputs, namedInputs } = this.evalModuleInputs(mod.id, state);
@@ -91,9 +91,14 @@ export class Document extends EventTarget {
                 for (const [k, v] of namedInputs) {
                     resNamedInputs.set(k, await v);
                 }
-                const output = await mod.plugin.eval(mod.data, resInputs, resNamedInputs);
-                state.cache.set(mod.id, output);
-                return output;
+
+                try {
+                    const output = await mod.plugin.eval(mod.data, resInputs, resNamedInputs);
+                    state.cache.set(mod.id, output);
+                    return output;
+                } catch (err) {
+                    throw new ModuleError(err, mod.id);
+                }
             })());
         }
         return state.asyncCache.get(mod.id)!;
@@ -146,7 +151,7 @@ export class Document extends EventTarget {
     }
 
     /** Evaluates the final output of this document. */
-    async eval(): Promise<{ inputs: Data[], nodes: Map<ModuleId, Data> }> {
+    async evalOutput(): Promise<{ inputs: Data[], nodes: Map<ModuleId, Data> }> {
         const cache = new Map();
         const { inputs } = this.evalModuleInputs(MOD_OUTPUT, {
             steps: 0,
@@ -161,7 +166,7 @@ export class Document extends EventTarget {
 
     /** Calls eval() and converts it to one markdown string. */
     async evalMdOutput(): Promise<{ markdown: string, nodes: Map<ModuleId, Data> }> {
-        const { inputs, nodes } = await this.eval();
+        const { inputs, nodes } = await this.evalOutput();
         const markdown = inputs.map((item, i) => {
             const output = item.asMdOutput();
             if (output === null) {
@@ -172,6 +177,51 @@ export class Document extends EventTarget {
         }).join('\n');
 
         return { markdown, nodes };
+    }
+
+    async eval(target: ModuleId | null): Promise<RenderOutput | RenderError> {
+        try {
+            let nodes = new Map();
+            let mdOutput = null;
+            if (!target) {
+                const output = await this.evalMdOutput();
+                mdOutput = output.markdown;
+                nodes = output.nodes;
+            } else {
+                const module = this.findModule(target);
+                if (!module) throw new Error('No such target');
+                await this.cacheEvalModule(module, {
+                    steps: 0,
+                    asyncCache: new Map(),
+                    cache: nodes,
+                });
+            }
+
+            return {
+                type: 'output',
+                target,
+                outputs: nodes,
+                markdownOutput: mdOutput,
+            } as RenderOutput;
+        } catch (err) {
+            if (err instanceof ModuleError) {
+                console.error(err.error);
+                return {
+                    type: 'error',
+                    target,
+                    source: err.source,
+                    error: err.error,
+                } as RenderError;
+            } else {
+                console.error(err);
+                return {
+                    type: 'error',
+                    target,
+                    source: null,
+                    error: err,
+                } as RenderError;
+            }
+        }
     }
 
     async resolveUnloaded() {
@@ -202,6 +252,50 @@ export class Document extends EventTarget {
     serialize(): JsonValue {
         return { modules: this.modules.map(module => module.serialize()) };
     }
+}
+
+class ModuleError extends Error {
+    error: unknown;
+    source: ModuleId;
+
+    constructor(error: unknown, source: ModuleId) {
+        super((error as any).toString());
+        this.error = error;
+        this.source = source;
+        this.name = 'ModuleError';
+    }
+}
+
+/** The render output target. null means output. */
+export type RenderTarget = ModuleId | null;
+
+export interface RenderState {
+    /** Current render target. */
+    target: RenderTarget;
+    /** If true, we are currently rendering. */
+    rendering: boolean;
+    /** If true, we should render live. */
+    live: boolean;
+    /** Last render output */
+    output: RenderOutput | null;
+    /** Last render error. */
+    error: RenderError | null;
+}
+
+export interface RenderOutput {
+    type: 'output';
+    /** The render target this was rendered for */
+    target: ModuleId | null;
+    /** Every module’s output */
+    outputs: Map<ModuleId, Data>;
+    /** The final markdown output, if the render target is the output */
+    markdownOutput: string | null;
+}
+
+export interface RenderError {
+    type: 'error';
+    source: ModuleId | null;
+    error: unknown;
 }
 
 export class Module<T extends JsonValue> {

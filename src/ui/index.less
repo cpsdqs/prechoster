@@ -27,11 +27,15 @@
 html {
     font-family: 'Atkinson Hyperlegible', system-ui, sans-serif;
 
+    --monospace: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, liberation mono, courier new, monospace;
     --cohost-bg: rgb(255 249 242);
     --cohost-dark-bg: rgb(25 25 25);
+    --card-bg: white;
     --accent: #7960df;
     --accent-content-fg: white;
-    --error-text: #f43;
+    --error: #f43;
+    --error-text: var(--error);
+    --error-content-fg: white;
     --item-bg: #eee;
     --item-selected-bg: #ddd;
     --separator: rgba(0, 0, 0, 0.2);
@@ -49,6 +53,7 @@ html {
         background: #222;
         color: white;
         color-scheme: dark;
+        --card-bg: #333;
         --item-bg: rgba(255, 255, 255, 0.1);
         --item-selected-bg: rgba(255, 255, 255, 0.15);
         --separator: rgba(255, 255, 255, 0.2);
@@ -126,12 +131,6 @@ html {
             flex: 1;
             flex-basis: 0;
             height: 0;
-        }
-
-        .top-preview {
-            box-sizing: border-box;
-            padding: 1em;
-            overflow: auto;
         }
     }
 }
