@@ -198,6 +198,8 @@ function SaveLoad({ document }: { document: Document }) {
             if (!file) {
                 return;
             }
+
+            loadFile(file);
         });
     };
     const save = () => {
