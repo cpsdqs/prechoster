@@ -189,7 +189,7 @@ export class Document extends EventTarget {
                 nodes = output.nodes;
             } else {
                 const module = this.findModule(target);
-                if (!module) throw new Error('No such target');
+                if (!module) throw new Error('Invalid render target: module not found');
                 await this.cacheEvalModule(module, {
                     steps: 0,
                     asyncCache: new Map(),

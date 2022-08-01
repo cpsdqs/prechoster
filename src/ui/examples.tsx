@@ -43,8 +43,8 @@ class ExamplesMenu extends PureComponent<ExamplesProps & { onClose: (() => void)
         loading: false,
         loadingExample: false,
         error: null,
-        items: {},
-    } as MenuState;
+        items: {} as { [k: string]: ExampleDef },
+    };
 
     componentDidMount() {
         this.load();
@@ -57,9 +57,13 @@ class ExamplesMenu extends PureComponent<ExamplesProps & { onClose: (() => void)
             if (!res.ok) throw await res.text();
             return await res.json();
         })().then(items => {
-            this.setState({ loading: false, items });
+            this.setState({ loading: false, items }, () => {
+                this.forceUpdate(); // for some reason setState doesn't update here...?
+            });
         }).catch(error => {
-            this.setState({ loading: false, error });
+            this.setState({ loading: false, error }, () => {
+                this.forceUpdate(); // ditto
+            });
         });
     }
 

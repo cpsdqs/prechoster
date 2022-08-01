@@ -1,7 +1,11 @@
 {
+    "default.json": {
+        "title": "Style Inlining",
+        "description": "Inline a CSS stylesheet into HTML."
+    },
     "lesscss-files.json": {
-        "title": "LessCSS & Files",
-        "description": "Include files as background images using LessCSS."
+        "title": "LessCSS Inline Files",
+        "description": "Use LessCSS to include files as background images."
     },
     "svelte-templates.json": {
         "title": "Svelte Templating",
@@ -9,14 +13,10 @@
     },
     "svelte-chat-log.json": {
         "title": "Chat Log",
-        "description": "Use Svelte to create a simple chat log."
+        "description": "Use Svelte to create a simple chat log template."
     },
     "animated-svg-background.json": {
         "title": "Animated SVG Background",
         "description": "Use @keyframes to animate SVG elements and embed them as a background image."
-    },
-    "default.json": {
-        "title": "Default",
-        "description": "The default document when you open the application."
     }
 }

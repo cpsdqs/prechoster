@@ -28,6 +28,7 @@ export class Popover extends PureComponent<Popover.Props> {
         this.popoverContent.current = node;
         if (node) this.resizeObserver.observe(node);
     };
+    shouldRenderContents = false;
 
     snapToNextContentSize = false;
     resizeObserver = new ResizeObserver(entries => {
@@ -95,8 +96,9 @@ export class Popover extends PureComponent<Popover.Props> {
         popoverLoc[0] = Math.max(popoverMinLoc[0], Math.min(popoverLoc[0], popoverMaxLoc[0]));
         popoverLoc[1] = Math.max(popoverMinLoc[1], Math.min(popoverLoc[1], popoverMaxLoc[1]));
 
-        this.positionX.target = popoverLoc[0];
-        this.positionY.target = popoverLoc[1];
+        // round target location so we don't get subpixel blurriness
+        this.positionX.target = Math.round(popoverLoc[0]);
+        this.positionY.target = Math.round(popoverLoc[1]);
 
         if (!this.snapToNextContentSize && this.snapToNextPosition) {
             // only snap to next position once content size has been resolved
@@ -104,6 +106,8 @@ export class Popover extends PureComponent<Popover.Props> {
             this.positionY.value = this.positionY.target;
             this.snapToNextPosition = false;
         }
+
+        const prevPresence = this.presence.value;
 
         let done = true;
         done = this.presence.update(dt) && done;
@@ -127,15 +131,17 @@ export class Popover extends PureComponent<Popover.Props> {
             }
         }
 
-        this.forceUpdate();
-
         const shouldShow = this.presence.value > 0.01;
+
+        // render only if there is something visible
+        if (shouldShow) this.forceUpdate();
+
         if (shouldShow && !this.dialog.current.open) {
             this.dialog.current.showModal();
+            this.shouldRenderContents = true;
         } else if (!shouldShow && this.dialog.current.open) {
             this.dialog.current.close();
         }
-
 
         return done;
     }
@@ -226,7 +232,7 @@ export class Popover extends PureComponent<Popover.Props> {
                     <div
                         class="i-content"
                         ref={this.popoverContentRef}>
-                        {children}
+                        {this.shouldRenderContents && children}
                     </div>
                 </div>
                 {arrow}

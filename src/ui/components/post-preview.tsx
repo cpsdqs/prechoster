@@ -26,8 +26,12 @@ export function PostPreview({ markdown, error, stale }: PostPreview.Props) {
         }),
         '</body></html>',
     ].join(''), 'text/html');
-    for (const node of doc.querySelectorAll(STRIP_ELEMENTS.join(', ')) as any) {
+    for (const node of doc.querySelectorAll(STRIP_ELEMENTS.join(', ')) as unknown as Iterable<HTMLElement>) {
         node.remove();
+    }
+    // cohost adds user-content- before ids in posts
+    for (const node of doc.querySelectorAll('[id]') as unknown as Iterable<HTMLElement>) {
+        node.id = 'user-content-' + node.id;
     }
     const html = doc.body.innerHTML;
 
