@@ -486,6 +486,8 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
                 </header>
                 <div class="i-editor">
                     <Editor
+                        document={document}
+                        id={module.id}
                         data={module.data}
                         namedInputKeys={new Set(document.findModuleInputIds(module.id).namedInputs.keys())}
                         onChange={(data: JsonValue) => {

@@ -202,6 +202,9 @@ export class Document extends EventTarget {
                 target,
                 outputs: nodes,
                 markdownOutput: mdOutput,
+                drop() {
+                    for (const data of this.outputs.values()) data.drop();
+                },
             } as RenderOutput;
         } catch (err) {
             if (err instanceof ModuleError) {
@@ -290,6 +293,8 @@ export interface RenderOutput {
     outputs: Map<ModuleId, Data>;
     /** The final markdown output, if the render target is the output */
     markdownOutput: string | null;
+    /** Drops all resources allocated by the render output */
+    drop(): void;
 }
 
 export interface RenderError {
@@ -407,6 +412,8 @@ export class UnloadedPlugin implements ModulePlugin<JsonValue> {
 }
 
 export interface ModulePluginProps<T> {
+    document: Document;
+    id: ModuleId;
     data: T;
     namedInputKeys: Set<string>;
     onChange: (v: T) => void;
@@ -428,6 +435,9 @@ export abstract class Data {
     }
 
     abstract typeDescription(): string;
+
+    /** Drops any resources allocated or associated with this data. */
+    drop(): void {}
 }
 
 export class ByteSliceData extends Data {
@@ -495,3 +505,32 @@ export class JavascriptData extends PlainTextData {
     }
 }
 
+export class BlobData extends ByteSliceData {
+    typeId = 'application/blob';
+    objectUrl: string;
+    blob: Blob;
+
+    constructor(contents: Uint8Array, type: string) {
+        super(contents);
+        this.blob = new Blob([contents], { type });
+        this.objectUrl = URL.createObjectURL(this.blob);
+    }
+
+    drop() {
+        URL.revokeObjectURL(this.objectUrl);
+    }
+
+    typeDescription() {
+        return 'Blob';
+    }
+
+    into<T extends Data>(type: Class<T>): T | null {
+        if (this instanceof type) {
+            return this as unknown as T;
+        }
+        if (type === PlainTextData as Class<unknown> as Class<T>) {
+            return new PlainTextData(this.objectUrl) as unknown as T;
+        }
+        return null;
+    }
+}

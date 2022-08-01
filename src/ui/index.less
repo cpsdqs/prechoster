@@ -67,6 +67,25 @@ html {
     }
 }
 
+#script-not-executed {
+    margin: 1em auto;
+    max-width: 56ch;
+    animation: script-not-executed 2s 3s backwards;
+
+    @keyframes script-not-executed {
+        0% {
+            opacity: 0;
+        }
+        100% {
+            opacity: 1;
+        }
+    }
+
+    a {
+        color: var(--accent);
+    }
+}
+
 #prechoster-root {
     position: fixed;
     inset: 0;

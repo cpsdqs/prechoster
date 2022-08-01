@@ -81,6 +81,8 @@ export default class Prechoster extends PureComponent<Prechoster.Props, Prechost
                 error = result;
             }
 
+            (this.state.render as RenderState).output?.drop();
+
             if (renderId !== this.renderId) return;
             this.setState({
                 render: {
@@ -93,6 +95,9 @@ export default class Prechoster extends PureComponent<Prechoster.Props, Prechost
         } catch (err) {
             if (renderId !== this.renderId) return;
             console.error(err);
+
+            (this.state.render as RenderState).output?.drop();
+
             this.setState({
                 render: {
                     ...this.state.render,

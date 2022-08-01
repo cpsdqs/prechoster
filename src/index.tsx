@@ -3,6 +3,12 @@ import { Document, Module, AnyModule, JsonValue, MOD_OUTPUT } from './document';
 import { MODULES } from './plugins';
 import Prechoster from './ui';
 
+let canInit = true;
+{
+    // check support for <dialog>
+    if (!HTMLDialogElement.prototype.showModal) canInit = false;
+}
+
 const localStorageName = 'prechosterDocument';
 
 async function init() {
@@ -20,29 +26,33 @@ async function init() {
     return Document.deserialize(result);
 }
 
-const container = document.createElement('div');
-container.id = 'prechoster-root';
-document.body.appendChild(container);
+if (canInit) {
+    document.querySelector('#script-not-executed')?.remove();
 
-init().then(doc => {
-    let scheduledSave = false;
-    const scheduleSave = () => {
-        if (scheduledSave) return;
-        scheduledSave = true;
-        setTimeout(() => {
-            scheduledSave = false;
-            try {
-                window.localStorage[localStorageName] = JSON.stringify(doc.serialize());
-            } catch {}
-        }, 1000);
-    };
+    const container = document.createElement('div');
+    container.id = 'prechoster-root';
+    document.body.appendChild(container);
 
-    doc.addEventListener('change', () => {
-        scheduleSave();
+    init().then(doc => {
+        let scheduledSave = false;
+        const scheduleSave = () => {
+            if (scheduledSave) return;
+            scheduledSave = true;
+            setTimeout(() => {
+                scheduledSave = false;
+                try {
+                    window.localStorage[localStorageName] = JSON.stringify(doc.serialize());
+                } catch {}
+            }, 1000);
+        };
+
+        doc.addEventListener('change', () => {
+            scheduleSave();
+        });
+
+        render(<Prechoster document={doc} />, container);
+    }).catch(err => {
+        alert('Error during initialization\n\n' + err);
+        console.error(err);
     });
-
-    render(<Prechoster document={doc} />, container);
-}).catch(err => {
-    alert('Error during initialization\n\n' + err);
-    console.error(err);
-});
+}

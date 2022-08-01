@@ -8,7 +8,24 @@
         <link rel="stylesheet" href="dist/index.css" />
   </head>
   <body>
-        <noscript>please enable javascript</noscript>
+        <div id="script-not-executed">
+            <h1>Application not loaded</h1>
+            <p>
+                If you can see this, the application Javascript was not executed.
+                This may have various causes:
+            </p>
+            <ul>
+                <noscript>
+                    <li><b>Javascript is disabled in your browser.</b></li>
+                </noscript>
+                <li>If your network connection is particularly slow, it may still be loading.</li>
+                <li>A network error may have occurred. You can try <a href="">reloading</a> the page.</li>
+                <li>
+                    Your web browser may not support features used by the application.
+                    Consider using at least Firefox 98, Safari 15.4, or Chrome 63.
+                </li>
+            </ul>
+        </div>
         <script src="dist/index.js" type="module"></script>
   </body>
 </html>

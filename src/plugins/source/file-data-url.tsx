@@ -1,7 +1,7 @@
 import { h, createRef } from 'preact';
 import { PureComponent } from 'preact/compat';
 import { ModulePlugin, ModulePluginProps, PlainTextData } from '../../document';
-import './file-data-url.less';
+import './file-data.less';
 
 export type FileDataUrlPluginData = {
     url: string,
@@ -30,8 +30,10 @@ class FileDataUrlEditor extends PureComponent<ModulePluginProps<FileDataUrlPlugi
             const contents = atob(data.url.split(',')[1]);
             if (contents) {
                 preview = (
-                    <textarea readonly>{atob(data.url.split(',')[1])}</textarea>
+                    <textarea readonly>{contents}</textarea>
                 );
+            } else {
+                preview = <span />;
             }
         } else if (type.startsWith('image/')) {
             preview = (
@@ -44,7 +46,7 @@ class FileDataUrlEditor extends PureComponent<ModulePluginProps<FileDataUrlPlugi
         }
 
         return (
-            <div class="plugin-file-data-url-editor">
+            <div class="plugin-file-data-editor">
                 <input ref={this.fileInput} type="file" onChange={this.onFile} />
                 <div class="file-preview">
                     {preview}

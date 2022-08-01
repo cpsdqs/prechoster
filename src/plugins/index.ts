@@ -37,6 +37,11 @@ export const MODULES: { [k: string]: ModuleDef } = {
         description: 'Svelte component source. Outputs a Svelte component you can send to a Svelte module, and then import as "./<name>.svelte".',
         load: lazy(() => import('./source/svelte-component')),
     },
+    'source.file-data': {
+        title: 'File Data',
+        description: 'Outputs a file as a raw data blob or UTF-8 text data.',
+        load: lazy(() => import('./source/file-data')),
+    },
     'source.file-data-url': {
         title: 'File as Data URL',
         description: 'Outputs a file as a `data:` URL (plain text data).',
@@ -61,5 +66,10 @@ export const MODULES: { [k: string]: ModuleDef } = {
         title: 'To data URL',
         description: 'Converts input to a `data:` URL with a MIME type.',
         load: lazy(() => import('./transform/to-data-url')),
+    },
+    'transform.to-blob': {
+        title: 'To blob',
+        description: 'Converts input to a `blob:` URL with a MIME type. Use this if you intend to upload the contents as an external resource.',
+        load: lazy(() => import('./transform/to-blob')),
     },
 };

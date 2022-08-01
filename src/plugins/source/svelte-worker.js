@@ -3,25 +3,43 @@ import { rollup } from 'rollup/dist/es/rollup.browser.js';
 import sSvelte from 'string:../../../../node_modules/svelte/index.mjs';
 import sSvelteInternal from 'string:../../../../node_modules/svelte/internal/index.mjs';
 
-const predefinedModules = {
-    'svelte': sSvelte,
-    'svelte/internal': sSvelteInternal,
+const libraryModules = {
+    'lib:///svelte/index.mjs': sSvelte,
+    'lib:///svelte/internal/index.mjs': sSvelteInternal,
 };
 
 async function bundleModules(modules, main, mainId) {
-    const index = { ...predefinedModules };
+    const index = { ...libraryModules };
     for (const [k, module] of modules) {
-        index[`./${k}`] = module.contents;
+        index[`file:///${k}`] = module.contents;
     }
 
     const bundle = await rollup({
-        input: `./${main}`,
+        input: `file:///${main}`,
         plugins: [{
-            resolveId(id) {
-                if (id in index) {
-                    return id;
+            resolveId(id, importer) {
+                let url;
+
+                if (!id.startsWith('.')) {
+                    // id doesn't start with ./ or ../ - library path
+                    url = new URL(id, 'lib:///');
+                } else {
+                    url = new URL(id, importer);
                 }
-                return null;
+
+                const candidates = [
+                    url.href,
+                    url.href + '/index.js',
+                    url.href + '/index.mjs',
+                ];
+
+                for (const candidate of candidates) {
+                    if (candidate in index) {
+                        return candidate;
+                    }
+                }
+
+                throw new Error(`Could not resolve ${id} (in ${importer})`);
             },
             load(id) {
                 if (id in index) {
