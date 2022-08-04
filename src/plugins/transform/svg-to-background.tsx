@@ -58,7 +58,7 @@ export default {
         const doc = new DOMParser().parseFromString(htmlSource, 'text/html');
         const body = doc.body;
 
-        for (const svg of doc.querySelectorAll('svg[data-background]') as unknown as Iterable<Element>) {
+        for (const svg of doc.querySelectorAll('svg[data-background]')) {
             const parent = svg.parentNode!;
             svg.remove();
             svg.removeAttribute('data-background');

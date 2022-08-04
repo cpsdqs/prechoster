@@ -6,10 +6,6 @@
     border-radius: .5rem;
     box-shadow: 0 4px 5px rgba(25,25,25,.14),0 1px 10px rgba(25,25,25,.12),0 2px 4px rgba(0,0,0,.2);
 
-    .post-header {
-        padding-top: 2em;
-    }
-
     & > hr {
         height: 0;
         margin: 0 .75rem;
@@ -42,12 +38,126 @@
         opacity: 0.5;
     }
 
-    .post-footer {
+    .post-header, .post-footer {
         display: flex;
         justify-content: space-between;
         align-items: center;
         padding: .5em .75em;
+    }
 
+    .post-header {
+        .i-errors-button {
+            display: inline-flex;
+            gap: 0.3em;
+            align-items: center;
+            background: none;
+            border: 1px solid var(--separator);
+            margin: 0;
+            padding: 0.1em 0.2em;
+            border-radius: 0.5em;
+            font: inherit;
+            font-size: smaller;
+            opacity: var(--inactive-opacity);
+            position: relative;
+
+            --fg: currentColor;
+            --bg: transparent;
+            --active-bg: var(--error);
+            --active-fg: var(--error-content-fg);
+            --inactive-opacity: 0.2;
+
+            .i-errors-icon {
+                display: inline-flex;
+                justify-content: center;
+                align-items: center;
+                width: 1.3em;
+                height: 1.3em;
+                border-radius: 50%;
+                background: var(--bg);
+                border: 1px solid var(--fg);
+                color: var(--fg);
+                font-size: smaller;
+            }
+
+            &.has-errors {
+                opacity: 1;
+                border-color: var(--error);
+
+                .i-errors-icon {
+                    background: var(--active-bg);
+                    color: var(--active-fg);
+                    border-color: var(--active-bg);
+                    animation: post-preview-header-errors-has-errors 1s;
+                }
+                @keyframes post-preview-header-errors-has-errors {
+                    0% {
+                        transform: none;
+                        opacity: var(--inactive-opacity);
+                        background: var(--bg);
+                        color: var(--fg);
+                        border-color: var(--fg);
+                    }
+                    20% {
+                        background: var(--active-bg);
+                        color: var(--active-fg);
+                        border-color: var(--active-bg);
+                        transform: scale(2);
+                    }
+                }
+
+                &::before {
+                    content: '';
+                    position: absolute;
+                    inset: -4px;
+                    border-radius: calc(0.5em + 3px);
+                    border: 1px solid var(--active-bg);
+                    opacity: 0;
+                    transform: scale(0.9);
+                    transition: all 0.2s;
+                }
+
+                &:hover::before {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+            }
+
+            .i-errors-count {
+                font-feature-settings: 'tnum' 1;
+            }
+        }
+        .i-errors {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            width: 80vw;
+            max-width: 20em;
+
+            &:empty::before {
+                content: 'No errors. Everything is ok!';
+                padding: 1em;
+                text-align: center;
+            }
+
+            .i-error {
+                padding: 0.5em 0.75em;
+
+                & + .i-error {
+                    border-top: 1px solid var(--separator);
+                }
+
+                .quick-help {
+                    margin-top: 0.5em;
+                    font-size: smaller;
+                    border-radius: 0.5em;
+                    padding: 0.5em;
+                    background: var(--info-box-bg);
+                }
+            }
+        }
+    }
+
+    .post-footer {
         .copy-to-clipboard {
             position: relative;
             font: inherit;

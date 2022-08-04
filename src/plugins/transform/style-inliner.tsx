@@ -22,7 +22,7 @@ function StyleInliner({ data, onChange }: ModulePluginProps<StyleInlinerData>) {
 
 function stylesToAttrs(doc: Document) {
     const styles = [];
-    for (const style of doc.querySelectorAll('style') as unknown as Iterable<Element>) {
+    for (const style of doc.querySelectorAll('style')) {
         styles.push(style);
         style.remove();
     }
@@ -74,7 +74,7 @@ function stylesToAttrs(doc: Document) {
                                 const selText = cssGenerate(sel);
                                 const specificity = Specificity.calculate(sel)[0];
                                 try {
-                                    for (const node of doc.querySelectorAll(selText) as unknown as Iterable<Element>) {
+                                    for (const node of doc.querySelectorAll(selText)) {
                                         if (!nodes.has(node)) {
                                             nodes.set(node, []);
                                         }
@@ -114,7 +114,7 @@ function stylesToAttrs(doc: Document) {
 
 function stylesToBody(doc: Document) {
     const styles = [];
-    for (const style of doc.querySelectorAll('style') as unknown as Iterable<Element>) {
+    for (const style of doc.querySelectorAll('style')) {
         styles.push(style);
         style.remove();
     }
@@ -169,7 +169,7 @@ export default {
 
             // cleanup for cohost
             // TODO: this should probably be a separate module
-            for (const node of doc.querySelectorAll('[class]') as unknown as Iterable<Element>) {
+            for (const node of doc.querySelectorAll('[class]')) {
                 node.removeAttribute('class');
             }
         } else if (data.mode === 'element') {

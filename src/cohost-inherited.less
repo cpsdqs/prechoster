@@ -366,6 +366,13 @@
         -moz-osx-font-smoothing: grayscale;
     }
 
+    input[type=checkbox] {
+        --tw-bg-opacity: 1;
+        background-color: ~"rgb(255 249 242/var(--tw-bg-opacity))";
+        --tw-text-opacity: 1;
+        color: ~"rgb(131 37 79/var(--tw-text-opacity))";
+    }
+
     @keyframes bounce {
         0%, 100% {
             transform: translateY(-25%);
@@ -445,6 +452,36 @@
     line-height: 1.75;
     color: #191919;
     color-scheme: light;
+
+    --emoji-scale: 1.3em;
+    --color-notWhite: 255 249 242;
+    --color-notBlack: 25 25 25;
+    --color-cherry: 131 37 79;
+    --color-strawberry: 229 107 111;
+    --color-mango: 255 171 92;
+    --color-longan: 255 216 168;
+    --color-text: var(--color-notWhite);
+    --color-bg-text: var(--color-notBlack);
+    --color-foreground-200: 238 173 199;
+    --color-foreground-300: 211 116 155;
+    --color-foreground-400: 174 68 115;
+    --color-foreground-600: 103 26 61;
+    --color-foreground-700: 81 17 46;
+    --color-foreground: var(--color-cherry);
+    --color-secondary-200: 244 187 187;
+    --color-secondary-300: 238 153 155;
+    --color-secondary-400: 229 107 111;
+    --color-secondary-600: 164 42 47;
+    --color-secondary-700: 123 27 31;
+    --color-secondary: var(--color-strawberry);
+    --color-accent: var(--color-mango);
+    --color-background: var(--color-notWhite);
+    --color-sidebar-bg: var(--color-notWhite);
+    --color-sidebar-text: var(--color-notBlack);
+    --color-sidebar-accent: var(--color-cherry);
+    --color-compose-button: var(--color-foreground);
+    --color-compose-button-400: var(--color-foreground-400);
+    --color-compose-button-600: var(--color-foreground-600);
 
     :where([class ~ =lead]):not(:where([class ~ =not-prose] *)) {
         color: var(--tw-prose-lead);

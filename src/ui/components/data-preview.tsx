@@ -34,7 +34,7 @@ class HtmlPreview extends PureComponent<{ html: string }> {
             this.node.current.attachShadow({ mode: 'open' });
         }
         const doc = new DOMParser().parseFromString(this.props.html, 'text/html');
-        for (const node of doc.querySelectorAll('script, iframe') as unknown as Iterable<HTMLElement>) {
+        for (const node of doc.querySelectorAll('script, iframe')) {
             node.remove();
         }
         this.node.current.shadowRoot.innerHTML = doc.body.innerHTML;
