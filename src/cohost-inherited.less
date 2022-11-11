@@ -408,6 +408,22 @@
             transform-origin: bottom right;
         }
     }
+
+    @media (prefers-reduced-motion: no-preference) {
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        @keyframes pulse {
+            50% {
+                opacity: 0.5;
+            }
+        }
+    }
 }
 
 .cohost-prose() {
