@@ -5,7 +5,8 @@ import {
     MOD_INPUT_HEIGHT,
     MOD_OUTPUT_HEIGHT,
     MOD_NAMED_INPUT_HEIGHT,
-    ROW_GAP,
+    MIN_ROW_GAP,
+    GRID_SIZE,
 } from './consts';
 
 function toposortDoc(doc: Document, backwards: boolean = false): AnyModule[] {
@@ -103,6 +104,7 @@ export function layoutNodes(doc: Document): GraphLayout {
         columns[column].push(node);
     }
 
+    let colIndex = 0;
     for (const col of columns) {
         col.sort((a, b) => {
             if (!a) return -1;
@@ -112,11 +114,14 @@ export function layoutNodes(doc: Document): GraphLayout {
         let y = 0;
         for (let i = 0; i < col.length; i++) {
             const layout = nodeLayouts.get(col[i]?.id || MOD_OUTPUT)!;
+            layout.column = columns.length - 1 - colIndex;
             layout.index = i;
             layout.y = y;
             y += layout.height;
-            y += ROW_GAP;
+            y += MIN_ROW_GAP;
+            y = Math.ceil((y / GRID_SIZE)) * GRID_SIZE;
         }
+        colIndex++;
     }
 
     return {

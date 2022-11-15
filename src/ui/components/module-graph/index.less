@@ -1,4 +1,18 @@
 .module-graph {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+
+    .react-flow-bridge {
+        flex: 1;
+    }
+
+    .i-actions {
+        position: absolute;
+        top: 1em;
+        left: 1em;
+    }
+
     .react-flow__connection-path {
         stroke: var(--graph-connection);
         stroke-width: 2px;
@@ -14,6 +28,15 @@
         &.is-highlighted .react-flow__edge-path {
             stroke: var(--graph-connection-highlighted);
             stroke-width: 4px;
+        }
+    }
+
+    &:not(.is-dragging-node) {
+        .react-flow__node {
+            transition: transform 0.3s;
+        }
+        .react-flow__edge-path {
+            transition: d 0.3s;
         }
     }
 

@@ -3,6 +3,7 @@ import { PureComponent } from 'preact/compat';
 import { createElement, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import InnerReactFlow, { Controls, Background } from 'reactflow';
+import { GRID_SIZE } from './consts';
 import { ModuleNode } from './module-node';
 import { OutputNode } from './output-node';
 
@@ -24,7 +25,7 @@ export class ReactFlow extends PureComponent<any> {
             InnerReactFlow,
             { ...this.props, nodeTypes },
             createElement(Controls),
-            createElement(Background),
+            createElement(Background, { gap: GRID_SIZE }),
         );
     }
 

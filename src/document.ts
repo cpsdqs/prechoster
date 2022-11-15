@@ -58,6 +58,15 @@ export class Document extends EventTarget {
         this.emitChange();
     }
 
+    insertModule(module: AnyModule) {
+        const index = this.modules.findIndex(m => m.id === module.id);
+        if (index === -1) {
+            this.modules.push(module);
+            return;
+        }
+        this.modules[index] = module;
+    }
+
     removeModule(moduleId: ModuleId) {
         const modules = this.modules.slice();
         const index = modules.findIndex(module => module.id === moduleId);
@@ -314,6 +323,8 @@ export class Module<T extends JsonValue> {
     sends: ModuleId[] = [];
     /** Specifies where the module data will be sent as a named input. */
     namedSends: NamedSends = new Map();
+    /** Manually set location in the graph */
+    graphPos: { x: number, y: number } | null = null;
 
     static genModuleId(): string {
         const bytes = window.crypto.getRandomValues(new Uint8Array(8));
@@ -343,6 +354,9 @@ export class Module<T extends JsonValue> {
         for (const k in data.namedSends) {
             module.namedSends.set(k, new Set(data.namedSends[k]));
         }
+        if (data.graphPos) {
+            module.graphPos = { x: data.graphPos[0], y: data.graphPos[1] };
+        }
         // TODO: validate sends
         return module;
     }
@@ -357,6 +371,7 @@ export class Module<T extends JsonValue> {
             pluginId: this.plugin.id,
             sends: this.sends,
             namedSends,
+            graphPos: this.graphPos ? [this.graphPos.x, this.graphPos.y] : null,
         };
     }
 }
