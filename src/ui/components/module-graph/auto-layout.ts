@@ -134,5 +134,6 @@ function getNodeHeight(doc: Document, mod: AnyModule) {
     for (let i = 0; i < namedInputs.size; i++) {
         height += MOD_NAMED_INPUT_HEIGHT;
     }
+    if (mod.plugin.acceptsNamedInputs) height += MOD_NAMED_INPUT_HEIGHT;
     return height;
 }

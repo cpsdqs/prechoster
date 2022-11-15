@@ -21,7 +21,10 @@
     "@types/css-tree": "^1.0.7",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",
-    "rollup-plugin-less-modules": "^0.1.11",
+    "autoprefixer": "^10.4.13",
+    "postcss": "^8.4.19",
+    "postcss-nesting": "^10.2.0",
+    "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-terser": "^7.0.2",
     "typescript": "^4.7.4"
   },

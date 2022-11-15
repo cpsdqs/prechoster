@@ -5,7 +5,9 @@ import module from 'node:module';
 import typescript from '@rollup/plugin-typescript';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import lessModules from 'rollup-plugin-less-modules';
+import postcss from 'rollup-plugin-postcss';
+import autoprefixer from 'autoprefixer';
+import postcssNesting from 'postcss-nesting';
 import alias from '@rollup/plugin-alias';
 import { terser } from 'rollup-plugin-terser';
 import json from '@rollup/plugin-json';
@@ -21,13 +23,16 @@ export default {
         banner: `globalThis.process={env:{NODE_ENV:${prod ? '"production"' : '"dev"'}},cwd(){return'/'}};`,
         format: 'esm',
         dir: './static/dist/',
-        chunkFileNames: '[name]-[hash].js',
+        chunkFileNames: prod ? '[name]-[hash].js' : '[name].js',
     },
     plugins: [
-        lessModules({
-            output: './static/dist/index.css',
-            exclude: [],
-            sourcemap: false,
+        postcss({
+            extract: path.resolve('./static/dist/index.css'),
+            plugins: [
+                autoprefixer(),
+                postcssNesting(),
+            ],
+            sourceMap: false,
         }),
         alias({
             entries: [
