@@ -30,20 +30,24 @@ export type TextPluginData = {
 
 class TextEditor extends PureComponent<ModulePluginProps<TextPluginData>> {
     render({ data, onChange }: ModulePluginProps<TextPluginData>) {
+        const footer = (
+            <div class="i-footer">
+                <label>Mode:</label>
+                <select value={data.language} onChange={e => {
+                    onChange({ ...data, language: (e.target as HTMLSelectElement).value });
+                }}>
+                    {Object.keys(LANGUAGES).map(k => <option value={k}>{k}</option>)}
+                </select>
+            </div>
+        );
+
         return (
             <div class="plugin-plain-text-editor">
                 <CodeEditor
                     value={data.contents}
                     onChange={contents => onChange({ ...data, contents })}
-                    extensions={LANGUAGES[data.language]()} />
-                <div class="i-footer">
-                    <label>Mode:</label>
-                    <select value={data.language} onChange={e => {
-                        onChange({ ...data, language: (e.target as HTMLSelectElement).value });
-                    }}>
-                        {Object.keys(LANGUAGES).map(k => <option value={k}>{k}</option>)}
-                    </select>
-                </div>
+                    extensions={LANGUAGES[data.language]()}
+                    footer={footer} />
             </div>
         );
     }

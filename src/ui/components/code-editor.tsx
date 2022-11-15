@@ -1,4 +1,4 @@
-import { h } from 'preact';
+import { h, ComponentChildren } from 'preact';
 import { PureComponent } from 'preact/compat';
 import CodeMirror from './codemirror';
 import { xcodeLight, xcodeDark } from '@uiw/codemirror-theme-xcode';
@@ -19,7 +19,7 @@ export class CodeEditor extends PureComponent<CodeEditor.Props> {
         this.forceUpdate();
     };
 
-    render({ value, onChange, extensions }: CodeEditor.Props) {
+    render({ value, onChange, extensions, footer }: CodeEditor.Props) {
         const light = window.matchMedia('(prefers-color-scheme: light)').matches;
         const theme = light ? xcodeLight : xcodeDark;
 
@@ -33,6 +33,9 @@ export class CodeEditor extends PureComponent<CodeEditor.Props> {
                     }}
                     theme={theme}
                     extensions={extensions} />
+                <footer class="editor-footer">
+                    {footer}
+                </footer>
             </div>
         );
     }
@@ -41,6 +44,7 @@ namespace CodeEditor {
     export interface Props {
         value: string;
         extensions: unknown[];
+        footer?: ComponentChildren;
         onChange: (v: string) => void;
     }
 }

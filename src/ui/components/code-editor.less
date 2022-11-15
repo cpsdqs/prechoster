@@ -2,10 +2,28 @@
     border: 1px solid var(--separator);
     border-radius: .5em;
     overflow: hidden;
+    min-height: 100px;
     height: 300px;
-    max-height: 50vh;
+    resize: vertical;
+    display: flex;
+    flex-direction: column;
 
-    .cm-theme, .cm-editor {
+    @media (max-height: 600px) {
+        height: 50vh;
+    }
+
+    .editor-footer {
+        flex-shrink: 0;
+        min-height: 1em;
+        padding: 0.2em 0.5em;
+    }
+
+    .cm-theme {
+        height: 0;
+        flex: 1;
+    }
+
+    .cm-editor {
         height: 100%;
     }
 }

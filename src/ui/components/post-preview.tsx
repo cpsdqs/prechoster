@@ -113,6 +113,13 @@ const ERRORS = {
             </div>
         );
     },
+    'position-fixed'({ node }: { node: HTMLElement }) {
+        return (
+            <div>
+                <code>position: fixed</code> will be removed on a <code>{node.tagName.toLowerCase()}</code> element
+            </div>
+        );
+    },
 };
 
 interface ErrorMessage {
@@ -133,6 +140,30 @@ function renderMarkdown(
         }),
         '</body></html>',
     ].join(''), 'text/html');
+
+    const footnotes = doc.querySelector('section[data-footnotes]');
+    const ignoreUserContentId = new Set();
+    if (footnotes) {
+        // cohost does something weird with the footnotes that i cant be bothered
+        // to replicate accurately here
+        footnotes.remove();
+        const innerFootnotes = footnotes.querySelector('ol')!;
+        const hr = document.createElement('hr');
+        hr.setAttribute('aria-label', 'Footnotes');
+        hr.style.marginBottom = '-0.5rem';
+        doc.body.append(hr);
+        doc.body.append(innerFootnotes);
+
+        // stop warning about footnotes
+        for (const node of innerFootnotes.querySelectorAll('[id]')) {
+            ignoreUserContentId.add(node.id);
+        }
+        for (const fnref of innerFootnotes.querySelectorAll('[href^="#user-content-fnref"]')) {
+            const refId = fnref.getAttribute('href')!.substring(1);
+            ignoreUserContentId.add(refId);
+        }
+    }
+
     for (const node of doc.querySelectorAll(STRIP_ELEMENTS.join(', '))) {
         pushError('strip-element', { node });
         node.remove();
@@ -172,7 +203,7 @@ function renderMarkdown(
 
     // cohost adds user-content- before ids in posts
     for (const node of doc.querySelectorAll('[id]')) {
-        if (idReferences.has(node.id)) {
+        if (idReferences.has(node.id) && !ignoreUserContentId.has(node.id)) {
             pushError('user-content-id', { id: node.id });
         }
         node.id = 'user-content-' + node.id;
@@ -192,6 +223,10 @@ function renderMarkdown(
                     node,
                     name: key,
                 });
+            }
+            if (key === 'position' && node.style.position === 'fixed') {
+                node.style.position = 'static';
+                pushError('position-fixed', { node });
             }
         }
     }
