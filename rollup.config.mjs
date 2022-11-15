@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import url from 'url';
 import module from 'node:module';
-import { babel } from '@rollup/plugin-babel';
 import typescript from '@rollup/plugin-typescript';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
@@ -27,12 +26,11 @@ export default {
     plugins: [
         lessModules({
             output: './static/dist/index.css',
+            exclude: [],
             sourcemap: false,
         }),
         alias({
             entries: [
-                { find: 'react', replacement: 'preact/compat' },
-                { find: 'react-dom', replacement: 'preact/compat' },
                 { find: 'css-tree', replacement: 'css-tree/dist/csstree.esm' },
             ],
         }),
@@ -40,10 +38,10 @@ export default {
             workerRegexp: null,
             silenceESMWorkerWarning: true, // it's fine
         }),
-        hackToFixSvelteWebWorker(),
-        typescript({}),
-        json(),
         string(),
+        hackToFixSvelteWebWorker(),
+        typescript(),
+        json(),
         nodeResolve(),
         commonjs(),
         prod && terser(),
@@ -58,7 +56,8 @@ function string() {
         name: 'string',
         resolveId(id, importer) {
             if (id.startsWith(scheme)) {
-                const resolved = path.resolve(importer, id.substr(scheme.length));
+                const importerDir = path.dirname(importer) + '/';
+                const resolved = path.resolve(importerDir, id.substr(scheme.length));
                 return scheme + resolved;
             }
             return null;

@@ -2,7 +2,7 @@ import { h } from 'preact';
 import { Fragment, PureComponent, useState } from 'preact/compat';
 import { SplitPanel } from './components/split-panel';
 import { ModuleList } from './components/module-list';
-import { ModuleGraph } from './components/module-graph';
+import { ModuleGraph, EdgeId } from './components/module-graph';
 import { Preview } from './components/preview';
 import { Document, Module, ModuleId, Data, MOD_OUTPUT, RenderState } from '../document';
 import { MODULES } from '../plugins';
@@ -13,7 +13,7 @@ import './index.less';
 
 interface PrechosterState {
     render: RenderState;
-    selected: ModuleId | null;
+    selected: ModuleId | EdgeId | null;
 };
 
 export default class Prechoster extends PureComponent<Prechoster.Props, PrechosterState> {

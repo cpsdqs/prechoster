@@ -43,7 +43,7 @@ export class CodeEditor extends PureComponent<CodeEditor.Props> {
 namespace CodeEditor {
     export interface Props {
         value: string;
-        extensions: unknown[];
+        extensions: any[];
         footer?: ComponentChildren;
         onChange: (v: string) => void;
     }

@@ -49,7 +49,8 @@ export default {
     initialData(): SvelteComponentPluginData {
         return { name: 'Component', contents: '' };
     },
-    description() {
+    description(data: SvelteComponentPluginData) {
+        if (data.name) return `${data.name} (Svelte Component)`;
         return 'Svelte Component';
     },
     async eval(data: SvelteComponentPluginData, inputs: Data[], namedInputs: NamedInputData) {

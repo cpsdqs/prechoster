@@ -233,5 +233,5 @@ export default forwardRef<ReactCodeMirrorRef, ReactCodeMirrorProps>((props, ref)
     );
 
     const defaultClassNames = typeof theme === 'string' ? `cm-theme-${theme}` : 'cm-theme';
-    return <div ref={editor} className={`${defaultClassNames} ${className}`} {...other} />;
+    return <div ref={editor} className={`${defaultClassNames} ${className}`} {...(other as any)} />;
 });
