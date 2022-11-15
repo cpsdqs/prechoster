@@ -11,6 +11,7 @@ import {
 } from '../../document';
 import { CodeEditor } from '../../ui/components/code-editor';
 import { SvelteComponentData } from './svelte-component';
+import { EditorView } from '@codemirror/view';
 import { html } from '@codemirror/lang-html';
 import base64js from 'base64-js';
 // @ts-ignore
@@ -79,11 +80,13 @@ class SvelteEditor extends PureComponent<ModulePluginProps<SveltePluginData>> {
                 <CodeEditor
                     value={data.contents}
                     onChange={contents => onChange({ ...data, contents })}
-                    extensions={[html()]} />
+                    extensions={[html(), EditorView.lineWrapping]} />
             </div>
         );
     }
 }
+
+let execFrame: HTMLIFrameElement | null = null;
 
 export default {
     id: 'source.svelte',
@@ -136,15 +139,24 @@ export default {
         const jsUrl = `data:application/javascript;charset=utf-8;base64,${scriptBase64}`;
 
         // run the script inside of an invisible iframe
-        const iframe = document.createElement('iframe');
-        iframe.setAttribute('sandbox', 'allow-scripts allow-popups allow-modals');
-        iframe.className = 'svelte-execution-sandbox';
-        Object.assign(iframe.style, {
-            position: 'fixed',
-            top: '0',
-            left: '-1000px',
-        });
-        document.body.append(iframe);
+        if (!execFrame) {
+            execFrame = document.createElement('iframe');
+            execFrame.setAttribute('sandbox', 'allow-scripts allow-popups allow-modals');
+            execFrame.className = 'svelte-execution-sandbox';
+            execFrame.setAttribute('aria-hidden', 'true');
+            execFrame.setAttribute('tabindex', '-1');
+            execFrame.addEventListener('focus', () => {
+                document.body.focus();
+            });
+            Object.assign(execFrame.style, {
+                position: 'fixed',
+                top: '0',
+                left: '-1000px',
+            });
+            document.body.append(execFrame);
+        }
+
+        const iframe = execFrame!;
 
         await new Promise<void>(resolve => {
             iframe.onload = () => resolve();
@@ -222,15 +234,14 @@ window.process = { env: { NODE_ENV: "production" } };
                 }, 1000);
             });
 
-            iframe.remove();
-
             let html = result.html;
             if (result.styles.length) {
                 html += `<style>${result.styles.join('\n')}</style>`;
             }
+            iframe.srcdoc = '';
             return new HtmlData(html);
         } catch (err) {
-            iframe.remove();
+            iframe.srcdoc = '';
             throw err;
         }
     }
