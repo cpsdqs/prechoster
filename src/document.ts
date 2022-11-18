@@ -349,6 +349,7 @@ export class Module<T extends JsonValue> {
         mod.id = this.id;
         mod.sends = this.sends;
         mod.namedSends = this.namedSends;
+        mod.graphPos = this.graphPos;
         return mod as this;
     }
 

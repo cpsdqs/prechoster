@@ -1,5 +1,5 @@
-import { h } from 'preact';
-import { lazy, Suspense, PureComponent } from 'preact/compat';
+import { h, createRef } from 'preact';
+import { lazy, Fragment, Suspense, PureComponent, useRef, useState } from 'preact/compat';
 import {
     Document,
     Module,
@@ -9,9 +9,18 @@ import {
     MOD_OUTPUT,
     RenderState,
 } from '../../../document';
-import { Connection, NodeChange, NodePositionChange, EdgeChange } from 'reactflow';
+import {
+    Connection,
+    NodeChange,
+    NodePositionChange,
+    NodeRemoveChange,
+    EdgeChange,
+    OnConnectStartParams,
+    ReactFlowInstance,
+} from 'reactflow';
 import { layoutNodes } from './auto-layout';
 import { MOD_BASE_WIDTH, MIN_COL_GAP, GRID_SIZE } from './consts';
+import { ModulePicker } from '../module-picker';
 import 'reactflow/dist/style.css';
 import './index.less';
 
@@ -22,46 +31,164 @@ const ReactFlow = lazy(() => import('./reactflow').then((r) => r.ReactFlow));
 export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
     state = {
         draggingNode: false,
+        addingModule: false,
+        modulePickerAnchor: null,
+    };
+
+    containerNode = createRef<HTMLDivElement>();
+    addModuleButton = createRef<HTMLButtonElement>();
+    reactFlow: ReactFlowInstance | null = null;
+
+    onReactFlowInit = (instance: ReactFlowInstance) => {
+        this.reactFlow = instance;
     };
 
     onConnect = ({ source, target, sourceHandle, targetHandle }: Connection) => {
         const { document } = this.props;
 
         if (!source || !target || !targetHandle) return;
-        let sourceModule = document.findModule(source);
-        if (!sourceModule) return;
 
         if (targetHandle === 'in') {
-            if (sourceModule.sends.includes(target)) return;
-            document.beginChange();
-            sourceModule = sourceModule.shallowClone();
-            sourceModule.sends = [...sourceModule.sends];
-            sourceModule.sends.push(target);
-            document.insertModule(sourceModule);
-            document.emitChange();
+            this.insertConnection(source, target);
         } else if (targetHandle === 'named-new') {
-            const name = prompt('Enter name');
-            if (!name) return;
-
-            document.beginChange();
-            sourceModule = sourceModule.shallowClone();
-            if (!sourceModule.namedSends.has(target)) {
-                sourceModule.namedSends = new Map(sourceModule.namedSends);
-                sourceModule.namedSends.set(target, new Set());
-            }
-            sourceModule.namedSends.set(target, new Set(sourceModule.namedSends.get(target)));
-            sourceModule.namedSends.get(target)!.add(name);
-            document.insertModule(sourceModule);
-            document.emitChange();
+            this.insertNewNamedConnection(source, target);
         } else if (targetHandle.startsWith('named-in-')) {
             // duplicate named inputs make no sense
             return;
         }
     };
 
+    insertConnection(source: ModuleId, target: ModuleId, skipChange = false) {
+        const { document } = this.props;
+
+        let sourceModule = document.findModule(source);
+        const targetModule = document.findModule(target);
+        if (!sourceModule || (target !== 'output' && !targetModule)) return;
+        if (sourceModule.sends.includes(target)) return;
+        if (target !== 'output' && !targetModule?.plugin?.acceptsInputs) return;
+
+        if (!skipChange) document.beginChange();
+
+        sourceModule = sourceModule.shallowClone();
+        sourceModule.sends = [...sourceModule.sends];
+        sourceModule.sends.push(target);
+        document.insertModule(sourceModule);
+
+        if (!skipChange) document.emitChange();
+    }
+
+    insertNewNamedConnection(source: ModuleId, target: ModuleId, skipChange = false) {
+        const { document } = this.props;
+        let sourceModule = document.findModule(source);
+        const targetModule = document.findModule(target);
+        if (!sourceModule || !targetModule) return;
+        if (!targetModule.plugin.acceptsNamedInputs) return;
+
+        const name = prompt('Enter side input name');
+        if (!name) return;
+
+        if (!skipChange) document.beginChange();
+
+        sourceModule = sourceModule.shallowClone();
+        if (!sourceModule.namedSends.has(target)) {
+            sourceModule.namedSends = new Map(sourceModule.namedSends);
+            sourceModule.namedSends.set(target, new Set());
+        }
+        sourceModule.namedSends.set(target, new Set(sourceModule.namedSends.get(target)));
+        sourceModule.namedSends.get(target)!.add(name);
+        document.insertModule(sourceModule);
+
+        if (!skipChange) document.emitChange();
+    }
+
+    currentConnectionParams: OnConnectStartParams | null = null;
+    graphPosForNextAdd: [number, number] | null = null;
+    connectionForNextAdd: [string, ModuleId] | null = null;
+
+    onConnectStart = (e: unknown, params: OnConnectStartParams) => {
+        this.currentConnectionParams = params;
+    };
+
+    onConnectEnd = (e: any) => {
+        const isPaneDrop = e.target.classList?.contains('react-flow__pane');
+        if (!isPaneDrop) return;
+
+        const params = this.currentConnectionParams;
+        if (!params?.nodeId) return;
+        if (params.handleId === 'out') {
+            this.connectionForNextAdd = ['out', params.nodeId];
+        } else if (params.handleId === 'in') {
+            this.connectionForNextAdd = ['in', params.nodeId];
+        } else if (params.handleId === 'named-new') {
+            this.connectionForNextAdd = ['named', params.nodeId];
+        } else {
+            // invalid: cannot create a new connection
+            return;
+        }
+
+        const { top, left } = this.containerNode.current!.getBoundingClientRect();
+        const projected = this.reactFlow!.project({
+            x: e.clientX - left,
+            y: e.clientY - top,
+        });
+
+        const nodeX = Math.floor((projected.x - MOD_BASE_WIDTH / 2) / GRID_SIZE) * GRID_SIZE;
+        const nodeY = Math.floor(projected.y / GRID_SIZE) * GRID_SIZE;
+        this.graphPosForNextAdd = [nodeX, nodeY];
+        this.setState({
+            addingModule: true,
+            modulePickerAnchor: [e.clientX, e.clientY],
+        });
+    };
+
+    getNewCenteredNodePos = () => {
+        const { width, height } = this.containerNode.current!.getBoundingClientRect();
+        const projected = this.reactFlow!.project({
+            x: width / 2,
+            y: height / 2,
+        });
+        const nodeX = Math.floor((projected.x - MOD_BASE_WIDTH / 2) / GRID_SIZE) * GRID_SIZE;
+        const nodeY = Math.floor(projected.y / GRID_SIZE) * GRID_SIZE;
+        return [nodeX, nodeY] as [number, number];
+    };
+
+    onAddModule = (plugin: any) => {
+        const { document } = this.props;
+
+        this.setState({ addingModule: false });
+        document.beginChange();
+
+        const module = new Module(plugin);
+        if (this.graphPosForNextAdd) {
+            module.graphPos = {
+                x: this.graphPosForNextAdd[0],
+                y: this.graphPosForNextAdd[1],
+            };
+            this.graphPosForNextAdd = null;
+        }
+        document.setModules(document.modules.concat([module]));
+
+        if (this.connectionForNextAdd) {
+            const [type, otherModuleId] = this.connectionForNextAdd;
+            this.connectionForNextAdd = null;
+
+            if (type === 'out') {
+                this.insertConnection(otherModuleId, module.id, true);
+            } else if (type === 'in') {
+                this.insertConnection(module.id, otherModuleId, true);
+            } else if (type === 'named') {
+                this.insertNewNamedConnection(module.id, otherModuleId, true);
+            }
+        }
+
+        document.emitChange();
+        this.props.onSelect(module.id);
+    };
+
     onNodesChange = (changes: NodeChange[]) => {
         let newSelected = this.props.selected;
         const nodePositionChanges: NodePositionChange[] = [];
+        const nodeRemoveChanges: NodeRemoveChange[] = [];
 
         for (const change of changes) {
             if (change.type === 'select') {
@@ -72,18 +199,26 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
                 }
             } else if (change.type === 'position') {
                 nodePositionChanges.push(change);
+            } else if (change.type === 'remove') {
+                nodeRemoveChanges.push(change);
             }
         }
 
         if (newSelected !== this.props.selected) this.props.onSelect(newSelected);
 
-        if (nodePositionChanges) {
+        if (nodePositionChanges.length || nodeRemoveChanges.length) {
             const { document } = this.props;
+
+            if (nodeRemoveChanges.length) document.beginChange();
 
             for (const change of nodePositionChanges) {
                 const module = document.findModule(change.id);
                 if (!module || !change.position) continue;
                 module.graphPos = change.position;
+            }
+
+            for (const change of nodeRemoveChanges) {
+                document.removeModule(change.id);
             }
 
             document.emitChange();
@@ -213,7 +348,10 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
         const edges = getConnections(document, selected);
 
         return (
-            <div class={'module-graph' + (this.state.draggingNode ? ' is-dragging-node' : '')}>
+            <div
+                class={'module-graph' + (this.state.draggingNode ? ' is-dragging-node' : '')}
+                ref={this.containerNode}
+            >
                 <Suspense fallback={<div>Loading…</div>}>
                     <ReactFlow
                         fitView
@@ -221,15 +359,33 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
                         snapGrid={[GRID_SIZE, GRID_SIZE]}
                         nodes={nodes}
                         edges={edges}
+                        onInit={this.onReactFlowInit}
                         onNodesChange={this.onNodesChange}
                         onEdgesChange={this.onEdgesChange}
                         onConnect={this.onConnect}
+                        onConnectStart={this.onConnectStart}
+                        onConnectEnd={this.onConnectEnd}
                         onNodeDragStart={() => this.setState({ draggingNode: true })}
                         onNodeDragStop={() => this.setState({ draggingNode: false })}
                     />
                 </Suspense>
                 <div class="i-actions">
-                    <button onClick={this.runAutoLayout}>auto layout</button>
+                    <button onClick={this.runAutoLayout}>auto layout</button>{' '}
+                    <button
+                        ref={this.addModuleButton}
+                        onClick={() => {
+                            this.graphPosForNextAdd = this.getNewCenteredNodePos();
+                            this.setState({ addingModule: true, modulePickerAnchor: null });
+                        }}
+                    >
+                        add node
+                    </button>
+                    <ModulePicker
+                        anchor={this.state.modulePickerAnchor || this.addModuleButton.current}
+                        open={this.state.addingModule}
+                        onClose={() => this.setState({ addingModule: false })}
+                        onPick={this.onAddModule}
+                    />
                 </div>
             </div>
         );

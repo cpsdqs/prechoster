@@ -1,5 +1,5 @@
-import { createElement as h } from 'react';
-import { Position, Handle, Node } from 'reactflow';
+import { createElement as h, useEffect, useState } from 'react';
+import { Position, Handle, Node, useUpdateNodeInternals } from 'reactflow';
 import {
     Document,
     Module,
@@ -20,6 +20,12 @@ const HEIGHT_PROP = '--height' as any;
 
 export function ModuleNode({ data }: { data: ModuleNode.NodeData }) {
     const { index, module, selected, namedInputs, currentOutput, currentError } = data;
+    const updateNodeInternals = useUpdateNodeInternals();
+
+    useEffect(() => {
+        // need to inform reactflow that inputs have changed
+        updateNodeInternals(module.id);
+    }, [namedInputs]);
 
     return (
         <div

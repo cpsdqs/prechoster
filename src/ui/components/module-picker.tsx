@@ -24,7 +24,7 @@ export function ModulePicker({ open, anchor, onClose, onPick }: ModulePicker.Pro
 namespace ModulePicker {
     export interface Props {
         open: boolean;
-        anchor?: HTMLElement | null;
+        anchor?: HTMLElement | [number, number] | null;
         onClose: () => void;
         onPick: (m: ModulePlugin<JsonValue>) => void;
     }

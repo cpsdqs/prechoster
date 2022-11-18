@@ -52,7 +52,7 @@ export class Popover extends PureComponent<Popover.Props> {
         const anchorMin = [window.innerWidth / 2, window.innerHeight / 2];
         const anchorCenter = [window.innerWidth / 2, window.innerHeight / 2];
         const anchorMax = [window.innerWidth / 2, window.innerHeight / 2];
-        if (this.props.anchor) {
+        if (this.props.anchor instanceof HTMLElement) {
             const anchorRect = this.props.anchor.getBoundingClientRect();
             anchorMin[0] = anchorRect.left;
             anchorMin[1] = anchorRect.top;
@@ -60,6 +60,9 @@ export class Popover extends PureComponent<Popover.Props> {
             anchorMax[1] = anchorRect.bottom;
             anchorCenter[0] = anchorRect.left + anchorRect.width / 2;
             anchorCenter[1] = anchorRect.top + anchorRect.height / 2;
+        } else if (Array.isArray(this.props.anchor)) {
+            anchorMin[0] = anchorMax[0] = anchorCenter[0] = this.props.anchor[0];
+            anchorMin[1] = anchorMax[1] = anchorCenter[1] = this.props.anchor[1];
         }
 
         const popoverMinLoc = [WINDOW_MARGIN, WINDOW_MARGIN];
@@ -250,8 +253,8 @@ export class Popover extends PureComponent<Popover.Props> {
 }
 namespace Popover {
     export interface Props {
-        /** Anchor where the popover will appear from */
-        anchor?: HTMLElement | null;
+        /** Anchor where the popover will appear from. Either an element or client coordinates */
+        anchor?: HTMLElement | [number, number] | null;
         /** Whether the popover is open */
         open: boolean;
         /** Close callback. */
