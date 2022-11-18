@@ -40,16 +40,6 @@ export function useCodeMirror(props: UseCodeMirror) {
     const [container, setContainer] = useState<HTMLDivElement>();
     const [view, setView] = useState<EditorView>();
     const [state, setState] = useState<EditorState>();
-    const defaultThemeOption = EditorView.theme({
-        '&': {
-            height,
-            minHeight,
-            maxHeight,
-            width,
-            minWidth,
-            maxWidth,
-        },
-    });
     const updateListener = EditorView.updateListener.of((vu: ViewUpdate) => {
         if (vu.docChanged && typeof onChange === 'function') {
             const doc = vu.state.doc;
@@ -59,7 +49,7 @@ export function useCodeMirror(props: UseCodeMirror) {
         // onStatistics && onStatistics(getStatistics(vu));
     });
 
-    let getExtensions = [updateListener, defaultThemeOption];
+    let getExtensions = [updateListener];
     if (defaultIndentWithTab) {
         getExtensions.unshift(keymap.of([indentWithTab]));
     }

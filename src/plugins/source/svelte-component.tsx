@@ -9,6 +9,7 @@ import {
     HtmlData,
 } from '../../document';
 import { CodeEditor } from '../../ui/components/code-editor';
+import { EditorView } from '@codemirror/view';
 import { html } from '@codemirror/lang-html';
 
 export class SvelteComponentData extends PlainTextData {
@@ -31,6 +32,8 @@ export type SvelteComponentPluginData = {
 };
 
 class SvelteComponentEditor extends PureComponent<ModulePluginProps<SvelteComponentPluginData>> {
+    extensions = [html(), EditorView.lineWrapping];
+
     render({ data, namedInputKeys, onChange }: ModulePluginProps<SvelteComponentPluginData>) {
         return (
             <div class="plugin-svelte-component-editor">
@@ -44,7 +47,7 @@ class SvelteComponentEditor extends PureComponent<ModulePluginProps<SvelteCompon
                 <CodeEditor
                     value={data.contents}
                     onChange={(contents) => onChange({ ...data, contents })}
-                    extensions={[html()]}
+                    extensions={this.extensions}
                 />
             </div>
         );

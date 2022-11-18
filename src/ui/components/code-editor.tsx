@@ -19,6 +19,11 @@ export class CodeEditor extends PureComponent<CodeEditor.Props> {
         this.forceUpdate();
     };
 
+    onValueChange = (newValue: string) => {
+        if (newValue === this.props.value) return;
+        this.props.onChange(newValue);
+    };
+
     render({ value, onChange, extensions, footer }: CodeEditor.Props) {
         const light = window.matchMedia('(prefers-color-scheme: light)').matches;
         const theme = light ? xcodeLight : xcodeDark;
@@ -27,10 +32,7 @@ export class CodeEditor extends PureComponent<CodeEditor.Props> {
             <div class="code-editor">
                 <CodeMirror
                     value={value}
-                    onChange={(newValue: string) => {
-                        if (newValue === value) return;
-                        onChange(newValue);
-                    }}
+                    onChange={this.onValueChange}
                     theme={theme}
                     extensions={extensions}
                 />

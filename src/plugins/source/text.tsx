@@ -17,7 +17,7 @@ import { css } from '@codemirror/lang-css';
 import { javascript } from '@codemirror/lang-javascript';
 
 const LANGUAGES: { [k: string]: () => unknown[] } = {
-    text: () => [],
+    text: () => [EditorView.lineWrapping],
     html: () => [html(), EditorView.lineWrapping],
     css: () => [css()],
     javascript: () => [javascript()],
@@ -29,6 +29,15 @@ export type TextPluginData = {
 };
 
 class TextEditor extends PureComponent<ModulePluginProps<TextPluginData>> {
+    memoizedExtensions: any = null;
+
+    get extensions() {
+        if (!this.memoizedExtensions) {
+            this.memoizedExtensions = LANGUAGES[this.props.data.language]();
+        }
+        return this.memoizedExtensions;
+    }
+
     render({ data, onChange }: ModulePluginProps<TextPluginData>) {
         const footer = (
             <div class="i-footer">
@@ -36,6 +45,7 @@ class TextEditor extends PureComponent<ModulePluginProps<TextPluginData>> {
                 <select
                     value={data.language}
                     onChange={(e) => {
+                        this.memoizedExtensions = null;
                         onChange({ ...data, language: (e.target as HTMLSelectElement).value });
                     }}
                 >
@@ -51,7 +61,7 @@ class TextEditor extends PureComponent<ModulePluginProps<TextPluginData>> {
                 <CodeEditor
                     value={data.contents}
                     onChange={(contents) => onChange({ ...data, contents })}
-                    extensions={LANGUAGES[data.language]()}
+                    extensions={this.extensions}
                     footer={footer}
                 />
             </div>

@@ -36,6 +36,8 @@ export type LessPluginData = {
 };
 
 class LessEditor extends PureComponent<ModulePluginProps<LessPluginData>> {
+    extensions = [css()];
+
     render({ data, namedInputKeys, onChange }: ModulePluginProps<LessPluginData>) {
         return (
             <div class="plugin-less-editor">
@@ -52,7 +54,7 @@ class LessEditor extends PureComponent<ModulePluginProps<LessPluginData>> {
                 <CodeEditor
                     value={data.contents}
                     onChange={(contents) => onChange({ ...data, contents })}
-                    extensions={[css()]}
+                    extensions={this.extensions}
                 />
             </div>
         );
