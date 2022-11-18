@@ -24,8 +24,8 @@ const LANGUAGES: { [k: string]: () => unknown[] } = {
 };
 
 export type TextPluginData = {
-    contents: string,
-    language: string,
+    contents: string;
+    language: string;
 };
 
 class TextEditor extends PureComponent<ModulePluginProps<TextPluginData>> {
@@ -33,10 +33,15 @@ class TextEditor extends PureComponent<ModulePluginProps<TextPluginData>> {
         const footer = (
             <div class="i-footer">
                 <label>Mode:</label>
-                <select value={data.language} onChange={e => {
-                    onChange({ ...data, language: (e.target as HTMLSelectElement).value });
-                }}>
-                    {Object.keys(LANGUAGES).map(k => <option value={k}>{k}</option>)}
+                <select
+                    value={data.language}
+                    onChange={(e) => {
+                        onChange({ ...data, language: (e.target as HTMLSelectElement).value });
+                    }}
+                >
+                    {Object.keys(LANGUAGES).map((k) => (
+                        <option value={k}>{k}</option>
+                    ))}
                 </select>
             </div>
         );
@@ -45,9 +50,10 @@ class TextEditor extends PureComponent<ModulePluginProps<TextPluginData>> {
             <div class="plugin-plain-text-editor">
                 <CodeEditor
                     value={data.contents}
-                    onChange={contents => onChange({ ...data, contents })}
+                    onChange={(contents) => onChange({ ...data, contents })}
                     extensions={LANGUAGES[data.language]()}
-                    footer={footer} />
+                    footer={footer}
+                />
             </div>
         );
     }
@@ -72,5 +78,5 @@ export default {
         else if (data.language === 'css') return new CssData(data.contents);
         else if (data.language === 'javascript') return new JavascriptData(data.contents);
         return new PlainTextData(data.contents);
-    }
+    },
 } as ModulePlugin<TextPluginData>;

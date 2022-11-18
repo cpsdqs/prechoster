@@ -20,7 +20,9 @@ export default {
     input: 'src/index.tsx',
     preserveEntrySignatures: false,
     output: {
-        banner: `globalThis.process={env:{NODE_ENV:${prod ? '"production"' : '"dev"'}},cwd(){return'/'}};`,
+        banner: `globalThis.process={env:{NODE_ENV:${
+            prod ? '"production"' : '"dev"'
+        }},cwd(){return'/'}};`,
         format: 'esm',
         dir: './static/dist/',
         chunkFileNames: prod ? '[name]-[hash].js' : '[name].js',
@@ -28,16 +30,11 @@ export default {
     plugins: [
         postcss({
             extract: path.resolve('./static/dist/index.css'),
-            plugins: [
-                autoprefixer(),
-                postcssNesting(),
-            ],
+            plugins: [autoprefixer(), postcssNesting()],
             sourceMap: false,
         }),
         alias({
-            entries: [
-                { find: 'css-tree', replacement: 'css-tree/dist/csstree.esm' },
-            ],
+            entries: [{ find: 'css-tree', replacement: 'css-tree/dist/csstree.esm' }],
         }),
         offMainThread({
             workerRegexp: null,
@@ -50,7 +47,7 @@ export default {
         nodeResolve(),
         commonjs(),
         prod && terser(),
-    ].filter(x => x),
+    ].filter((x) => x),
 };
 
 /** The `string:` loader can be used to load files as strings */
@@ -77,7 +74,7 @@ function string() {
                 });
             }
             return null;
-        }
+        },
     };
 }
 
@@ -86,10 +83,9 @@ function hackToFixSvelteWebWorker() {
     return {
         transform(code, id) {
             if (id.includes('svelte/')) {
-                return code
-                    .replace(/\bwindow\b/g, 'globalThis');
+                return code.replace(/\bwindow\b/g, 'globalThis');
             }
             return null;
-        }
+        },
     };
 }

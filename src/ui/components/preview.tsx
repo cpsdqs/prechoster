@@ -4,7 +4,13 @@ import { PostPreview } from './post-preview';
 import { DataPreview } from './data-preview';
 import './preview.less';
 
-export function Preview({ document, render, onTargetChange, onLiveChange, onRender }: Preview.Props) {
+export function Preview({
+    document,
+    render,
+    onTargetChange,
+    onLiveChange,
+    onRender,
+}: Preview.Props) {
     let contents = null;
 
     if (render.output) {
@@ -21,7 +27,8 @@ export function Preview({ document, render, onTargetChange, onLiveChange, onRend
                 <div class="i-post-preview">
                     <PostPreview
                         stale={render.rendering}
-                        markdown={render.output.markdownOutput!} />
+                        markdown={render.output.markdownOutput!}
+                    />
                 </div>
             );
         }
@@ -38,16 +45,14 @@ export function Preview({ document, render, onTargetChange, onLiveChange, onRend
 
         contents = (
             <div class="preview-error">
-                {(moduleIndex !== null) ? (
+                {moduleIndex !== null ? (
                     <div class="error-title">
                         Error in {moduleIndex + 1}. {moduleLabel}
                     </div>
                 ) : (
                     <div class="error-title">Error</div>
                 )}
-                <div class="error-contents">
-                    {(render.error.error as any).toString()}
-                </div>
+                <div class="error-contents">{(render.error.error as any).toString()}</div>
             </div>
         );
     }
@@ -72,11 +77,12 @@ export function Preview({ document, render, onTargetChange, onLiveChange, onRend
                     <select
                         class="output-select"
                         value={render.target || 'output'}
-                        onChange={e => {
+                        onChange={(e) => {
                             const target = (e.target as HTMLSelectElement).value;
                             if (target === 'output') onTargetChange(null);
                             else onTargetChange(target);
-                        }}>
+                        }}
+                    >
                         {outputTargets}
                         <option value="output">output</option>
                     </select>
@@ -84,15 +90,17 @@ export function Preview({ document, render, onTargetChange, onLiveChange, onRend
                         <input
                             id={liveCheckbox}
                             checked={render.live}
-                            onChange={e => {
+                            onChange={(e) => {
                                 onLiveChange((e.target as HTMLInputElement).checked);
                             }}
-                            type="checkbox" />
-                        {' '}
+                            type="checkbox"
+                        />{' '}
                         <label for={liveCheckbox}>Live Update</label>
                     </span>
                     {!render.live && (
-                        <button class="render-button" onClick={onRender}>Render</button>
+                        <button class="render-button" onClick={onRender}>
+                            Render
+                        </button>
                     )}
                 </div>
                 <span class={'render-indicator' + (render.rendering ? ' is-rendering' : '')} />

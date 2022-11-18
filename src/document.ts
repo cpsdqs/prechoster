@@ -4,9 +4,9 @@ import { MODULES } from './plugins';
 export type JsonValue = null | boolean | number | string | JsonValue[] | { [k: string]: JsonValue };
 
 type DocEvalState = {
-    steps: number,
-    asyncCache: Map<ModuleId, Promise<Data>>,
-    cache: Map<ModuleId, Data>,
+    steps: number;
+    asyncCache: Map<ModuleId, Promise<Data>>;
+    cache: Map<ModuleId, Data>;
 };
 
 export const MAX_EVAL_STEPS = 1024;
@@ -59,7 +59,7 @@ export class Document extends EventTarget {
     }
 
     insertModule(module: AnyModule) {
-        const index = this.modules.findIndex(m => m.id === module.id);
+        const index = this.modules.findIndex((m) => m.id === module.id);
         if (index === -1) {
             this.modules.push(module);
             return;
@@ -69,7 +69,7 @@ export class Document extends EventTarget {
 
     removeModule(moduleId: ModuleId) {
         const modules = this.modules.slice();
-        const index = modules.findIndex(module => module.id === moduleId);
+        const index = modules.findIndex((module) => module.id === moduleId);
         if (index === -1) return;
 
         this.beginChange();
@@ -94,27 +94,30 @@ export class Document extends EventTarget {
             if (++state.steps > MAX_EVAL_STEPS) throw new Error('exceeded max eval step limit');
 
             const { inputs, namedInputs } = this.evalModuleInputs(mod.id, state);
-            state.asyncCache.set(mod.id, (async () => {
-                const resInputs = await Promise.all(inputs);
-                const resNamedInputs = new Map();
-                for (const [k, v] of namedInputs) {
-                    resNamedInputs.set(k, await v);
-                }
+            state.asyncCache.set(
+                mod.id,
+                (async () => {
+                    const resInputs = await Promise.all(inputs);
+                    const resNamedInputs = new Map();
+                    for (const [k, v] of namedInputs) {
+                        resNamedInputs.set(k, await v);
+                    }
 
-                try {
-                    const output = await mod.plugin.eval(mod.data, resInputs, resNamedInputs);
-                    state.cache.set(mod.id, output);
-                    return output;
-                } catch (err) {
-                    throw new ModuleError(err, mod.id);
-                }
-            })());
+                    try {
+                        const output = await mod.plugin.eval(mod.data, resInputs, resNamedInputs);
+                        state.cache.set(mod.id, output);
+                        return output;
+                    } catch (err) {
+                        throw new ModuleError(err, mod.id);
+                    }
+                })()
+            );
         }
         return state.asyncCache.get(mod.id)!;
     }
 
     findModule(id: ModuleId) {
-        return this.modules.find(mod => mod.id === id);
+        return this.modules.find((mod) => mod.id === id);
     }
 
     findModuleInputIds(id: ModuleId) {
@@ -160,7 +163,7 @@ export class Document extends EventTarget {
     }
 
     /** Evaluates the final output of this document. */
-    async evalOutput(): Promise<{ inputs: Data[], nodes: Map<ModuleId, Data> }> {
+    async evalOutput(): Promise<{ inputs: Data[]; nodes: Map<ModuleId, Data> }> {
         const cache = new Map();
         const { inputs } = this.evalModuleInputs(MOD_OUTPUT, {
             steps: 0,
@@ -174,16 +177,21 @@ export class Document extends EventTarget {
     }
 
     /** Calls eval() and converts it to one markdown string. */
-    async evalMdOutput(): Promise<{ markdown: string, nodes: Map<ModuleId, Data> }> {
+    async evalMdOutput(): Promise<{ markdown: string; nodes: Map<ModuleId, Data> }> {
         const { inputs, nodes } = await this.evalOutput();
-        const markdown = inputs.map((item, i) => {
-            const output = item.asMdOutput();
-            if (output === null) {
-                throw new Error('output received data type that could not be converted to markdown: '
-                    + item.constructor.name + ` (item ${i + 1})`);
-            }
-            return output;
-        }).join('\n');
+        const markdown = inputs
+            .map((item, i) => {
+                const output = item.asMdOutput();
+                if (output === null) {
+                    throw new Error(
+                        'output received data type that could not be converted to markdown: ' +
+                            item.constructor.name +
+                            ` (item ${i + 1})`
+                    );
+                }
+                return output;
+            })
+            .join('\n');
 
         return { markdown, nodes };
     }
@@ -262,7 +270,7 @@ export class Document extends EventTarget {
     }
 
     serialize(): JsonValue {
-        return { modules: this.modules.map(module => module.serialize()) };
+        return { modules: this.modules.map((module) => module.serialize()) };
     }
 }
 
@@ -324,11 +332,11 @@ export class Module<T extends JsonValue> {
     /** Specifies where the module data will be sent as a named input. */
     namedSends: NamedSends = new Map();
     /** Manually set location in the graph */
-    graphPos: { x: number, y: number } | null = null;
+    graphPos: { x: number; y: number } | null = null;
 
     static genModuleId(): string {
         const bytes = window.crypto.getRandomValues(new Uint8Array(8));
-        return [...bytes].map(x => ('00' + x.toString(16)).substr(-2)).join('');
+        return [...bytes].map((x) => ('00' + x.toString(16)).substr(-2)).join('');
     }
 
     constructor(plugin: ModulePlugin<T>, data = plugin.initialData()) {
@@ -434,7 +442,7 @@ export interface ModulePluginProps<T> {
     onChange: (v: T) => void;
 }
 
-type Class<T> = { new(...args: any[]): T };
+type Class<T> = { new (...args: any[]): T };
 
 export abstract class Data {
     typeId = 'NULL';
@@ -482,7 +490,7 @@ export class PlainTextData extends Data {
         if (this instanceof type) {
             return this as unknown as T;
         }
-        if (type === ByteSliceData as Class<unknown> as Class<T>) {
+        if (type === (ByteSliceData as Class<unknown> as Class<T>)) {
             return new ByteSliceData(new TextEncoder().encode(this.contents)) as unknown as T;
         }
         return null;
@@ -543,7 +551,7 @@ export class BlobData extends ByteSliceData {
         if (this instanceof type) {
             return this as unknown as T;
         }
-        if (type === PlainTextData as Class<unknown> as Class<T>) {
+        if (type === (PlainTextData as Class<unknown> as Class<T>)) {
             return new PlainTextData(this.objectUrl) as unknown as T;
         }
         return null;

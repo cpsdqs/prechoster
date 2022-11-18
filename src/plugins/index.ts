@@ -7,13 +7,13 @@ function lazy<T>(callback: () => Promise<{ default: T }>): () => Promise<T> {
             cached = (await callback()).default;
         }
         return cached;
-    }
+    };
 }
 
 export type ModuleDef = {
-    title: string,
-    description: string,
-    load: () => Promise<ModulePlugin<any>>,
+    title: string;
+    description: string;
+    load: () => Promise<ModulePlugin<any>>;
 };
 
 export const MODULES: { [k: string]: ModuleDef } = {
@@ -29,12 +29,14 @@ export const MODULES: { [k: string]: ModuleDef } = {
     },
     'source.svelte': {
         title: 'Svelte',
-        description: 'Svelte source. Outputs compiled HTML. Data provided to this module will be available to import as "./<name>".',
+        description:
+            'Svelte source. Outputs compiled HTML. Data provided to this module will be available to import as "./<name>".',
         load: lazy(() => import('./source/svelte')),
     },
     'source.svelte-component': {
         title: 'Svelte Component',
-        description: 'Svelte component source. Outputs a Svelte component you can send to a Svelte module, and then import as "./<name>.svelte".',
+        description:
+            'Svelte component source. Outputs a Svelte component you can send to a Svelte module, and then import as "./<name>.svelte".',
         load: lazy(() => import('./source/svelte-component')),
     },
     'source.file-data': {
@@ -54,7 +56,8 @@ export const MODULES: { [k: string]: ModuleDef } = {
     },
     'transform.svg-to-background': {
         title: 'SVG to backgrounds',
-        description: 'Given HTML input, converts SVG elements tagged with `data-background` to background images on their parent element.',
+        description:
+            'Given HTML input, converts SVG elements tagged with `data-background` to background images on their parent element.',
         load: lazy(() => import('./transform/svg-to-background')),
     },
     'transform.svgo': {
@@ -69,7 +72,8 @@ export const MODULES: { [k: string]: ModuleDef } = {
     },
     'transform.to-blob': {
         title: 'To blob',
-        description: 'Converts input to a `blob:` URL with a MIME type. Use this if you intend to upload the contents as an external resource.',
+        description:
+            'Converts input to a `blob:` URL with a MIME type. Use this if you intend to upload the contents as an external resource.',
         load: lazy(() => import('./transform/to-blob')),
     },
 };

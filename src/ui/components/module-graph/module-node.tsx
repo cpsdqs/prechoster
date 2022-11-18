@@ -1,6 +1,14 @@
 import { createElement as h } from 'react';
 import { Position, Handle, Node } from 'reactflow';
-import { Document, Module, ModuleId, AnyModule, Data, MOD_OUTPUT, RenderState } from '../../../document';
+import {
+    Document,
+    Module,
+    ModuleId,
+    AnyModule,
+    Data,
+    MOD_OUTPUT,
+    RenderState,
+} from '../../../document';
 import {
     MOD_BASE_WIDTH,
     MOD_HEADER_HEIGHT,
@@ -15,11 +23,16 @@ export function ModuleNode({ data }: { data: ModuleNode.NodeData }) {
 
     return (
         <div
-            className={'i-module-item' + (selected ? ' is-selected' : '') + (currentError ? ' is-error' : '')}
+            className={
+                'i-module-item' +
+                (selected ? ' is-selected' : '') +
+                (currentError ? ' is-error' : '')
+            }
             data-id={module.id}
             style={{
                 width: MOD_BASE_WIDTH,
-            }}>
+            }}
+        >
             <div className="i-header" style={{ [HEIGHT_PROP]: MOD_HEADER_HEIGHT }}>
                 <span className="i-index">{index + 1}</span>
                 <span className="i-label">{module.plugin.description(module.data)}</span>
@@ -33,17 +46,25 @@ export function ModuleNode({ data }: { data: ModuleNode.NodeData }) {
             <ModuleOutput data={currentOutput} />
             <div className="i-named-inputs">
                 {[...namedInputs].map((name, i) => (
-                    <div key={i} className="i-named-input" style={{
-                        [HEIGHT_PROP]: MOD_NAMED_INPUT_HEIGHT,
-                    }}>
+                    <div
+                        key={i}
+                        className="i-named-input"
+                        style={{
+                            [HEIGHT_PROP]: MOD_NAMED_INPUT_HEIGHT,
+                        }}
+                    >
                         <span className="i-label">{name}</span>
                         <Handle id={`named-in-${name}`} type="target" position={Position.Left} />
                     </div>
                 ))}
                 {module.plugin.acceptsNamedInputs ? (
-                    <div key="new" className="i-named-input" style={{
-                        [HEIGHT_PROP]: MOD_NAMED_INPUT_HEIGHT,
-                    }}>
+                    <div
+                        key="new"
+                        className="i-named-input"
+                        style={{
+                            [HEIGHT_PROP]: MOD_NAMED_INPUT_HEIGHT,
+                        }}
+                    >
                         <span className="i-label">+</span>
                         <Handle id={`named-new`} type="target" position={Position.Left} />
                     </div>
@@ -76,4 +97,3 @@ function ModuleOutput({ data }: { data: Data | null }) {
         </div>
     );
 }
-

@@ -1,6 +1,13 @@
 import { h } from 'preact';
 import { PureComponent } from 'preact/compat';
-import { ModulePlugin, ModulePluginProps, Data, NamedInputData, PlainTextData, CssData } from '../../document';
+import {
+    ModulePlugin,
+    ModulePluginProps,
+    Data,
+    NamedInputData,
+    PlainTextData,
+    CssData,
+} from '../../document';
 import { CodeEditor } from '../../ui/components/code-editor';
 import { css } from '@codemirror/lang-css';
 import './lesscss.less';
@@ -17,7 +24,7 @@ const less = Less();
 
 less.PluginLoader = function PluginLoader(less: any) {
     this.less = less;
-}
+};
 less.PluginLoader.prototype = Object.assign(new AbstractPluginLoader(), {
     loadPlugin() {
         return Promise.reject('cannot load plugins!!');
@@ -25,7 +32,7 @@ less.PluginLoader.prototype = Object.assign(new AbstractPluginLoader(), {
 });
 
 export type LessPluginData = {
-    contents: string,
+    contents: string;
 };
 
 class LessEditor extends PureComponent<ModulePluginProps<LessPluginData>> {
@@ -35,15 +42,18 @@ class LessEditor extends PureComponent<ModulePluginProps<LessPluginData>> {
                 {namedInputKeys.size ? (
                     <div class="less-variables">
                         <label>variables: </label>
-                        {[...namedInputKeys].map(key => (
-                            <span class="less-variable" key={key}>@{key}</span>
+                        {[...namedInputKeys].map((key) => (
+                            <span class="less-variable" key={key}>
+                                @{key}
+                            </span>
                         ))}
                     </div>
                 ) : null}
                 <CodeEditor
                     value={data.contents}
-                    onChange={contents => onChange({ ...data, contents })}
-                    extensions={[css()]} />
+                    onChange={(contents) => onChange({ ...data, contents })}
+                    extensions={[css()]}
+                />
             </div>
         );
     }
@@ -78,5 +88,5 @@ export default {
 
         const result = await less.render(data.contents, { variables });
         return new CssData(result.css);
-    }
+    },
 } as ModulePlugin<LessPluginData>;

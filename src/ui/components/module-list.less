@@ -3,7 +3,7 @@
     overflow: hidden scroll;
 
     .add-module {
-        padding: .75em;
+        padding: 0.75em;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -19,7 +19,8 @@
             position: relative;
             color: inherit;
 
-            &::before, &::after {
+            &::before,
+            &::after {
                 content: '';
                 position: absolute;
                 width: 1.5em;
@@ -68,7 +69,8 @@
                         transform: translateX(-1em);
                         opacity: 0;
                     }
-                    40%, 70% {
+                    40%,
+                    70% {
                         opacity: 1;
                     }
                     100% {
@@ -95,7 +97,8 @@
                         transform: none;
                         opacity: 0;
                     }
-                    40%, 70% {
+                    40%,
+                    70% {
                         opacity: 1;
                     }
                     100% {
@@ -112,7 +115,7 @@
         }
 
         & > .i-header {
-            padding: .3em .5em;
+            padding: 0.3em 0.5em;
             display: flex;
             justify-content: space-between;
 
@@ -125,7 +128,7 @@
                     background: none;
                     width: 1.5em;
                     height: 1.5em;
-                    border-radius: .5em;
+                    border-radius: 0.5em;
                     color: inherit;
                     border: 1px solid var(--accent);
                     position: relative;
@@ -157,7 +160,7 @@
                         font-feature-settings: 'tnum' 1;
                     }
                     & > .i-label {
-                        margin-left: .5em;
+                        margin-left: 0.5em;
                     }
                 }
             }
@@ -197,7 +200,8 @@
                         }
                     }
 
-                    &::before, &::after {
+                    &::before,
+                    &::after {
                         content: '';
                         position: absolute;
                         pointer-events: none;
@@ -218,7 +222,8 @@
                     }
 
                     &:focus {
-                        &::before, &::after {
+                        &::before,
+                        &::after {
                             opacity: 1;
                             transform: translateX(-50%);
                         }
@@ -229,7 +234,7 @@
 
         & > .i-editor {
             position: relative;
-            padding: .3em .5em;
+            padding: 0.3em 0.5em;
             padding-left: 2.3em;
 
             &:empty {
@@ -241,12 +246,12 @@
             position: relative;
 
             & > .i-sends {
-                padding: .3em .5em;
+                padding: 0.3em 0.5em;
                 display: flex;
 
                 & > .i-label {
                     font-size: smaller;
-                    margin-right: .5em;
+                    margin-right: 0.5em;
                     line-height: 1.8;
                 }
 
@@ -267,7 +272,8 @@
         }
 
         &.is-collapsed {
-            & > .i-editor, & > .i-footer {
+            & > .i-editor,
+            & > .i-footer {
                 display: none;
             }
         }

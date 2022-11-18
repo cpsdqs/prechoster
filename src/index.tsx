@@ -33,26 +33,28 @@ if (canInit) {
     container.id = 'prechoster-root';
     document.body.appendChild(container);
 
-    init().then(doc => {
-        let scheduledSave = false;
-        const scheduleSave = () => {
-            if (scheduledSave) return;
-            scheduledSave = true;
-            setTimeout(() => {
-                scheduledSave = false;
-                try {
-                    window.localStorage[localStorageName] = JSON.stringify(doc.serialize());
-                } catch {}
-            }, 1000);
-        };
+    init()
+        .then((doc) => {
+            let scheduledSave = false;
+            const scheduleSave = () => {
+                if (scheduledSave) return;
+                scheduledSave = true;
+                setTimeout(() => {
+                    scheduledSave = false;
+                    try {
+                        window.localStorage[localStorageName] = JSON.stringify(doc.serialize());
+                    } catch {}
+                }, 1000);
+            };
 
-        doc.addEventListener('change', () => {
-            scheduleSave();
+            doc.addEventListener('change', () => {
+                scheduleSave();
+            });
+
+            render(<Prechoster document={doc} />, container);
+        })
+        .catch((err) => {
+            alert('Error during initialization\n\n' + err);
+            console.error(err);
         });
-
-        render(<Prechoster document={doc} />, container);
-    }).catch(err => {
-        alert('Error during initialization\n\n' + err);
-        console.error(err);
-    });
 }

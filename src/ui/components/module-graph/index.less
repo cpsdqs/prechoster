@@ -47,7 +47,7 @@
         --conn-port-out: var(--accent);
         --selected: var(--accent);
         box-shadow: var(--shading);
-        border-radius: .5em;
+        border-radius: 0.5em;
         cursor: default;
 
         &.is-selected {
@@ -68,7 +68,7 @@
         .i-header {
             height: calc(var(--height) * 1px);
             line-height: calc(var(--height) * 1px);
-            border-radius: .5em .5em 0 0;
+            border-radius: 0.5em 0.5em 0 0;
             padding: 0 0.2em;
             overflow: hidden;
             white-space: nowrap;
@@ -82,7 +82,8 @@
                 margin-right: 0.2em;
             }
         }
-        .i-input, .i-output {
+        .i-input,
+        .i-output {
             height: calc(var(--height) * 1px);
             line-height: calc(var(--height) * 1px);
             white-space: nowrap;

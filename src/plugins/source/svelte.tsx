@@ -46,7 +46,7 @@ function bundleModules(modules: SvelteModules, main: string, mainId: string): Pr
             }
         };
         worker.addEventListener('message', onMessage);
-        worker.addEventListener('error', e => {
+        worker.addEventListener('error', (e) => {
             reject(new Error('Error in svelte worker'));
             worker?.terminate();
             worker = null;
@@ -70,7 +70,7 @@ function bundleModules(modules: SvelteModules, main: string, mainId: string): Pr
 }
 
 export type SveltePluginData = {
-    contents: string,
+    contents: string;
 };
 
 class SvelteEditor extends PureComponent<ModulePluginProps<SveltePluginData>> {
@@ -79,8 +79,9 @@ class SvelteEditor extends PureComponent<ModulePluginProps<SveltePluginData>> {
             <div class="plugin-less-editor">
                 <CodeEditor
                     value={data.contents}
-                    onChange={contents => onChange({ ...data, contents })}
-                    extensions={[html(), EditorView.lineWrapping]} />
+                    onChange={(contents) => onChange({ ...data, contents })}
+                    extensions={[html(), EditorView.lineWrapping]}
+                />
             </div>
         );
     }
@@ -113,21 +114,24 @@ export default {
                 throw new Error(`could not convert input to svelte component`);
             }
             const fileName = `${component.name}.svelte`;
-            if (modules.has(fileName)) throw new Error(`duplicate component name ${component.name}`);
+            if (modules.has(fileName))
+                throw new Error(`duplicate component name ${component.name}`);
             modules.set(fileName, component);
         }
         for (const [name, value] of namedInputs) {
             let data;
-            if (data = value.into(SvelteComponentData)) {
+            if ((data = value.into(SvelteComponentData))) {
                 const fileName = `${data.name}.svelte`;
                 if (modules.has(fileName)) throw new Error(`duplicate component name ${data.name}`);
                 modules.set(fileName, data);
-            } else if (data = value.into(JavascriptData)) {
+            } else if ((data = value.into(JavascriptData))) {
                 modules.set(name, data);
-            } else if (data = value.into(PlainTextData)) {
+            } else if ((data = value.into(PlainTextData))) {
                 modules.set(name, { contents: `export default ${JSON.stringify(data.contents)};` });
             } else {
-                throw new Error(`don’t know how to deal with input ${name} of type ${value.typeId}`);
+                throw new Error(
+                    `don’t know how to deal with input ${name} of type ${value.typeId}`
+                );
             }
         }
 
@@ -158,7 +162,7 @@ export default {
 
         const iframe = execFrame!;
 
-        await new Promise<void>(resolve => {
+        await new Promise<void>((resolve) => {
             iframe.onload = () => resolve();
             iframe.srcdoc = `<!doctype html>
 <html>
@@ -191,9 +195,10 @@ window.addEventListener('message', e => {
                 };
                 window.addEventListener('message', onMessage);
 
-                iframe.contentWindow!.postMessage({
-                    type: 'eval',
-                    script: `
+                iframe.contentWindow!.postMessage(
+                    {
+                        type: 'eval',
+                        script: `
 window.process = { env: { NODE_ENV: "production" } };
 {
     window.onerror = (msg, url, line, col, error) => {
@@ -224,7 +229,9 @@ window.process = { env: { NODE_ENV: "production" } };
     document.head.append(svelteScript);
 }
             `,
-                }, '*');
+                    },
+                    '*'
+                );
 
                 setTimeout(() => {
                     if (!didReturn) {
@@ -244,5 +251,5 @@ window.process = { env: { NODE_ENV: "production" } };
             iframe.srcdoc = '';
             throw err;
         }
-    }
+    },
 } as ModulePlugin<SveltePluginData>;

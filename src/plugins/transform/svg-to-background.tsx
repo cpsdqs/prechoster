@@ -5,7 +5,7 @@ import { ModulePlugin, ModulePluginProps, HtmlData, Data } from '../../document'
 import { optimize } from 'svgo/dist/svgo.browser';
 
 export type SvgToBackgroundData = {
-    useSvgo: boolean,
+    useSvgo: boolean;
 };
 
 function SvgToBackground({ data, onChange }: ModulePluginProps<SvgToBackgroundData>) {
@@ -18,10 +18,10 @@ function SvgToBackground({ data, onChange }: ModulePluginProps<SvgToBackgroundDa
                     id={useSvgoId}
                     type="checkbox"
                     checked={data.useSvgo}
-                    onChange={e => {
+                    onChange={(e) => {
                         onChange({ ...data, useSvgo: (e.target as HTMLInputElement).checked });
-                    }} />
-                {' '}
+                    }}
+                />{' '}
                 <label for={useSvgoId}>Use SVG Optimizer</label>
             </div>
         </div>
@@ -43,7 +43,7 @@ export default {
         let htmlInput = '';
         for (const input of inputs) {
             let data;
-            if (data = input.into(HtmlData)) {
+            if ((data = input.into(HtmlData))) {
                 htmlInput += data.contents;
             } else {
                 throw new Error('svg to background received input that is not html');
@@ -68,12 +68,12 @@ export default {
             if (data.useSvgo) {
                 const result = optimize(svgMarkup, {
                     multipass: true,
-                    plugins: [
-                        { name: 'preset-default' },
-                    ],
+                    plugins: [{ name: 'preset-default' }],
                 });
                 if (result.error) {
-                    throw new Error(`SVGO error: ${result.error}\n\n(in svg ${svgMarkup.slice(0, 50)}…)`);
+                    throw new Error(
+                        `SVGO error: ${result.error}\n\n(in svg ${svgMarkup.slice(0, 50)}…)`
+                    );
                 }
                 svgMarkup = result.data;
             }

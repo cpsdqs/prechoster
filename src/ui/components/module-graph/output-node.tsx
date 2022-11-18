@@ -9,10 +9,12 @@ export function OutputNode({ data }: { data: any }) {
     return (
         <div className="i-output-node">
             <Handle id="in" type="target" position={Position.Left} />
-            <div className="eggbug-containment-zone" dangerouslySetInnerHTML={{
-                __html: data.hasOutput ? eggbug : eggbugSleep,
-            }}>
-            </div>
+            <div
+                className="eggbug-containment-zone"
+                dangerouslySetInnerHTML={{
+                    __html: data.hasOutput ? eggbug : eggbugSleep,
+                }}
+            ></div>
         </div>
     );
 }

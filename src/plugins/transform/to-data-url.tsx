@@ -1,10 +1,16 @@
 import { h } from 'preact';
 import { PureComponent } from 'preact/compat';
-import { ModulePlugin, ModulePluginProps, ByteSliceData, PlainTextData, Data } from '../../document';
+import {
+    ModulePlugin,
+    ModulePluginProps,
+    ByteSliceData,
+    PlainTextData,
+    Data,
+} from '../../document';
 import base64js from 'base64-js';
 
 export type ToDataUrlData = {
-    mime: string,
+    mime: string;
 };
 
 function ToDataUrl({ data, onChange }: ModulePluginProps<ToDataUrlData>) {
@@ -13,16 +19,16 @@ function ToDataUrl({ data, onChange }: ModulePluginProps<ToDataUrlData>) {
     return (
         <div>
             <div>
-                <label for={mimeId}>MIME type:</label>
-                {' '}
+                <label for={mimeId}>MIME type:</label>{' '}
                 <input
                     id={mimeId}
                     type="text"
                     placeholder="text/plain"
                     value={data.mime}
-                    onChange={e => {
+                    onChange={(e) => {
                         onChange({ ...data, mime: (e.target as HTMLInputElement).value });
-                    }} />
+                    }}
+                />
             </div>
         </div>
     );
@@ -44,11 +50,13 @@ export default {
         let len = 0;
         for (const input of inputs) {
             let data;
-            if (data = input.into(ByteSliceData)) {
+            if ((data = input.into(ByteSliceData))) {
                 buffers.push(data.contents);
                 len += data.contents.byteLength;
             } else {
-                throw new Error(`don’t know how to convert ${input.typeDescription()} to a data URL`);
+                throw new Error(
+                    `don’t know how to convert ${input.typeDescription()} to a data URL`
+                );
             }
         }
 

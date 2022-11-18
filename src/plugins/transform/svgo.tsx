@@ -26,7 +26,7 @@ export default {
         if (inputs.length > 1) throw new Error('cannot use SVGO with multiple inputs');
         for (const input of inputs) {
             let data;
-            if (data = input.into(PlainTextData)) {
+            if ((data = input.into(PlainTextData))) {
                 svgInput += data.contents;
             } else {
                 throw new Error('svg received input that is not text');
@@ -35,9 +35,7 @@ export default {
 
         const result = optimize(svgInput, {
             multipass: true,
-            plugins: [
-                { name: 'preset-default' },
-            ],
+            plugins: [{ name: 'preset-default' }],
         });
         if (result.error) {
             throw new Error(`SVGO error: ${result.error}\n\n(in svg ${svgInput.slice(0, 50)}…)`);

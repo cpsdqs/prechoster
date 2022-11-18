@@ -126,7 +126,7 @@ export function useCodeMirror(props: UseCodeMirror) {
                 setView(undefined);
             }
         },
-        [view],
+        [view]
     );
 
     useEffect(() => {
@@ -226,11 +226,12 @@ export default forwardRef<ReactCodeMirrorRef, ReactCodeMirrorProps>((props, ref)
         extensions,
     });
 
-    useImperativeHandle(
-        ref,
-        () => ({ editor: editor.current, state, view }),
-        [editor, container, state, view],
-    );
+    useImperativeHandle(ref, () => ({ editor: editor.current, state, view }), [
+        editor,
+        container,
+        state,
+        view,
+    ]);
 
     const defaultClassNames = typeof theme === 'string' ? `cm-theme-${theme}` : 'cm-theme';
     return <div ref={editor} className={`${defaultClassNames} ${className}`} {...(other as any)} />;

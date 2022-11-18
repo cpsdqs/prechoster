@@ -29,11 +29,11 @@
             inset: 0;
             transform: scaleX(0);
             background: var(--separator);
-            transition: transform 0.1s cubic-bezier(.5, 0, .7, .5);
+            transition: transform 0.1s cubic-bezier(0.5, 0, 0.7, 0.5);
         }
         &:hover::before {
             transform: scaleX(0.5);
-            transition: transform 0.3s cubic-bezier(.5, 2, .5, 1);
+            transition: transform 0.3s cubic-bezier(0.5, 2, 0.5, 1);
         }
 
         & > .inner-affordance {
@@ -43,7 +43,8 @@
             --line-pos: 30%;
             --line-weight: 2px;
 
-            &::before, &::after {
+            &::before,
+            &::after {
                 position: absolute;
                 content: '';
                 background: currentColor;
@@ -52,7 +53,8 @@
     }
 
     &.is-horizontal > .inner-resizer > .inner-affordance {
-        &::before, &::after {
+        &::before,
+        &::after {
             height: 1em;
             width: var(--line-weight);
             top: 0;
@@ -65,7 +67,8 @@
         }
     }
     &.is-vertical > .inner-resizer > .inner-affordance {
-        &::before, &::after {
+        &::before,
+        &::after {
             width: 1em;
             height: var(--line-weight);
             left: 0;

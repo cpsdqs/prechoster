@@ -6,14 +6,20 @@ import { ModulePlugin, ModulePluginProps, HtmlData, CssData, Data } from '../../
 
 type StyleInlinerMode = 'attr' | 'element';
 export type StyleInlinerData = {
-    mode: StyleInlinerMode,
+    mode: StyleInlinerMode;
 };
 
 function StyleInliner({ data, onChange }: ModulePluginProps<StyleInlinerData>) {
     return (
-        <select value={data.mode} onChange={e => {
-            onChange({ ...data, mode: (e.target as HTMLSelectElement).value as StyleInlinerMode });
-        }}>
+        <select
+            value={data.mode}
+            onChange={(e) => {
+                onChange({
+                    ...data,
+                    mode: (e.target as HTMLSelectElement).value as StyleInlinerMode,
+                });
+            }}
+        >
             <option value="attr">as style attributes</option>
             <option value="element">as a &lt;style&gt; element</option>
         </select>
@@ -30,9 +36,9 @@ function stylesToAttrs(doc: Document) {
     // collect all element styles
     type StyleData = {
         // type Specificity (for some reason typescript complains when you use this type)
-        specificity: any,
-        decls: { [k: string]: string },
-        importantDecls: { [k: string]: string },
+        specificity: any;
+        decls: { [k: string]: string };
+        importantDecls: { [k: string]: string };
     };
     const nodes: Map<Element, StyleData[]> = new Map();
     for (const style of styles) {
@@ -84,7 +90,9 @@ function stylesToAttrs(doc: Document) {
                                             importantDecls,
                                         });
                                     }
-                                } catch { /* invalid selector probably */}
+                                } catch {
+                                    /* invalid selector probably */
+                                }
                             } else {
                                 throw new Error(`invalid CSS selector “${cssGenerate(sel)}”`);
                             }
@@ -97,7 +105,9 @@ function stylesToAttrs(doc: Document) {
 
     // apply styles sorted by specificity
     for (const [node, styles] of nodes) {
-        const sorted = styles.slice().sort((a, b) => Specificity.compare(a.specificity, b.specificity));
+        const sorted = styles
+            .slice()
+            .sort((a, b) => Specificity.compare(a.specificity, b.specificity));
 
         for (const item of sorted) {
             for (const [k, v] of Object.entries(item.decls)) {
@@ -119,7 +129,7 @@ function stylesToBody(doc: Document) {
         style.remove();
     }
 
-    const styleText = styles.map(style => style.innerHTML).join('\n');
+    const styleText = styles.map((style) => style.innerHTML).join('\n');
     const styleEl = document.createElement('style');
     styleEl.innerHTML = styleText;
 
@@ -146,9 +156,9 @@ export default {
         let cssInput = '';
         for (const input of inputs) {
             let data;
-            if (data = input.into(HtmlData)) {
+            if ((data = input.into(HtmlData))) {
                 htmlInput += data.contents;
-            } else if (data = input.into(CssData)) {
+            } else if ((data = input.into(CssData))) {
                 cssInput += data.contents;
             } else {
                 throw new Error('style inliner received input that is neither html nor css');

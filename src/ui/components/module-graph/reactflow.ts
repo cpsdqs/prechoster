@@ -25,7 +25,7 @@ export class ReactFlow extends PureComponent<any> {
             InnerReactFlow,
             { ...this.props, nodeTypes },
             createElement(Controls),
-            createElement(Background, { gap: GRID_SIZE }),
+            createElement(Background, { gap: GRID_SIZE })
         );
     }
 

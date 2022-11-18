@@ -7,15 +7,16 @@ import './module-picker.less';
 
 export function ModulePicker({ open, anchor, onClose, onPick }: ModulePicker.Props) {
     return (
-        <Popover
-            open={open}
-            onClose={onClose}
-            anchor={anchor}>
+        <Popover open={open} onClose={onClose} anchor={anchor}>
             <div class="module-picker-items">
-                {Object.keys(MODULES).map(moduleId =>
-                <Module module={MODULES[moduleId]} onPick={async () => {
-                    onPick(await MODULES[moduleId].load());
-                }} />)}
+                {Object.keys(MODULES).map((moduleId) => (
+                    <Module
+                        module={MODULES[moduleId]}
+                        onPick={async () => {
+                            onPick(await MODULES[moduleId].load());
+                        }}
+                    />
+                ))}
             </div>
         </Popover>
     );
@@ -29,7 +30,7 @@ namespace ModulePicker {
     }
 }
 
-function Module({ module, onPick }: { module: ModuleDef, onPick: () => void }) {
+function Module({ module, onPick }: { module: ModuleDef; onPick: () => void }) {
     const [titleId] = useState(Math.random().toString(36));
 
     return (
@@ -38,10 +39,7 @@ function Module({ module, onPick }: { module: ModuleDef, onPick: () => void }) {
                 <h3 id={titleId}>{module.title}</h3>
                 <p>{module.description}</p>
             </div>
-            <button
-                class="i-add-button"
-                onClick={onPick}
-                aria-label={`Select ${module.title}`} />
+            <button class="i-add-button" onClick={onPick} aria-label={`Select ${module.title}`} />
         </div>
     );
 }

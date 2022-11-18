@@ -1,4 +1,12 @@
-import { Document, Module, ModuleId, AnyModule, Data, MOD_OUTPUT, RenderState } from '../../../document';
+import {
+    Document,
+    Module,
+    ModuleId,
+    AnyModule,
+    Data,
+    MOD_OUTPUT,
+    RenderState,
+} from '../../../document';
 import {
     MOD_BASE_WIDTH,
     MOD_HEADER_HEIGHT,
@@ -43,17 +51,17 @@ function toposortDoc(doc: Document, backwards: boolean = false): AnyModule[] {
 }
 
 export type NodeLayout = {
-    column: number,
-    index: number,
-    y: number,
-    height: number,
-    acceptsInputs: boolean,
-    namedInputs: Set<string>,
+    column: number;
+    index: number;
+    y: number;
+    height: number;
+    acceptsInputs: boolean;
+    namedInputs: Set<string>;
 };
 export type GraphLayout = {
-    columns: (AnyModule | null)[][],
-    layouts: Map<ModuleId, NodeLayout>,
-    indices: Map<ModuleId, number>,
+    columns: (AnyModule | null)[][];
+    layouts: Map<ModuleId, NodeLayout>;
+    indices: Map<ModuleId, number>;
 };
 export function layoutNodes(doc: Document): GraphLayout {
     const columns: (AnyModule | null)[][] = [];
@@ -119,7 +127,7 @@ export function layoutNodes(doc: Document): GraphLayout {
             layout.y = y;
             y += layout.height;
             y += MIN_ROW_GAP;
-            y = Math.ceil((y / GRID_SIZE)) * GRID_SIZE;
+            y = Math.ceil(y / GRID_SIZE) * GRID_SIZE;
         }
         colIndex++;
     }

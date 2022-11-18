@@ -32,10 +32,9 @@ export class CodeEditor extends PureComponent<CodeEditor.Props> {
                         onChange(newValue);
                     }}
                     theme={theme}
-                    extensions={extensions} />
-                <footer class="editor-footer">
-                    {footer}
-                </footer>
+                    extensions={extensions}
+                />
+                <footer class="editor-footer">{footer}</footer>
             </div>
         );
     }

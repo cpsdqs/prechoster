@@ -1,12 +1,19 @@
 import { h } from 'preact';
 import { PureComponent, useState } from 'preact/compat';
-import { ModulePlugin, ModulePluginProps, ByteSliceData, BlobData, PlainTextData, Data } from '../../document';
+import {
+    ModulePlugin,
+    ModulePluginProps,
+    ByteSliceData,
+    BlobData,
+    PlainTextData,
+    Data,
+} from '../../document';
 import base64js from 'base64-js';
 
 export type ToBlobData = {
-    mime: string,
-    override: string | null,
-    useOverride: boolean,
+    mime: string;
+    override: string | null;
+    useOverride: boolean;
 };
 
 function ToBlob({ id, data, onChange, document }: ModulePluginProps<ToBlobData>) {
@@ -18,7 +25,7 @@ function ToBlob({ id, data, onChange, document }: ModulePluginProps<ToBlobData>)
 
     const download = () => {
         setLoading(true);
-        document.eval(id).then(result => {
+        document.eval(id).then((result) => {
             setLoading(false);
 
             if (result.type === 'output') {
@@ -38,19 +45,21 @@ function ToBlob({ id, data, onChange, document }: ModulePluginProps<ToBlobData>)
     return (
         <div>
             <div>
-                <label for={mimeId}>MIME type:</label>
-                {' '}
+                <label for={mimeId}>MIME type:</label>{' '}
                 <input
                     id={mimeId}
                     type="text"
                     placeholder="text/plain"
                     value={data.mime}
-                    onChange={e => {
+                    onChange={(e) => {
                         onChange({ ...data, mime: (e.target as HTMLInputElement).value });
-                    }} />
+                    }}
+                />
             </div>
             <div>
-                <button onClick={download} disabled={loading}>download file</button>
+                <button onClick={download} disabled={loading}>
+                    download file
+                </button>
             </div>
             <hr />
             <div>
@@ -58,24 +67,27 @@ function ToBlob({ id, data, onChange, document }: ModulePluginProps<ToBlobData>)
                     id={useOverrideId}
                     type="checkbox"
                     checked={data.useOverride}
-                    onChange={e => {
+                    onChange={(e) => {
                         onChange({ ...data, useOverride: (e.target as HTMLInputElement).checked });
-                    }} />
-                {' '}
+                    }}
+                />{' '}
                 <label for={useOverrideId}>Override with uploaded file</label>
             </div>
             {data.useOverride && (
                 <div>
-                    <label for={overrideId}>URL:</label>
-                    {' '}
+                    <label for={overrideId}>URL:</label>{' '}
                     <input
                         id={overrideId}
                         type="text"
                         placeholder="https://staging.cohostcdn.org/..."
                         value={data.override || ''}
-                        onChange={e => {
-                            onChange({ ...data, override: (e.target as HTMLInputElement).value || null });
-                        }} />
+                        onChange={(e) => {
+                            onChange({
+                                ...data,
+                                override: (e.target as HTMLInputElement).value || null,
+                            });
+                        }}
+                    />
                 </div>
             )}
         </div>
@@ -100,7 +112,7 @@ export default {
         let len = 0;
         for (const input of inputs) {
             let data;
-            if (data = input.into(ByteSliceData)) {
+            if ((data = input.into(ByteSliceData))) {
                 buffers.push(data.contents);
                 len += data.contents.byteLength;
             } else {

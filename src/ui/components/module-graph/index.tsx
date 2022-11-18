@@ -1,6 +1,14 @@
 import { h } from 'preact';
 import { lazy, Suspense, PureComponent } from 'preact/compat';
-import { Document, Module, ModuleId, AnyModule, Data, MOD_OUTPUT, RenderState } from '../../../document';
+import {
+    Document,
+    Module,
+    ModuleId,
+    AnyModule,
+    Data,
+    MOD_OUTPUT,
+    RenderState,
+} from '../../../document';
 import { Connection, NodeChange, NodePositionChange, EdgeChange } from 'reactflow';
 import { layoutNodes } from './auto-layout';
 import { MOD_BASE_WIDTH, MIN_COL_GAP, GRID_SIZE } from './consts';
@@ -9,7 +17,7 @@ import './index.less';
 
 export type EdgeId = string;
 
-const ReactFlow = lazy(() => import('./reactflow').then(r => r.ReactFlow));
+const ReactFlow = lazy(() => import('./reactflow').then((r) => r.ReactFlow));
 
 export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
     state = {
@@ -107,7 +115,7 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
             document.beginChange();
 
             for (const edgeId of edgesToRemove) {
-                const edge = edges.find(item => item.id === edgeId);
+                const edge = edges.find((item) => item.id === edgeId);
                 if (!edge) continue;
 
                 let module = document.findModule(edge.source);
@@ -139,14 +147,13 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
     runAutoLayout = () => {
         const { document } = this.props;
 
-        const hasManualLayout = document.modules.find(m => !!m.graphPos);
+        const hasManualLayout = document.modules.find((m) => !!m.graphPos);
         if (!hasManualLayout) return;
 
         document.beginChange();
 
         document.setModules(
-            document.modules
-            .map(m => {
+            document.modules.map((m) => {
                 m = m.shallowClone();
                 m.graphPos = null;
                 return m;
@@ -165,8 +172,9 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
 
         for (const module of document.modules) {
             const nodeLayout = layout.layouts.get(module.id)!;
-            const output = render?.output ? (render.output.outputs.get(module.id) || null) : null;
-            const error = (render?.error && render.error.source === module.id) ? render.error.error : null;
+            const output = render?.output ? render.output.outputs.get(module.id) || null : null;
+            const error =
+                render?.error && render.error.source === module.id ? render.error.error : null;
             const selected = module.id === this.props.selected;
 
             const autoLayoutPos = {
@@ -217,7 +225,8 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
                         onEdgesChange={this.onEdgesChange}
                         onConnect={this.onConnect}
                         onNodeDragStart={() => this.setState({ draggingNode: true })}
-                        onNodeDragStop={() => this.setState({ draggingNode: false })} />
+                        onNodeDragStop={() => this.setState({ draggingNode: false })}
+                    />
                 </Suspense>
                 <div class="i-actions">
                     <button onClick={this.runAutoLayout}>auto layout</button>
