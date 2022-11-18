@@ -34,7 +34,10 @@ export default {
             sourceMap: false,
         }),
         alias({
-            entries: [{ find: 'css-tree', replacement: 'css-tree/dist/csstree.esm' }],
+            entries: [
+                { find: 'css-tree', replacement: 'css-tree/dist/csstree.esm' },
+                { find: /^(.*\/min(?:path|proc|url)).js$/, replacement: '$1.browser.js' },
+            ],
         }),
         offMainThread({
             workerRegexp: null,

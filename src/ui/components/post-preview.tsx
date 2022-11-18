@@ -1,7 +1,6 @@
 import { h, VNode } from 'preact';
 import { PureComponent, useEffect, useRef, useState } from 'preact/compat';
-import { micromark } from 'micromark';
-import { gfm, gfmHtml } from 'micromark-extension-gfm';
+import { renderPostToReact, RenderedPost } from '../../markdown/markdown';
 import { Popover } from './popover';
 import './post-preview.less';
 
@@ -144,116 +143,6 @@ interface ErrorMessage {
     props: { [k: string]: any };
 }
 
-function renderMarkdown(
-    markdown: string,
-    pushError: (id: keyof typeof ERRORS, props: { [k: string]: any }) => void
-) {
-    const doc = new DOMParser().parseFromString(
-        [
-            '<!doctype html><html><head></head><body>',
-            micromark(markdown, {
-                allowDangerousHtml: true,
-                extensions: [gfm({ singleTilde: false })],
-                htmlExtensions: [gfmHtml()],
-            }),
-            '</body></html>',
-        ].join(''),
-        'text/html'
-    );
-
-    const footnotes = doc.querySelector('section[data-footnotes]');
-    const ignoreUserContentId = new Set();
-    if (footnotes) {
-        // cohost does something weird with the footnotes that i cant be bothered
-        // to replicate accurately here
-        footnotes.remove();
-        const innerFootnotes = footnotes.querySelector('ol')!;
-        const hr = document.createElement('hr');
-        hr.setAttribute('aria-label', 'Footnotes');
-        hr.style.marginBottom = '-0.5rem';
-        doc.body.append(hr);
-        doc.body.append(innerFootnotes);
-
-        // stop warning about footnotes
-        for (const node of innerFootnotes.querySelectorAll('[id]')) {
-            ignoreUserContentId.add(node.id);
-        }
-        for (const fnref of innerFootnotes.querySelectorAll('[href^="#user-content-fnref"]')) {
-            const refId = fnref.getAttribute('href')!.substring(1);
-            ignoreUserContentId.add(refId);
-        }
-    }
-
-    for (const node of doc.querySelectorAll(STRIP_ELEMENTS.join(', '))) {
-        pushError('strip-element', { node });
-        node.remove();
-    }
-    for (const node of doc.querySelectorAll('input')) {
-        node.disabled = true;
-        if (node.type !== 'checkbox') {
-            pushError('input-to-checkbox', { type: node.type });
-            node.type = 'checkbox';
-        }
-    }
-
-    const idReferencingAttrs = [
-        'aria-activedescendant',
-        'aria-controls',
-        'aria-describedby',
-        'aria-errormessage',
-        'aria-flowto',
-        'aria-labelledby',
-        'aria-owns',
-        'for',
-        'headers',
-        'list',
-    ];
-    const idReferences = new Set();
-    for (const attr of idReferencingAttrs) {
-        for (const node of doc.querySelectorAll(`[${attr}]`)) {
-            idReferences.add(node.getAttribute(attr));
-        }
-    }
-    for (const node of doc.querySelectorAll(`[href]`)) {
-        const href = node.getAttribute('href') || '';
-        if (href.startsWith('#')) {
-            idReferences.add(href.substr(1));
-        }
-    }
-
-    // cohost adds user-content- before ids in posts
-    for (const node of doc.querySelectorAll('[id]')) {
-        if (idReferences.has(node.id) && !ignoreUserContentId.has(node.id)) {
-            pushError('user-content-id', { id: node.id });
-        }
-        node.id = 'user-content-' + node.id;
-    }
-
-    for (const _node of doc.querySelectorAll(`[style]`)) {
-        const node = _node as HTMLElement | SVGElement;
-        const styleKeys: string[] = [];
-        for (let i = 0; i < node.style.length; i++) {
-            const key = node.style[i];
-            styleKeys.push(key);
-        }
-        for (const key of styleKeys) {
-            if (key.startsWith('--')) {
-                node.style.setProperty(key, '');
-                pushError('strip-css-variable', {
-                    node,
-                    name: key,
-                });
-            }
-            if (key === 'position' && node.style.position === 'fixed') {
-                node.style.position = 'static';
-                pushError('position-fixed', { node });
-            }
-        }
-    }
-
-    return doc.body.innerHTML;
-}
-
 function findUrlsInBackgroundImage(s: string) {
     const urls = [];
     while (s) {
@@ -270,7 +159,6 @@ function findUrlsInBackgroundImage(s: string) {
 }
 
 function handleAsyncErrors(
-    prose: HTMLElement,
     pushAsyncError: (id: keyof typeof ERRORS, props: { [k: string]: any }) => void
 ) {
     for (const img of prose.querySelectorAll('img')) {
@@ -292,16 +180,33 @@ function handleAsyncErrors(
     }
 }
 
-export function PostPreview({ markdown, error, stale }: PostPreview.Props) {
-    let html = '';
+export function PostPreview({ markdown, error, stale, plus }: PostPreview.Props) {
+    let post: RenderedPost = {
+        initial: null,
+        initialLength: 0,
+        expanded: null,
+        expandedLength: 0,
+    };
     const renderErrors: ErrorMessage[] = [];
     try {
-        html = renderMarkdown(markdown, (id, props) => renderErrors.push({ id, props }));
+        post = renderPostToReact(
+            markdown.split('\n\n').map((str) => ({
+                type: 'markdown',
+                markdown: {
+                    content: str,
+                },
+            })),
+            new Date(),
+            {
+                hasCohostPlus: Boolean(plus),
+                disableEmbeds: false,
+                externalLinksInNewTab: true,
+            }
+        );
     } catch (err) {
         error = err as Error;
     }
 
-    const innerProse = useRef<HTMLDivElement>(null);
     const errorBtn = useRef<HTMLButtonElement>(null);
     const [errorsOpen, setErrorsOpen] = useState(false);
     const [asyncErrors, setAsyncErrors] = useState<ErrorMessage[]>([]);
@@ -311,14 +216,6 @@ export function PostPreview({ markdown, error, stale }: PostPreview.Props) {
         asyncErrors.push({ id, props });
         setAsyncErrors([...asyncErrors]);
     };
-
-    useEffect(() => {
-        innerProse.current!.innerHTML = html;
-        asyncErrors.splice(0);
-        setAsyncErrors([...asyncErrors]);
-
-        handleAsyncErrors(innerProse.current!, pushAsyncError);
-    }, [html]);
 
     const errorCount = renderErrors.length + asyncErrors.length;
 
@@ -358,12 +255,20 @@ export function PostPreview({ markdown, error, stale }: PostPreview.Props) {
                             ))}
                     </div>
                 ) : (
-                    <div class="inner-prose p-prose" ref={innerProse} />
+                    <div class="inner-prose p-prose">
+                        {post.initial}
+                        {post.expandedLength !== 0 && (
+                            <details>
+                                <summary>Read More</summary>
+                                {post.expanded}
+                            </details>
+                        )}
+                    </div>
                 )}
             </div>
             <hr />
             <div class="post-footer">
-                <ByteSize size={html.length} />
+                <ByteSize size={markdown.length} />
                 <CopyToClipboard disabled={!!error} data={markdown} label="Copy to clipboard" />
             </div>
         </div>
@@ -374,6 +279,7 @@ namespace PostPreview {
         markdown: string;
         error?: Error | null;
         stale?: boolean;
+        plus?: boolean;
     }
 }
 
