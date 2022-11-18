@@ -3,8 +3,8 @@ import { PureComponent } from 'preact/compat';
 import './split-panel.less';
 
 type ResizerDragState = {
-    pointerId: number,
-    offset: number,
+    pointerId: number;
+    offset: number;
 };
 
 interface SplitPanelState {
@@ -98,20 +98,23 @@ export class SplitPanel extends PureComponent<SplitPanel.Props, SplitPanelState>
 
     render({ vertical, children }: SplitPanel.Props) {
         if (!Array.isArray(children)) children = [children];
-        children = children.filter(x => x);
+        children = children.filter((x) => x);
         if (children.length > 2) throw new Error('SplitPanel: more than 2 children not supported');
 
         const doSplit = children.length > 1;
         const style1 = {
-            [this.hv('width', 'height')]: doSplit ? (this.state.splitPos * 100) + '%' : '100%',
+            [this.hv('width', 'height')]: doSplit ? this.state.splitPos * 100 + '%' : '100%',
         };
         const style2 = {
-            [this.hv('width', 'height')]: ((1 - this.state.splitPos) * 100) + '%',
+            [this.hv('width', 'height')]: (1 - this.state.splitPos) * 100 + '%',
         };
         const [minSplit, maxSplit] = this.bounds;
 
         return (
-            <div ref={this.panel} class={'split-panel' + (vertical ? ' is-vertical' : ' is-horizontal')}>
+            <div
+                ref={this.panel}
+                class={'split-panel' + (vertical ? ' is-vertical' : ' is-horizontal')}
+            >
                 <div class="inner-container" role="group" style={style1}>
                     {children[0]}
                 </div>
@@ -128,7 +131,8 @@ export class SplitPanel extends PureComponent<SplitPanel.Props, SplitPanelState>
                         onKeyDown={this.onResizerKeyPress}
                         onPointerDown={this.onResizerPointerDown}
                         onPointerMove={this.onResizerPointerMove}
-                        onPointerUp={this.onResizerPointerUp}>
+                        onPointerUp={this.onResizerPointerUp}
+                    >
                         <div class="inner-affordance" />
                     </div>
                 )}

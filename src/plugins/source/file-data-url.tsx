@@ -4,7 +4,7 @@ import { ModulePlugin, ModulePluginProps, PlainTextData } from '../../document';
 import './file-data.less';
 
 export type FileDataUrlPluginData = {
-    url: string,
+    url: string;
 };
 
 class FileDataUrlEditor extends PureComponent<ModulePluginProps<FileDataUrlPluginData>> {
@@ -29,16 +29,12 @@ class FileDataUrlEditor extends PureComponent<ModulePluginProps<FileDataUrlPlugi
         if (type.startsWith('text/')) {
             const contents = atob(data.url.split(',')[1]);
             if (contents) {
-                preview = (
-                    <textarea readonly>{contents}</textarea>
-                );
+                preview = <textarea readonly>{contents}</textarea>;
             } else {
                 preview = <span />;
             }
         } else if (type.startsWith('image/')) {
-            preview = (
-                <img src={data.url} />
-            );
+            preview = <img src={data.url} />;
         }
 
         if (!preview) {
@@ -48,9 +44,7 @@ class FileDataUrlEditor extends PureComponent<ModulePluginProps<FileDataUrlPlugi
         return (
             <div class="plugin-file-data-editor">
                 <input ref={this.fileInput} type="file" onChange={this.onFile} />
-                <div class="file-preview">
-                    {preview}
-                </div>
+                <div class="file-preview">{preview}</div>
             </div>
         );
     }
@@ -69,5 +63,5 @@ export default {
     },
     async eval(data: FileDataUrlPluginData) {
         return new PlainTextData(data.url);
-    }
+    },
 } as ModulePlugin<FileDataUrlPluginData>;

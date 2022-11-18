@@ -18,10 +18,26 @@
         stroke-width: 2px;
     }
 
+    .react-flow__handle {
+        --color: unset;
+        background: var(--color);
+        border-color: var(--graph-connection);
+
+        &::before {
+            // increase hitbox
+            // interaction signifier
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+        }
+    }
+
     .i-connection {
         .react-flow__edge-path {
             stroke: var(--graph-connection);
             stroke-width: 2px;
+            stroke-linecap: round;
         }
 
         &.selected .react-flow__edge-path,
@@ -47,7 +63,7 @@
         --conn-port-out: var(--accent);
         --selected: var(--accent);
         box-shadow: var(--shading);
-        border-radius: .5em;
+        border-radius: 0.5em;
         cursor: default;
 
         &.is-selected {
@@ -68,7 +84,7 @@
         .i-header {
             height: calc(var(--height) * 1px);
             line-height: calc(var(--height) * 1px);
-            border-radius: .5em .5em 0 0;
+            border-radius: 0.5em 0.5em 0 0;
             padding: 0 0.2em;
             overflow: hidden;
             white-space: nowrap;
@@ -82,7 +98,8 @@
                 margin-right: 0.2em;
             }
         }
-        .i-input, .i-output {
+        .i-input,
+        .i-output {
             height: calc(var(--height) * 1px);
             line-height: calc(var(--height) * 1px);
             white-space: nowrap;
@@ -107,7 +124,7 @@
             }
 
             .react-flow__handle {
-                background: var(--conn-port-in);
+                --color: var(--conn-port-in);
             }
         }
 
@@ -127,7 +144,7 @@
             }
 
             .react-flow__handle {
-                background: var(--conn-port-out);
+                --color: var(--conn-port-out);
             }
         }
 
@@ -160,13 +177,9 @@
                 }
 
                 .react-flow__handle {
-                    background: var(--conn-port-in);
+                    --color: var(--conn-port-in);
                 }
             }
-        }
-
-        .react-flow__handle {
-            border-color: var(--graph-connection);
         }
     }
 

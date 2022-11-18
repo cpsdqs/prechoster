@@ -14,7 +14,7 @@ import './index.less';
 interface PrechosterState {
     render: RenderState;
     selected: ModuleId | EdgeId | null;
-};
+}
 
 export default class Prechoster extends PureComponent<Prechoster.Props, PrechosterState> {
     state = {
@@ -122,45 +122,56 @@ export default class Prechoster extends PureComponent<Prechoster.Props, Prechost
             <div class="prechoster">
                 <div class="menu-bar">
                     <div class="i-buttons">
-                        <button disabled={!doc.canUndo} onClick={() => doc.undo()}>undo</button>
-                        <button disabled={!doc.canRedo} onClick={() => doc.redo()}>redo</button>
+                        <button disabled={!doc.canUndo} onClick={() => doc.undo()}>
+                            undo
+                        </button>
+                        <button disabled={!doc.canRedo} onClick={() => doc.redo()}>
+                            redo
+                        </button>
                         <SaveLoad document={doc} />
                         <Examples document={doc} />
                     </div>
                     <div class="i-links">
-                        <a href={sourceLink} target="_blank" rel="nofollow noreferrer">source</a>
+                        <a href={sourceLink} target="_blank" rel="nofollow noreferrer">
+                            source
+                        </a>
                     </div>
                 </div>
-                <SplitPanel initialPos={Math.min(0.7, Math.max(500 / innerWidth, 1 - 700 / innerWidth))}>
+                <SplitPanel
+                    initialPos={Math.min(0.7, Math.max(500 / innerWidth, 1 - 700 / innerWidth))}
+                >
                     <ModuleList
                         document={doc}
                         selected={this.state.selected}
-                        onSelect={selected => this.setState({ selected })} />
+                        onSelect={(selected) => this.setState({ selected })}
+                    />
                     <SplitPanel vertical initialPos={Math.max(0.6, 1 - 300 / innerHeight)}>
                         <Preview
                             document={doc}
                             render={render}
-                            onLiveChange={live => {
+                            onLiveChange={(live) => {
                                 this.setState({ render: { ...this.state.render, live } }, () => {
                                     if (live) this.renderPreview();
                                 });
                             }}
-                            onPlusChange={plus => {
+                            onPlusChange={(plus) => {
                                 this.setState({ render: { ...this.state.render, plus } }, () => {
                                     if (this.state.render.live) this.renderPreview();
                                 });
                             }}
                             onRender={() => this.renderPreview()}
-                            onTargetChange={target => {
+                            onTargetChange={(target) => {
                                 this.setState({ render: { ...this.state.render, target } }, () => {
                                     this.renderPreview();
                                 });
-                            }} />
+                            }}
+                        />
                         <ModuleGraph
                             document={doc}
                             selected={this.state.selected}
                             render={render}
-                            onSelect={selected => this.setState({ selected })} />
+                            onSelect={(selected) => this.setState({ selected })}
+                        />
                     </SplitPanel>
                 </SplitPanel>
             </div>
@@ -223,7 +234,7 @@ function SaveLoad({ document }: { document: Document }) {
                 }
             } else if (item.kind === 'string') {
                 try {
-                    const asString = await new Promise<string>(resolve => {
+                    const asString = await new Promise<string>((resolve) => {
                         item.getAsString(resolve);
                     });
 
@@ -260,7 +271,7 @@ function SaveLoad({ document }: { document: Document }) {
         const file = new File([JSON.stringify(document.serialize())], 'document', {
             type: 'application/json',
         });
-        const objectURL = a.href = URL.createObjectURL(file);
+        const objectURL = (a.href = URL.createObjectURL(file));
         a.download = 'document.json';
         a.click();
         URL.revokeObjectURL(objectURL);
@@ -277,7 +288,8 @@ function SaveLoad({ document }: { document: Document }) {
                 onDragLeave={onLoadDragLeave}
                 onDragOver={onLoadDragOver}
                 onDrop={onLoadDrop}
-                onClick={load}>
+                onClick={load}
+            >
                 load file
             </button>
             <button onClick={save}>save file</button>

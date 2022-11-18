@@ -16,11 +16,11 @@ import { ModulePicker } from './module-picker';
 import './module-list.less';
 
 type ModuleSelection = {
-    selected: ModuleId | null,
-    inputs: ModuleId[],
-    namedInputs: Map<ModuleId, Set<string>>,
-    sends: ModuleId[],
-    namedSends: Map<ModuleId, Set<string>>,
+    selected: ModuleId | null;
+    inputs: ModuleId[];
+    namedInputs: Map<ModuleId, Set<string>>;
+    sends: ModuleId[];
+    namedSends: Map<ModuleId, Set<string>>;
 };
 const NONE_SELECTION: ModuleSelection = {
     selected: null,
@@ -109,7 +109,9 @@ export class ModuleList extends PureComponent<ModuleList.Props, ModuleListState>
             this.select(this.props.selected);
 
             if (this.props.selected) {
-                const node = this.list.current!.querySelector(`.module-item[data-id="${this.props.selected}"]`);
+                const node = this.list.current!.querySelector(
+                    `.module-item[data-id="${this.props.selected}"]`
+                );
                 if (node && node.scrollIntoView) {
                     node.scrollIntoView({
                         behavior: 'smooth',
@@ -217,23 +219,26 @@ export class ModuleList extends PureComponent<ModuleList.Props, ModuleListState>
             }
             const topOffset = moduleTop - precedingHeight;
 
-            this.setState({
-                moveDragging: {
-                    module: module.id,
-                    topOffset,
-                    pointerOffset: moduleTop - data.clientY,
-                    itemHeights,
-                    pointerCapture: [moveButton, data.pointerId],
+            this.setState(
+                {
+                    moveDragging: {
+                        module: module.id,
+                        topOffset,
+                        pointerOffset: moduleTop - data.clientY,
+                        itemHeights,
+                        pointerCapture: [moveButton, data.pointerId],
+                    },
                 },
-            }, () => {
-                let y = topOffset;
-                for (let j = 0; j < modules.length; j++) {
-                    const li = this.listItems.get(modules[j].id)!;
-                    if (modules[j].id !== module.id) li.position.target = y;
-                    y += itemHeights.get(modules[j].id)!;
+                () => {
+                    let y = topOffset;
+                    for (let j = 0; j < modules.length; j++) {
+                        const li = this.listItems.get(modules[j].id)!;
+                        if (modules[j].id !== module.id) li.position.target = y;
+                        y += itemHeights.get(modules[j].id)!;
+                    }
+                    this.animCtrl.add(this);
                 }
-                this.animCtrl.add(this);
-            });
+            );
         } else if (action === 'maybeDragMove') {
             if (this.state.moveDragging) {
                 const state = this.state.moveDragging as ModDraggingState;
@@ -253,7 +258,7 @@ export class ModuleList extends PureComponent<ModuleList.Props, ModuleListState>
                     }
                 }
 
-                const newOrder = modules.map(m => m.id);
+                const newOrder = modules.map((m) => m.id);
                 newOrder.splice(i, 1);
                 newOrder.splice(insertionPos, 0, module.id);
 
@@ -327,35 +332,38 @@ export class ModuleList extends PureComponent<ModuleList.Props, ModuleListState>
 
         return (
             <div class="module-list" ref={this.list}>
-                <div
-                    style={{ height: this.listHeight }}
-                    class="module-list-height" />
-                {document.modules.map((module, i) => <ModuleItem
-                    key={module.id}
-                    ref={this.listItems.get(module.id)!.ref}
-                    index={i}
-                    selection={this.state.selection}
-                    document={document}
-                    module={module}
-                    onSelect={() => this.props.onSelect(module.id)}
-                    onChange={m => {
-                        // TODO: history coalescion
+                <div style={{ height: this.listHeight }} class="module-list-height" />
+                {document.modules.map((module, i) => (
+                    <ModuleItem
+                        key={module.id}
+                        ref={this.listItems.get(module.id)!.ref}
+                        index={i}
+                        selection={this.state.selection}
+                        document={document}
+                        module={module}
+                        onSelect={() => this.props.onSelect(module.id)}
+                        onChange={(m) => {
+                            // TODO: history coalescion
+                            document.beginChange();
+                            const modules = document.modules.slice();
+                            modules[i] = m;
+                            document.setModules(modules);
+                        }}
+                        onMove={this.onModuleMove(module, i)}
+                        state={this.listItems.get(module.id)!}
+                        moveState={{
+                            focused: this.state.focusedMove === module.id,
+                            dragging: this.state.moveDragging,
+                        }}
+                        onRemove={() => document.removeModule(module.id)}
+                    />
+                ))}
+                <AddModule
+                    onAdd={(module) => {
                         document.beginChange();
-                        const modules = document.modules.slice();
-                        modules[i] = m;
-                        document.setModules(modules);
+                        document.setModules(document.modules.concat([module]));
                     }}
-                    onMove={this.onModuleMove(module, i)}
-                    state={this.listItems.get(module.id)!}
-                    moveState={{
-                        focused: this.state.focusedMove === module.id,
-                        dragging: this.state.moveDragging,
-                    }}
-                    onRemove={() => document.removeModule(module.id)} />)}
-                <AddModule onAdd={module => {
-                    document.beginChange();
-                    document.setModules(document.modules.concat([module]));
-                }} />
+                />
             </div>
         );
     }
@@ -379,10 +387,11 @@ function AddModule({ onAdd }: { onAdd: (m: AnyModule) => void }) {
                 anchor={button.current}
                 open={open}
                 onClose={() => setOpen(false)}
-                onPick={plugin => {
+                onPick={(plugin) => {
                     onAdd(new Module(plugin));
                     setOpen(false);
-                }} />
+                }}
+            />
         </div>
     );
 }
@@ -408,7 +417,17 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
         }
     }
 
-    render ({ document, index, module, onSelect, onChange, onMove, moveState, onRemove, selection }: ModuleItem.Props) {
+    render({
+        document,
+        index,
+        module,
+        onSelect,
+        onChange,
+        onMove,
+        moveState,
+        onRemove,
+        selection,
+    }: ModuleItem.Props) {
         const Editor = module.plugin.component as any; // typescript is yelling at me :(
 
         let className = 'module-item';
@@ -443,10 +462,15 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
                 onPointerDown={onSelect}
                 data-id={module.id}
                 style={{ top, transform }}
-                ref={this.node}>
+                ref={this.node}
+            >
                 <header class="i-header" ref={this.header}>
                     <div class="i-title">
-                        <button class="i-remove" onClick={onRemove} aria-label="remove this module" />
+                        <button
+                            class="i-remove"
+                            onClick={onRemove}
+                            aria-label="remove this module"
+                        />
                         <span class="i-label" id={this.labelNodeId}>
                             <span class="i-index">{index + 1}</span>
                             <span class="i-label">{module.plugin.description(module.data)}</span>
@@ -461,13 +485,16 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
                             aria-valuemin="1"
                             aria-valuenow={index + 1}
                             aria-valuemax={document.modules.length}
-                            aria-valuetext={`${(index + 1)}${[, 'st', 'nd', 'rd'][(index + 1) % 10] || 'th'}`}
+                            aria-valuetext={`${index + 1}${
+                                [, 'st', 'nd', 'rd'][(index + 1) % 10] || 'th'
+                            }`}
                             onFocus={() => onMove('focus', null)}
                             onBlur={() => onMove('blur', null)}
                             onKeyDown={onMoveKeyDown}
-                            onPointerDown={e => onMove('dragStart', e)}
-                            onPointerMove={e => onMove('maybeDragMove', e)}
-                            onPointerUp={e => onMove('dragEnd', e)}>
+                            onPointerDown={(e) => onMove('dragStart', e)}
+                            onPointerMove={(e) => onMove('maybeDragMove', e)}
+                            onPointerUp={(e) => onMove('dragEnd', e)}
+                        >
                             <span class="i-drag-icon">
                                 <span class="i-line"></span>
                                 <span class="i-line"></span>
@@ -479,7 +506,8 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
                             aria-expanded={!this.state.collapsed}
                             aria-controls={this.nodeId}
                             aria-label="show contents"
-                            onClick={() => this.setState({ collapsed: !this.state.collapsed })}>
+                            onClick={() => this.setState({ collapsed: !this.state.collapsed })}
+                        >
                             {this.state.collapsed ? '▶' : '▼'}
                         </button>
                     </div>
@@ -489,30 +517,35 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
                         document={document}
                         id={module.id}
                         data={module.data}
-                        namedInputKeys={new Set(document.findModuleInputIds(module.id).namedInputs.keys())}
+                        namedInputKeys={
+                            new Set(document.findModuleInputIds(module.id).namedInputs.keys())
+                        }
                         onChange={(data: JsonValue) => {
                             const mod = module.shallowClone();
                             mod.data = data;
                             onChange(mod);
-                        }} />
+                        }}
+                    />
                 </div>
                 <footer class="i-footer">
                     <ModuleSends
                         document={document}
                         sends={module.sends}
-                        onChange={sends => {
+                        onChange={(sends) => {
                             const newModule = module.shallowClone();
                             newModule.sends = sends;
                             onChange(newModule);
-                        }} />
+                        }}
+                    />
                     <ModuleNamedSends
                         document={document}
                         namedSends={module.namedSends}
-                        onChange={namedSends => {
+                        onChange={(namedSends) => {
                             const newModule = module.shallowClone();
                             newModule.namedSends = namedSends;
                             onChange(newModule);
-                        }} />
+                        }}
+                    />
                 </footer>
             </div>
         );
@@ -534,20 +567,27 @@ namespace ModuleItem {
 }
 
 function ModuleSends({ document, sends, onChange }: ModuleSends.Props) {
-    const makeModuleSelect = (key: string, value: ModuleId | null, onChange: (v: ModuleId) => void) => {
+    const makeModuleSelect = (
+        key: string,
+        value: ModuleId | null,
+        onChange: (v: ModuleId) => void
+    ) => {
         return (
             <select
                 class="send-target"
                 key={key}
                 value={value || ''}
-                onChange={e => onChange((e.target as HTMLSelectElement).value)}>
+                onChange={(e) => onChange((e.target as HTMLSelectElement).value)}
+            >
                 <option value="">—</option>
-                {document.modules.map((mod, i) => {
-                    if (!mod.plugin.acceptsInputs) return null;
+                {document.modules
+                    .map((mod, i) => {
+                        if (!mod.plugin.acceptsInputs) return null;
 
-                    const label = `${i + 1}. ${mod.plugin.description(mod.data)}`;
-                    return <option value={mod.id}>{label}</option>;
-                }).filter(x => x)}
+                        const label = `${i + 1}. ${mod.plugin.description(mod.data)}`;
+                        return <option value={mod.id}>{label}</option>;
+                    })
+                    .filter((x) => x)}
                 <option value={MOD_OUTPUT}>output</option>
             </select>
         );
@@ -559,7 +599,7 @@ function ModuleSends({ document, sends, onChange }: ModuleSends.Props) {
             <ul class="i-list">
                 {sends.map((target, i) => (
                     <li class="i-send-target">
-                        {makeModuleSelect(i.toString(), target, newTarget => {
+                        {makeModuleSelect(i.toString(), target, (newTarget) => {
                             const newSends = sends.slice();
                             if (newTarget) newSends[i] = newTarget;
                             else newSends.splice(i, 1);
@@ -571,8 +611,8 @@ function ModuleSends({ document, sends, onChange }: ModuleSends.Props) {
                     {makeModuleSelect(
                         (sends.length + 1).toString(),
                         null,
-                        newTarget => newTarget && onChange(sends.concat([newTarget]),
-                    ))}
+                        (newTarget) => newTarget && onChange(sends.concat([newTarget]))
+                    )}
                 </li>
             </ul>
         </div>
@@ -587,20 +627,27 @@ namespace ModuleSends {
 }
 
 function ModuleNamedSends({ document, namedSends, onChange }: ModuleNamedSends.Props) {
-    const makeModuleSelect = (key: string, value: ModuleId | null, onChange: (v: ModuleId) => void) => {
+    const makeModuleSelect = (
+        key: string,
+        value: ModuleId | null,
+        onChange: (v: ModuleId) => void
+    ) => {
         return (
             <select
                 class="send-target"
                 key={key}
                 value={value || ''}
-                onChange={e => onChange((e.target as HTMLSelectElement).value)}>
+                onChange={(e) => onChange((e.target as HTMLSelectElement).value)}
+            >
                 <option value="">—</option>
-                {document.modules.map((mod, i) => {
-                    if (!mod.plugin.acceptsNamedInputs) return null;
+                {document.modules
+                    .map((mod, i) => {
+                        if (!mod.plugin.acceptsNamedInputs) return null;
 
-                    const label = `${i + 1}. ${mod.plugin.description(mod.data)}`;
-                    return <option value={mod.id}>{label}</option>;
-                }).filter(x => x)}
+                        const label = `${i + 1}. ${mod.plugin.description(mod.data)}`;
+                        return <option value={mod.id}>{label}</option>;
+                    })
+                    .filter((x) => x)}
             </select>
         );
     };
@@ -612,7 +659,7 @@ function ModuleNamedSends({ document, namedSends, onChange }: ModuleNamedSends.P
             <ul class="i-list">
                 {[...namedSends.keys()].map((target, i) => (
                     <li class="i-send-target">
-                        {makeModuleSelect(i.toString(), target, newTarget => {
+                        {makeModuleSelect(i.toString(), target, (newTarget) => {
                             const newSends = new Map(namedSends);
                             if (newTarget) {
                                 const value = newSends.get(target)!;
@@ -624,26 +671,23 @@ function ModuleNamedSends({ document, namedSends, onChange }: ModuleNamedSends.P
                         {' as '}
                         <input
                             value={[...namedSends.get(target)!][0]}
-                            onChange={e => {
+                            onChange={(e) => {
                                 const input = e.target as HTMLInputElement;
                                 const newSends = new Map(namedSends);
                                 newSends.set(target, new Set([input.value]));
                                 onChange(newSends);
-                            }} />
+                            }}
+                        />
                     </li>
                 ))}
                 <li class="i-send-target is-new-target">
-                    {makeModuleSelect(
-                        (namedSends.size + 1).toString(),
-                        null,
-                        newTarget => {
-                            if (newTarget) {
-                                const newSends = new Map(namedSends);
-                                newSends.set(newTarget, new Set());
-                                onChange(newSends);
-                            }
-                        },
-                    )}
+                    {makeModuleSelect((namedSends.size + 1).toString(), null, (newTarget) => {
+                        if (newTarget) {
+                            const newSends = new Map(namedSends);
+                            newSends.set(newTarget, new Set());
+                            onChange(newSends);
+                        }
+                    })}
                 </li>
             </ul>
         </div>

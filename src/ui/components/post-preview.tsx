@@ -67,7 +67,9 @@ const ERRORS = {
         return (
             <div>
                 Element will be removed: &lt;{tagName}&gt;
-                {isFirstOfType && <div class="quick-help">This element type is not supported in posts.</div>}
+                {isFirstOfType && (
+                    <div class="quick-help">This element type is not supported in posts.</div>
+                )}
             </div>
         );
     },
@@ -83,31 +85,45 @@ const ERRORS = {
         return (
             <div>
                 The ID <code>{id}</code> will be renamed to <code>user-content-{id}</code>.
-                {isFirstOfType && <div class="quick-help">A reference to this element ID elsewhere will be broken.</div>}
+                {isFirstOfType && (
+                    <div class="quick-help">
+                        A reference to this element ID elsewhere will be broken.
+                    </div>
+                )}
             </div>
         );
     },
-    'strip-css-variable'({ name, node, isFirstOfType }: { name: string, node: HTMLElement | SVGElement } & ErrProps) {
+    'strip-css-variable'({
+        name,
+        node,
+        isFirstOfType,
+    }: { name: string; node: HTMLElement | SVGElement } & ErrProps) {
         return (
             <div>
                 CSS variable will be removed: <code>{name}</code>
-                {isFirstOfType && <div class="quick-help">CSS variable declarations are not supported in posts.</div>}
+                {isFirstOfType && (
+                    <div class="quick-help">
+                        CSS variable declarations are not supported in posts.
+                    </div>
+                )}
             </div>
         );
     },
     'img-load-failed'({ url, isFirstOfType }: { url: string } & ErrProps) {
         return (
             <div>
-                Could not load image resource:
-                {' '}
-                <code>{url.substr(0, 100)}{url.length > 100 ? '…' : ''}</code>
+                Could not load image resource:{' '}
+                <code>
+                    {url.substr(0, 100)}
+                    {url.length > 100 ? '…' : ''}
+                </code>
                 {isFirstOfType && (
                     <div class="quick-help">
-                        Check your URL maybe…<br />
-                        To include an image in a post,
-                        you can upload it to cohost in a draft post
-                        and copy the image address,
-                        or inline it as a data: URL if your image is small (see examples).
+                        Check your URL maybe…
+                        <br />
+                        To include an image in a post, you can upload it to cohost in a draft post
+                        and copy the image address, or inline it as a data: URL if your image is
+                        small (see examples).
                     </div>
                 )}
             </div>
@@ -116,7 +132,8 @@ const ERRORS = {
     'position-fixed'({ node }: { node: HTMLElement }) {
         return (
             <div>
-                <code>position: fixed</code> will be removed on a <code>{node.tagName.toLowerCase()}</code> element
+                <code>position: fixed</code> will be removed on a{' '}
+                <code>{node.tagName.toLowerCase()}</code> element
             </div>
         );
     },
@@ -129,17 +146,20 @@ interface ErrorMessage {
 
 function renderMarkdown(
     markdown: string,
-    pushError: (id: keyof typeof ERRORS, props: { [k: string]: any }) => void,
+    pushError: (id: keyof typeof ERRORS, props: { [k: string]: any }) => void
 ) {
-    const doc = new DOMParser().parseFromString([
-        '<!doctype html><html><head></head><body>',
-        micromark(markdown, {
-            allowDangerousHtml: true,
-            extensions: [gfm({ singleTilde: false })],
-            htmlExtensions: [gfmHtml()],
-        }),
-        '</body></html>',
-    ].join(''), 'text/html');
+    const doc = new DOMParser().parseFromString(
+        [
+            '<!doctype html><html><head></head><body>',
+            micromark(markdown, {
+                allowDangerousHtml: true,
+                extensions: [gfm({ singleTilde: false })],
+                htmlExtensions: [gfmHtml()],
+            }),
+            '</body></html>',
+        ].join(''),
+        'text/html'
+    );
 
     const footnotes = doc.querySelector('section[data-footnotes]');
     const ignoreUserContentId = new Set();
@@ -251,7 +271,7 @@ function findUrlsInBackgroundImage(s: string) {
 
 function handleAsyncErrors(
     prose: HTMLElement,
-    pushAsyncError: (id: keyof typeof ERRORS, props: { [k: string]: any }) => void,
+    pushAsyncError: (id: keyof typeof ERRORS, props: { [k: string]: any }) => void
 ) {
     for (const img of prose.querySelectorAll('img')) {
         img.onerror = () => {
@@ -312,16 +332,16 @@ export function PostPreview({ markdown, error, stale }: PostPreview.Props) {
                         class={'i-errors-button' + (errorCount ? ' has-errors' : '')}
                         disabled={!errorCount}
                         onClick={() => setErrorsOpen(true)}
-                        aria-label={errorCount === 1 ? '1 error' : `${errorCount} errors`}>
+                        aria-label={errorCount === 1 ? '1 error' : `${errorCount} errors`}
+                    >
                         <span class="i-errors-icon">!</span>
-                        <span class="i-errors-count">
-                            {errorCount}
-                        </span>
+                        <span class="i-errors-count">{errorCount}</span>
                     </button>
                     <Popover
                         anchor={errorBtn.current}
                         open={errorsOpen}
-                        onClose={() => setErrorsOpen(false)}>
+                        onClose={() => setErrorsOpen(false)}
+                    >
                         <ErrorList errors={renderErrors.concat(asyncErrors)} />
                     </Popover>
                 </span>
@@ -330,7 +350,12 @@ export function PostPreview({ markdown, error, stale }: PostPreview.Props) {
             <div class="prose-container p-prose-outer">
                 {error ? (
                     <div class="inner-prose p-prose is-error">
-                        {error.toString().split('\n').map((line, i) => <div key={i}>{line}</div>)}
+                        {error
+                            .toString()
+                            .split('\n')
+                            .map((line, i) => (
+                                <div key={i}>{line}</div>
+                            ))}
                     </div>
                 ) : (
                     <div class="inner-prose p-prose" ref={innerProse} />
@@ -339,7 +364,7 @@ export function PostPreview({ markdown, error, stale }: PostPreview.Props) {
             <hr />
             <div class="post-footer">
                 <ByteSize size={html.length} />
-                <CopyToClipboard disabled={!!error} data={markdown} label="Copy HTML to clipboard" />
+                <CopyToClipboard disabled={!!error} data={markdown} label="Copy to clipboard" />
             </div>
         </div>
     );
@@ -406,7 +431,8 @@ function CopyToClipboard({ data, label, disabled }: CopyToClipboard.Props) {
         <button
             disabled={disabled}
             class={'copy-to-clipboard' + (copied ? ' did-copy' : '')}
-            onClick={copy}>
+            onClick={copy}
+        >
             {label}
         </button>
     );

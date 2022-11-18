@@ -38,7 +38,7 @@ export class AnimationController {
         for (const target of targetsToRemove) this.remove(target);
 
         requestAnimationFrame(() => this.loop(animationId));
-    };
+    }
 
     stop() {
         this.animationId++;
@@ -67,7 +67,13 @@ export class Spring {
     motionThreshold = 0.01;
     timeLeft = 0;
 
-    constructor(init?: { value?: number, velocity?: number, target?: number, stiffness?: number, damping?: number }) {
+    constructor(init?: {
+        value?: number;
+        velocity?: number;
+        target?: number;
+        stiffness?: number;
+        damping?: number;
+    }) {
         this.value = init?.value || 0;
         this.velocity = init?.velocity || 0;
         this.target = Number.isFinite(init?.target) ? init!.target! : this.value;
@@ -82,12 +88,14 @@ export class Spring {
 
         while (this.timeLeft > Spring.FIXED_DT) {
             this.timeLeft -= Spring.FIXED_DT;
-            const force = -this.stiffness * (this.value - this.target) - this.damping * this.velocity;
+            const force =
+                -this.stiffness * (this.value - this.target) - this.damping * this.velocity;
             this.velocity += force * Spring.FIXED_DT;
             this.value += this.velocity * Spring.FIXED_DT;
         }
 
-        const done = Math.abs(this.value - this.target) + Math.abs(this.velocity) < this.motionThreshold;
+        const done =
+            Math.abs(this.value - this.target) + Math.abs(this.velocity) < this.motionThreshold;
         if (done) {
             this.value = this.target;
             this.velocity = 0;

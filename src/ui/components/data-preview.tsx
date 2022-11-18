@@ -1,10 +1,6 @@
 import { h, createRef } from 'preact';
 import { PureComponent } from 'preact/compat';
-import {
-    Data,
-    PlainTextData,
-    HtmlData,
-} from '../../document';
+import { Data, PlainTextData, HtmlData } from '../../document';
 import './data-preview.less';
 
 export function DataPreview({ data }: { data: Data }) {
@@ -41,18 +37,12 @@ class HtmlPreview extends PureComponent<{ html: string }> {
     }
 
     render() {
-        return (
-            <div class="data-preview-html" ref={this.node} />
-        );
+        return <div class="data-preview-html" ref={this.node} />;
     }
 }
 
 function TextPreview({ text }: { text: string }) {
-    return (
-        <div class="data-preview-text">
-            {text}
-        </div>
-    );
+    return <div class="data-preview-text">{text}</div>;
 }
 
 function UnknownPreview({ type }: { type: string }) {

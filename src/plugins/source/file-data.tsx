@@ -5,9 +5,9 @@ import base64js from 'base64-js';
 import './file-data.less';
 
 export type FileDataPluginData = {
-    dataBase64: string,
-    mime: string,
-    outputMode: 'blob' | 'text',
+    dataBase64: string;
+    mime: string;
+    outputMode: 'blob' | 'text';
 };
 
 class FileDataEditor extends PureComponent<ModulePluginProps<FileDataPluginData>> {
@@ -22,7 +22,9 @@ class FileDataEditor extends PureComponent<ModulePluginProps<FileDataPluginData>
             fileReader.onload = () => {
                 this.props.onChange({
                     ...this.props.data,
-                    dataBase64: base64js.fromByteArray(new Uint8Array(fileReader.result as ArrayBuffer)),
+                    dataBase64: base64js.fromByteArray(
+                        new Uint8Array(fileReader.result as ArrayBuffer)
+                    ),
                     mime: file.type,
                 });
             };
@@ -37,15 +39,11 @@ class FileDataEditor extends PureComponent<ModulePluginProps<FileDataPluginData>
         if (type.startsWith('text/')) {
             const buf = base64js.toByteArray(data.dataBase64);
             const contents = new TextDecoder().decode(buf);
-            preview = (
-                <textarea readonly>{contents}</textarea>
-            );
+            preview = <textarea readonly>{contents}</textarea>;
         } else if (type.startsWith('image/')) {
             const dataUrl = `data:${type};base64,${data.dataBase64}`;
 
-            preview = (
-                <img src={dataUrl} />
-            );
+            preview = <img src={dataUrl} />;
         }
 
         if (data.dataBase64.length && !preview) {
@@ -57,20 +55,18 @@ class FileDataEditor extends PureComponent<ModulePluginProps<FileDataPluginData>
         return (
             <div class="plugin-file-data-editor">
                 <input ref={this.fileInput} type="file" onChange={this.onFile} />
-                <div class="file-preview">
-                    {preview}
-                </div>
+                <div class="file-preview">{preview}</div>
                 <div>
-                    <label for={outputId}>Output as:</label>
-                    {' '}
+                    <label for={outputId}>Output as:</label>{' '}
                     <select
                         value={data.outputMode}
-                        onChange={e => {
+                        onChange={(e) => {
                             onChange({
                                 ...data,
                                 outputMode: (e.target as HTMLSelectElement).value as any,
                             });
-                        }}>
+                        }}
+                    >
                         <option value="blob">data blob</option>
                         <option value="text">text (UTF-8)</option>
                     </select>
@@ -93,8 +89,10 @@ export default {
     },
     async eval(data: FileDataPluginData) {
         if (data.outputMode === 'text') {
-            return new PlainTextData(new TextDecoder().decode(base64js.toByteArray(data.dataBase64)));
+            return new PlainTextData(
+                new TextDecoder().decode(base64js.toByteArray(data.dataBase64))
+            );
         }
         return new BlobData(base64js.toByteArray(data.dataBase64), data.mime);
-    }
+    },
 } as ModulePlugin<FileDataPluginData>;

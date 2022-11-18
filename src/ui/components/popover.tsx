@@ -31,7 +31,7 @@ export class Popover extends PureComponent<Popover.Props> {
     shouldRenderContents = false;
 
     snapToNextContentSize = false;
-    resizeObserver = new ResizeObserver(entries => {
+    resizeObserver = new ResizeObserver((entries) => {
         for (const entry of entries) {
             // we're only observing one element
             this.width.target = entry.contentRect.width;
@@ -52,7 +52,7 @@ export class Popover extends PureComponent<Popover.Props> {
         const anchorMin = [window.innerWidth / 2, window.innerHeight / 2];
         const anchorCenter = [window.innerWidth / 2, window.innerHeight / 2];
         const anchorMax = [window.innerWidth / 2, window.innerHeight / 2];
-        if (this.props.anchor) {
+        if (this.props.anchor instanceof HTMLElement) {
             const anchorRect = this.props.anchor.getBoundingClientRect();
             anchorMin[0] = anchorRect.left;
             anchorMin[1] = anchorRect.top;
@@ -60,6 +60,9 @@ export class Popover extends PureComponent<Popover.Props> {
             anchorMax[1] = anchorRect.bottom;
             anchorCenter[0] = anchorRect.left + anchorRect.width / 2;
             anchorCenter[1] = anchorRect.top + anchorRect.height / 2;
+        } else if (Array.isArray(this.props.anchor)) {
+            anchorMin[0] = anchorMax[0] = anchorCenter[0] = this.props.anchor[0];
+            anchorMin[1] = anchorMax[1] = anchorCenter[1] = this.props.anchor[1];
         }
 
         const popoverMinLoc = [WINDOW_MARGIN, WINDOW_MARGIN];
@@ -80,7 +83,10 @@ export class Popover extends PureComponent<Popover.Props> {
         const hasEnoughSpaceBelow = anchorMax[1] + ARROW_SIZE < popoverMaxLoc[1];
         const hasEnoughSpaceOnRight = anchorMax[0] + ARROW_SIZE < popoverMaxLoc[0];
         if (hasEnoughSpaceAbove) {
-            popoverLoc = [anchorCenter[0] - popoverSize[0] / 2, anchorMin[1] - ARROW_SIZE - popoverSize[1]];
+            popoverLoc = [
+                anchorCenter[0] - popoverSize[0] / 2,
+                anchorMin[1] - ARROW_SIZE - popoverSize[1],
+            ];
             this.anchorLoc = [anchorCenter[0], anchorMin[1]];
             arrowLocType = 'bottom';
         } else if (hasEnoughSpaceBelow) {
@@ -193,8 +199,12 @@ export class Popover extends PureComponent<Popover.Props> {
         const popoverOpacity = this.props.open ? 1 : this.presence.value;
         const anchorLoc = this.anchorLoc;
         const popoverLoc = [this.positionX.value, this.positionY.value];
-        const popoverTransform = `translate(${popoverLoc[0]}px, ${popoverLoc[1]}px) scale(${Math.max(0, presence)})`;
-        const popoverTransformOrigin = `${anchorLoc[0] - popoverLoc[0]}px ${anchorLoc[1] - popoverLoc[1]}px`;
+        const popoverTransform = `translate(${popoverLoc[0]}px, ${
+            popoverLoc[1]
+        }px) scale(${Math.max(0, presence)})`;
+        const popoverTransformOrigin = `${anchorLoc[0] - popoverLoc[0]}px ${
+            anchorLoc[1] - popoverLoc[1]
+        }px`;
         let arrow = null;
 
         if (this.arrowLoc[0] !== 'none') {
@@ -209,7 +219,8 @@ export class Popover extends PureComponent<Popover.Props> {
                         ].join(' '),
                         transformOrigin: popoverTransformOrigin,
                         opacity: popoverOpacity,
-                    }} />
+                    }}
+                />
             );
         }
 
@@ -218,7 +229,8 @@ export class Popover extends PureComponent<Popover.Props> {
                 <div
                     class="inner-backdrop"
                     onClick={this.onDialogClose}
-                    style={{ opacity: presence }} />
+                    style={{ opacity: presence }}
+                />
                 <div
                     ref={this.popover}
                     class="inner-popover"
@@ -228,10 +240,9 @@ export class Popover extends PureComponent<Popover.Props> {
                         transform: popoverTransform,
                         transformOrigin: popoverTransformOrigin,
                         opacity: popoverOpacity,
-                    }}>
-                    <div
-                        class="i-content"
-                        ref={this.popoverContentRef}>
+                    }}
+                >
+                    <div class="i-content" ref={this.popoverContentRef}>
                         {this.shouldRenderContents && children}
                     </div>
                 </div>
@@ -242,8 +253,8 @@ export class Popover extends PureComponent<Popover.Props> {
 }
 namespace Popover {
     export interface Props {
-        /** Anchor where the popover will appear from */
-        anchor?: HTMLElement | null;
+        /** Anchor where the popover will appear from. Either an element or client coordinates */
+        anchor?: HTMLElement | [number, number] | null;
         /** Whether the popover is open */
         open: boolean;
         /** Close callback. */

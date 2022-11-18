@@ -4,7 +4,9 @@ import { Document } from '../document';
 import { Popover } from './components/popover';
 import './examples.less';
 
-interface ExamplesProps { document: Document };
+interface ExamplesProps {
+    document: Document;
+}
 
 export function Examples({ document }: ExamplesProps) {
     const button = useRef<HTMLButtonElement>(null);
@@ -15,13 +17,8 @@ export function Examples({ document }: ExamplesProps) {
             <button ref={button} onClick={() => setOpen(true)}>
                 examples
             </button>
-            <Popover
-                open={open}
-                onClose={() => setOpen(false)}
-                anchor={button.current}>
-                <ExamplesMenu
-                    document={document}
-                    onClose={() => setOpen(false)} />
+            <Popover open={open} onClose={() => setOpen(false)} anchor={button.current}>
+                <ExamplesMenu document={document} onClose={() => setOpen(false)} />
             </Popover>
         </Fragment>
     );
@@ -38,7 +35,7 @@ interface ExampleDef {
     description: string;
 }
 
-class ExamplesMenu extends PureComponent<ExamplesProps & { onClose: (() => void) }, MenuState> {
+class ExamplesMenu extends PureComponent<ExamplesProps & { onClose: () => void }, MenuState> {
     state = {
         loading: false,
         loadingExample: false,
@@ -56,15 +53,17 @@ class ExamplesMenu extends PureComponent<ExamplesProps & { onClose: (() => void)
             const res = await fetch(new URL('../assets/examples/index.json', import.meta.url));
             if (!res.ok) throw await res.text();
             return await res.json();
-        })().then(items => {
-            this.setState({ loading: false, items }, () => {
-                this.forceUpdate(); // for some reason setState doesn't update here...?
+        })()
+            .then((items) => {
+                this.setState({ loading: false, items }, () => {
+                    this.forceUpdate(); // for some reason setState doesn't update here...?
+                });
+            })
+            .catch((error) => {
+                this.setState({ loading: false, error }, () => {
+                    this.forceUpdate(); // ditto
+                });
             });
-        }).catch(error => {
-            this.setState({ loading: false, error }, () => {
-                this.forceUpdate(); // ditto
-            });
-        });
     }
 
     loadExample(id: string) {
@@ -73,14 +72,16 @@ class ExamplesMenu extends PureComponent<ExamplesProps & { onClose: (() => void)
             const res = await fetch(new URL(`../assets/examples/${id}`, import.meta.url));
             if (!res.ok) throw await res.text();
             return await res.json();
-        })().then(data => {
-            this.setState({ loadingExample: false });
-            this.props.document.cloneFrom(Document.deserialize(data));
-            this.props.onClose();
-        }).catch(error => {
-            this.setState({ loadingExample: false });
-            alert('Could not load example\n' + error.toString());
-        });
+        })()
+            .then((data) => {
+                this.setState({ loadingExample: false });
+                this.props.document.cloneFrom(Document.deserialize(data));
+                this.props.onClose();
+            })
+            .catch((error) => {
+                this.setState({ loadingExample: false });
+                alert('Could not load example\n' + error.toString());
+            });
     }
 
     render() {
@@ -91,7 +92,8 @@ class ExamplesMenu extends PureComponent<ExamplesProps & { onClose: (() => void)
             contents = (
                 <div class="i-error">
                     <div class="i-error-text">
-                        Could not load examples<br />
+                        Could not load examples
+                        <br />
                         {(this.state.error as any).toString()}
                     </div>
                     <div class="i-retry-container">
@@ -114,7 +116,8 @@ class ExamplesMenu extends PureComponent<ExamplesProps & { onClose: (() => void)
                 <div class="i-header">
                     <h1 class="i-title">Examples</h1>
                     <div class="i-description">
-                        Load an example document (note that this will overwrite your current document!)
+                        Load an example document (note that this will overwrite your current
+                        document!)
                     </div>
                 </div>
                 {contents}
@@ -123,7 +126,7 @@ class ExamplesMenu extends PureComponent<ExamplesProps & { onClose: (() => void)
     }
 }
 
-function ExampleItem({ id, item, onLoad }: { id: string, item: ExampleDef, onLoad: (() => void) }) {
+function ExampleItem({ id, item, onLoad }: { id: string; item: ExampleDef; onLoad: () => void }) {
     return (
         <li class="i-example-item">
             <div class="i-details">
@@ -131,7 +134,9 @@ function ExampleItem({ id, item, onLoad }: { id: string, item: ExampleDef, onLoa
                 <div class="i-description">{item.description}</div>
             </div>
             <div class="i-actions">
-                <button class="i-load-button" onClick={onLoad}>load</button>
+                <button class="i-load-button" onClick={onLoad}>
+                    load
+                </button>
             </div>
         </li>
     );

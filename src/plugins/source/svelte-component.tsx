@@ -1,6 +1,13 @@
 import { h } from 'preact';
 import { PureComponent } from 'preact/compat';
-import { ModulePlugin, ModulePluginProps, Data, NamedInputData, PlainTextData, HtmlData } from '../../document';
+import {
+    ModulePlugin,
+    ModulePluginProps,
+    Data,
+    NamedInputData,
+    PlainTextData,
+    HtmlData,
+} from '../../document';
 import { CodeEditor } from '../../ui/components/code-editor';
 import { html } from '@codemirror/lang-html';
 
@@ -19,23 +26,26 @@ export class SvelteComponentData extends PlainTextData {
 }
 
 export type SvelteComponentPluginData = {
-    name: string,
-    contents: string,
+    name: string;
+    contents: string;
 };
 
 class SvelteComponentEditor extends PureComponent<ModulePluginProps<SvelteComponentPluginData>> {
     render({ data, namedInputKeys, onChange }: ModulePluginProps<SvelteComponentPluginData>) {
         return (
             <div class="plugin-svelte-component-editor">
-                <label>Name:</label>
-                {' '}
+                <label>Name:</label>{' '}
                 <input
                     value={data.name}
-                    onChange={e => onChange({ ...data, name: (e.target as HTMLInputElement).value })} />
+                    onChange={(e) =>
+                        onChange({ ...data, name: (e.target as HTMLInputElement).value })
+                    }
+                />
                 <CodeEditor
                     value={data.contents}
-                    onChange={contents => onChange({ ...data, contents })}
-                    extensions={[html()]} />
+                    onChange={(contents) => onChange({ ...data, contents })}
+                    extensions={[html()]}
+                />
             </div>
         );
     }
@@ -55,5 +65,5 @@ export default {
     },
     async eval(data: SvelteComponentPluginData, inputs: Data[], namedInputs: NamedInputData) {
         return new SvelteComponentData(data.name, data.contents);
-    }
+    },
 } as ModulePlugin<SvelteComponentPluginData>;

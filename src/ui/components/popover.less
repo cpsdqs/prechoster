@@ -41,18 +41,18 @@
             --arrow-color: var(--dialog-outline);
         }
 
-        &[data-type="left"]::before,
-        &[data-type="left"]::after {
+        &[data-type='left']::before,
+        &[data-type='left']::after {
             border-right-color: var(--arrow-color);
             left: calc(var(--arrow-size) * -1);
         }
-        &[data-type="top"]::before,
-        &[data-type="top"]::after {
+        &[data-type='top']::before,
+        &[data-type='top']::after {
             border-bottom-color: var(--arrow-color);
             top: calc(var(--arrow-size) * -1);
         }
-        &[data-type="bottom"]::before,
-        &[data-type="bottom"]::after {
+        &[data-type='bottom']::before,
+        &[data-type='bottom']::after {
             border-top-color: var(--arrow-color);
             top: calc(var(--arrow-size) * -0);
         }
@@ -62,7 +62,7 @@
         position: absolute;
         background: var(--dialog-bg);
         box-shadow: 0 0.5em 1em rgba(0, 0, 0, 0.3), 0 0 0 1px var(--dialog-outline);
-        border-radius: .5rem;
+        border-radius: 0.5rem;
         overflow: hidden;
 
         & > .i-content {

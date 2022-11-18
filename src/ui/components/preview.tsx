@@ -4,7 +4,14 @@ import { PostPreview } from './post-preview';
 import { DataPreview } from './data-preview';
 import './preview.less';
 
-export function Preview({ document, render, onTargetChange, onLiveChange, onPlusChange, onRender }: Preview.Props) {
+export function Preview({
+    document,
+    render,
+    onTargetChange,
+    onLiveChange,
+    onPlusChange,
+    onRender,
+}: Preview.Props) {
     let contents = null;
 
     if (render.output) {
@@ -22,7 +29,8 @@ export function Preview({ document, render, onTargetChange, onLiveChange, onPlus
                     <PostPreview
                         stale={render.rendering}
                         markdown={render.output.markdownOutput!}
-                        plus={render.plus} />
+                        plus={render.plus}
+                    />
                 </div>
             );
         }
@@ -39,16 +47,14 @@ export function Preview({ document, render, onTargetChange, onLiveChange, onPlus
 
         contents = (
             <div class="preview-error">
-                {(moduleIndex !== null) ? (
+                {moduleIndex !== null ? (
                     <div class="error-title">
                         Error in {moduleIndex + 1}. {moduleLabel}
                     </div>
                 ) : (
                     <div class="error-title">Error</div>
                 )}
-                <div class="error-contents">
-                    {(render.error.error as any).toString()}
-                </div>
+                <div class="error-contents">{(render.error.error as any).toString()}</div>
             </div>
         );
     }
@@ -74,11 +80,12 @@ export function Preview({ document, render, onTargetChange, onLiveChange, onPlus
                     <select
                         class="output-select"
                         value={render.target || 'output'}
-                        onChange={e => {
+                        onChange={(e) => {
                             const target = (e.target as HTMLSelectElement).value;
                             if (target === 'output') onTargetChange(null);
                             else onTargetChange(target);
-                        }}>
+                        }}
+                    >
                         {outputTargets}
                         <option value="output">output</option>
                     </select>
@@ -86,26 +93,28 @@ export function Preview({ document, render, onTargetChange, onLiveChange, onPlus
                         <input
                             id={plusCheckbox}
                             checked={render.plus}
-                            onChange={e => {
+                            onChange={(e) => {
                                 onPlusChange((e.target as HTMLInputElement).checked);
                             }}
-                            type="checkbox" />
-                        {' '}
+                            type="checkbox"
+                        />{' '}
                         <label for={plusCheckbox}>Cohost Plus</label>
                     </span>
                     <span class="live-update">
                         <input
                             id={liveCheckbox}
                             checked={render.live}
-                            onChange={e => {
+                            onChange={(e) => {
                                 onLiveChange((e.target as HTMLInputElement).checked);
                             }}
-                            type="checkbox" />
-                        {' '}
+                            type="checkbox"
+                        />{' '}
                         <label for={liveCheckbox}>Live Update</label>
                     </span>
                     {!render.live && (
-                        <button class="render-button" onClick={onRender}>Render</button>
+                        <button class="render-button" onClick={onRender}>
+                            Render
+                        </button>
                     )}
                 </div>
                 <span class={'render-indicator' + (render.rendering ? ' is-rendering' : '')} />
