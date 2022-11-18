@@ -48,8 +48,10 @@ function bundleModules(modules: SvelteModules, main: string, mainId: string): Pr
         worker.addEventListener('message', onMessage);
         worker.addEventListener('error', e => {
             reject(new Error('Error in svelte worker'));
-            worker?.terminate();
-            worker = null;
+            if(process.env.NODE_ENV !== "dev") {
+                processworker?.terminate();
+                worker = null;
+            }
         });
 
         worker.postMessage({
@@ -63,8 +65,10 @@ function bundleModules(modules: SvelteModules, main: string, mainId: string): Pr
         setTimeout(() => {
             if (didReturn) return;
             reject(new Error('Svelte: bundler timed out'));
-            worker?.terminate();
-            worker = null;
+            if(process.env.NODE_ENV !== "dev") {
+                worker?.terminate();
+                worker = null;
+            }
         }, 1000);
     });
 }
