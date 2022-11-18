@@ -292,7 +292,7 @@ function handleAsyncErrors(
     }
 }
 
-export function PostPreview({ markdown, error, stale }: PostPreview.Props) {
+export function PostPreview({ markdown, error, stale, plus }: PostPreview.Props) {
     let html = '';
     const renderErrors: ErrorMessage[] = [];
     try {
@@ -374,6 +374,7 @@ namespace PostPreview {
         markdown: string;
         error?: Error | null;
         stale?: boolean;
+        plus?: boolean;
     }
 }
 
