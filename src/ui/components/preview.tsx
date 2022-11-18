@@ -1,5 +1,8 @@
-import { h } from 'preact';
+import { h, createRef } from 'preact';
+import { PureComponent } from 'preact/compat';
 import { Document, RenderState, RenderTarget } from '../../document';
+import { CodeEditor } from './code-editor';
+import { javascript } from '@codemirror/lang-javascript';
 import { PostPreview } from './post-preview';
 import { DataPreview } from './data-preview';
 import './preview.less';
@@ -43,6 +46,10 @@ export function Preview({
             }
         }
 
+        let errorString = (render.error.error as any).toString();
+        let sourceJavascript = (render.error.error as any).sourceJavascript;
+        let sourceJavascriptLine = (render.error.error as any).sourceJavascriptLine;
+
         contents = (
             <div class="preview-error">
                 {moduleIndex !== null ? (
@@ -52,7 +59,13 @@ export function Preview({
                 ) : (
                     <div class="error-title">Error</div>
                 )}
-                <div class="error-contents">{(render.error.error as any).toString()}</div>
+                <div class="error-contents">{errorString}</div>
+                {sourceJavascript ? (
+                    <div class="error-source">
+                        <div class="inner-title">Source Script</div>
+                        <SourceJavascript source={sourceJavascript} line={sourceJavascriptLine} />
+                    </div>
+                ) : null}
             </div>
         );
     }
@@ -116,5 +129,56 @@ namespace Preview {
         onTargetChange: (target: RenderTarget) => void;
         onLiveChange: (live: boolean) => void;
         onRender: () => void;
+    }
+}
+
+class SourceJavascript extends PureComponent<{ source: string; line?: number }> {
+    extensions = [javascript()];
+    editor = createRef<CodeEditor>();
+    wasUnmounted = false;
+
+    onChange = () => {};
+
+    highlightErrorLine() {
+        if (this.wasUnmounted) return;
+        const cm = this.editor.current?.editor?.current?.view;
+        if (!cm) {
+            // umm...try again later i guess
+            setTimeout(() => {
+                this.highlightErrorLine();
+            }, 100);
+        }
+
+        if (cm && this.props.line) {
+            const lineData = cm.state.doc.line(this.props.line);
+            cm.dispatch({
+                selection: { anchor: lineData.from, head: lineData.to },
+                scrollIntoView: true,
+            });
+        }
+    }
+
+    componentDidMount() {
+        this.highlightErrorLine();
+    }
+
+    componentDidUpdate(prevProps: { line?: number }) {
+        if (prevProps.line !== this.props.line) this.highlightErrorLine();
+    }
+
+    componentWillUnmount() {
+        this.wasUnmounted = true;
+    }
+
+    render() {
+        return (
+            <CodeEditor
+                ref={this.editor}
+                readOnly
+                value={this.props.source}
+                onChange={this.onChange}
+                extensions={this.extensions}
+            />
+        );
     }
 }

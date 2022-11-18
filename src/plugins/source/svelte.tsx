@@ -65,7 +65,7 @@ function bundleModules(modules: SvelteModules, main: string, mainId: string): Pr
             reject(new Error('Svelte: bundler timed out'));
             worker?.terminate();
             worker = null;
-        }, 1000);
+        }, 5000);
     });
 }
 
@@ -142,8 +142,6 @@ export default {
 
         const scriptBase64 = base64js.fromByteArray(new TextEncoder().encode(script));
 
-        const jsUrl = `data:application/javascript;charset=utf-8;base64,${scriptBase64}`;
-
         // run the script inside of an invisible iframe
         if (!execFrame) {
             execFrame = document.createElement('iframe');
@@ -187,7 +185,15 @@ window.addEventListener('message', e => {
                 const onMessage = (e: MessageEvent) => {
                     if (e.data.id === messageId) {
                         if (e.data.error) {
-                            reject(new Error(e.data.error));
+                            const error = new Error(e.data.error);
+                            (error as any).sourceJavascript = script;
+
+                            const lineMatch = e.data.error.match(/@blob:[0-9a-z\-\/]+:(\d+)/i);
+                            if (lineMatch) {
+                                (error as any).sourceJavascriptLine = +lineMatch[1];
+                            }
+
+                            reject(error);
                         } else {
                             resolve({ html: e.data.html, styles: e.data.styles });
                         }
@@ -203,13 +209,29 @@ window.addEventListener('message', e => {
                         script: `
 window.process = { env: { NODE_ENV: "production" } };
 {
-    window.onerror = (msg, url, line, col, error) => {
-        window.parent.postMessage({ id: messageId, error: error.toString() }, '*');
-    };
+    window.addEventListener('error', e => {
+        let errorText = [
+            e.message,
+            '',
+            e.error?.stack?.toString() || e.error?.toString(),
+        ].filter(x => x).join('\\n');
+
+        window.parent.postMessage({
+            id: messageId,
+            error: errorText,
+        }, '*');
+    });
+    window.addEventListener('unhandledrejection', e => {
+        window.parent.postMessage({
+            id: messageId,
+            error: e.reason || 'Unhandled promise rejection',
+        }, '*');
+    });
 
     const messageId = "${messageId}";
     const svelteScript = document.createElement('script');
-    svelteScript.src = "${jsUrl}";
+    const scriptBlob = new Blob([atob("${scriptBase64}")]);
+    svelteScript.src = URL.createObjectURL(scriptBlob);
 
     // called by the svelteScript (see above)
     window.${componentName}_init = function(component) {
@@ -240,7 +262,7 @@ window.process = { env: { NODE_ENV: "production" } };
                         reject(new Error('Svelte execution timed out'));
                         window.removeEventListener('message', onMessage);
                     }
-                }, 1000);
+                }, 5000);
             });
 
             let html = result.html;
