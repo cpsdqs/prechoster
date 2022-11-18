@@ -79,8 +79,10 @@ export class Document extends EventTarget {
             if (modules[i].sends.includes(moduleId) || modules[i].namedSends.has(moduleId)) {
                 modules[i] = modules[i].shallowClone();
                 if (modules[i].sends.includes(moduleId)) {
+                    modules[i].sends = modules[i].sends.slice();
                     modules[i].sends.splice(modules[i].sends.indexOf(moduleId), 1);
                 }
+                modules[i].namedSends = new Map(modules[i].namedSends);
                 modules[i].namedSends.delete(moduleId);
             }
         }
