@@ -4,7 +4,7 @@ import { PostPreview } from './post-preview';
 import { DataPreview } from './data-preview';
 import './preview.less';
 
-export function Preview({ document, render, onTargetChange, onLiveChange, onRender }: Preview.Props) {
+export function Preview({ document, render, onTargetChange, onLiveChange, onPlusChange, onRender }: Preview.Props) {
     let contents = null;
 
     if (render.output) {
@@ -21,7 +21,8 @@ export function Preview({ document, render, onTargetChange, onLiveChange, onRend
                 <div class="i-post-preview">
                     <PostPreview
                         stale={render.rendering}
-                        markdown={render.output.markdownOutput!} />
+                        markdown={render.output.markdownOutput!}
+                        plus={render.plus} />
                 </div>
             );
         }
@@ -64,6 +65,7 @@ export function Preview({ document, render, onTargetChange, onLiveChange, onRend
     }
 
     const liveCheckbox = Math.random().toString(36);
+    const plusCheckbox = Math.random().toString(36);
 
     return (
         <div class="data-preview">
@@ -80,6 +82,17 @@ export function Preview({ document, render, onTargetChange, onLiveChange, onRend
                         {outputTargets}
                         <option value="output">output</option>
                     </select>
+                    <span class="plus-update">
+                        <input
+                            id={plusCheckbox}
+                            checked={render.plus}
+                            onChange={e => {
+                                onPlusChange((e.target as HTMLInputElement).checked);
+                            }}
+                            type="checkbox" />
+                        {' '}
+                        <label for={plusCheckbox}>Cohost Plus</label>
+                    </span>
                     <span class="live-update">
                         <input
                             id={liveCheckbox}
@@ -107,6 +120,7 @@ namespace Preview {
         render: RenderState;
         onTargetChange: (target: RenderTarget) => void;
         onLiveChange: (live: boolean) => void;
+        onPlusChange: (plus: boolean) => void;
         onRender: () => void;
     }
 }

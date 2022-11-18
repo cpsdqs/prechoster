@@ -21,6 +21,7 @@ export default class Prechoster extends PureComponent<Prechoster.Props, Prechost
         render: {
             target: null,
             live: true,
+            plus: false,
             rendering: false,
             output: null,
             error: null,
@@ -142,6 +143,11 @@ export default class Prechoster extends PureComponent<Prechoster.Props, Prechost
                             onLiveChange={live => {
                                 this.setState({ render: { ...this.state.render, live } }, () => {
                                     if (live) this.renderPreview();
+                                });
+                            }}
+                            onPlusChange={plus => {
+                                this.setState({ render: { ...this.state.render, plus } }, () => {
+                                    if (this.state.render.live) this.renderPreview();
                                 });
                             }}
                             onRender={() => this.renderPreview()}

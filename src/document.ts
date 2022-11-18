@@ -288,6 +288,8 @@ export interface RenderState {
     rendering: boolean;
     /** If true, we should render live. */
     live: boolean;
+    /** If true, we should render as if we are subscribed to Cohost Plus. */
+    plus: boolean;
     /** Last render output */
     output: RenderOutput | null;
     /** Last render error. */
