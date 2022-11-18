@@ -74,13 +74,15 @@ export type SveltePluginData = {
 };
 
 class SvelteEditor extends PureComponent<ModulePluginProps<SveltePluginData>> {
+    extensions = [html(), EditorView.lineWrapping];
+
     render({ data, namedInputKeys, onChange }: ModulePluginProps<SveltePluginData>) {
         return (
             <div class="plugin-less-editor">
                 <CodeEditor
                     value={data.contents}
                     onChange={(contents) => onChange({ ...data, contents })}
-                    extensions={[html(), EditorView.lineWrapping]}
+                    extensions={this.extensions}
                 />
             </div>
         );
