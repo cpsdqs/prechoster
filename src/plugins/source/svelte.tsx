@@ -49,7 +49,7 @@ function bundleModules(modules: SvelteModules, main: string, mainId: string): Pr
         worker.addEventListener('error', (e) => {
             reject(new Error('Error in svelte worker'));
             if (process.env.NODE_ENV !== 'dev') {
-                processworker?.terminate();
+                worker?.terminate();
                 worker = null;
             }
         });
