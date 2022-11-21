@@ -331,39 +331,41 @@ export class ModuleList extends PureComponent<ModuleList.Props, ModuleListState>
         }
 
         return (
-            <div class="module-list" ref={this.list}>
-                <div style={{ height: this.listHeight }} class="module-list-height" />
-                {document.modules.map((module, i) => (
-                    <ModuleItem
-                        key={module.id}
-                        ref={this.listItems.get(module.id)!.ref}
-                        index={i}
-                        selection={this.state.selection}
-                        document={document}
-                        module={module}
-                        onSelect={() => this.props.onSelect(module.id)}
-                        onChange={(m) => {
-                            // TODO: history coalescion
+            <div class="module-list-container" aria-label="Modules">
+                <div class="module-list" ref={this.list} role="list">
+                    <div style={{ height: this.listHeight }} class="module-list-height" />
+                    {document.modules.map((module, i) => (
+                        <ModuleItem
+                            key={module.id}
+                            ref={this.listItems.get(module.id)!.ref}
+                            index={i}
+                            selection={this.state.selection}
+                            document={document}
+                            module={module}
+                            onSelect={() => this.props.onSelect(module.id)}
+                            onChange={(m) => {
+                                // TODO: history coalescion
+                                document.beginChange();
+                                const modules = document.modules.slice();
+                                modules[i] = m;
+                                document.setModules(modules);
+                            }}
+                            onMove={this.onModuleMove(module, i)}
+                            state={this.listItems.get(module.id)!}
+                            moveState={{
+                                focused: this.state.focusedMove === module.id,
+                                dragging: this.state.moveDragging,
+                            }}
+                            onRemove={() => document.removeModule(module.id)}
+                        />
+                    ))}
+                    <AddModule
+                        onAdd={(module) => {
                             document.beginChange();
-                            const modules = document.modules.slice();
-                            modules[i] = m;
-                            document.setModules(modules);
+                            document.setModules(document.modules.concat([module]));
                         }}
-                        onMove={this.onModuleMove(module, i)}
-                        state={this.listItems.get(module.id)!}
-                        moveState={{
-                            focused: this.state.focusedMove === module.id,
-                            dragging: this.state.moveDragging,
-                        }}
-                        onRemove={() => document.removeModule(module.id)}
                     />
-                ))}
-                <AddModule
-                    onAdd={(module) => {
-                        document.beginChange();
-                        document.setModules(document.modules.concat([module]));
-                    }}
-                />
+                </div>
             </div>
         );
     }
@@ -457,6 +459,7 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
         return (
             <div
                 id={this.nodeId}
+                role="listitem"
                 aria-labelledby={this.labelNodeId}
                 class={className}
                 onPointerDown={onSelect}
@@ -527,7 +530,7 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
                         }}
                     />
                 </div>
-                <footer class="i-footer">
+                <footer class="i-footer" aria-label="Connections">
                     <ModuleSends
                         document={document}
                         sends={module.sends}
@@ -579,7 +582,9 @@ function ModuleSends({ document, sends, onChange }: ModuleSends.Props) {
                 value={value || ''}
                 onChange={(e) => onChange((e.target as HTMLSelectElement).value)}
             >
-                <option value="">—</option>
+                <option value="" aria-label="nothing">
+                    —
+                </option>
                 {document.modules
                     .map((mod, i) => {
                         if (!mod.plugin.acceptsInputs) return null;
@@ -639,7 +644,9 @@ function ModuleNamedSends({ document, namedSends, onChange }: ModuleNamedSends.P
                 value={value || ''}
                 onChange={(e) => onChange((e.target as HTMLSelectElement).value)}
             >
-                <option value="">—</option>
+                <option value="" aria-label="nothing">
+                    —
+                </option>
                 {document.modules
                     .map((mod, i) => {
                         if (!mod.plugin.acceptsNamedInputs) return null;

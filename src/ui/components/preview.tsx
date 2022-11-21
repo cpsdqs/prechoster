@@ -84,7 +84,7 @@ export function Preview({
     const liveCheckbox = Math.random().toString(36);
 
     return (
-        <div class="data-preview">
+        <div class="data-preview" aria-label="Preview">
             <div class="preview-header">
                 <div class="preview-config">
                     <select

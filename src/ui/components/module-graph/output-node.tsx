@@ -7,7 +7,7 @@ import eggbugSleep from 'string:eggbug-sleep.svg';
 
 export function OutputNode({ data }: { data: any }) {
     return (
-        <div className="i-output-node">
+        <div className="i-output-node" aria-label="Output">
             <Handle id="in" type="target" position={Position.Left} />
             <div
                 className="eggbug-containment-zone"

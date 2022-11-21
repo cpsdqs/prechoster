@@ -119,7 +119,7 @@ export default class Prechoster extends PureComponent<Prechoster.Props, Prechost
 
         return (
             <div class="prechoster">
-                <div class="menu-bar">
+                <div class="menu-bar" role="toolbar">
                     <div class="i-buttons">
                         <button disabled={!doc.canUndo} onClick={() => doc.undo()}>
                             undo

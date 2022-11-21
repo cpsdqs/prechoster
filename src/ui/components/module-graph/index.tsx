@@ -350,6 +350,7 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
         return (
             <div
                 class={'module-graph' + (this.state.draggingNode ? ' is-dragging-node' : '')}
+                aria-label="Module Graph"
                 ref={this.containerNode}
             >
                 <Suspense fallback={<div>Loading…</div>}>
@@ -403,7 +404,18 @@ namespace ModuleGraph {
 function getConnections(document: Document, selected: ModuleId | EdgeId | null) {
     const connections: any[] = [];
 
+    const modDescriptions = new Map<ModuleId, string>();
+    modDescriptions.set(MOD_OUTPUT, 'output');
+
+    let modIndex = 1;
     for (const mod of document.modules) {
+        modDescriptions.set(mod.id, modIndex + ' ' + mod.plugin.description(mod.data));
+        modIndex++;
+    }
+
+    for (const mod of document.modules) {
+        const ownDesc = modDescriptions.get(mod.id);
+
         for (const target of mod.sends) {
             const highlighted = selected === mod.id || selected === target;
             const edgeId = `${mod.id}->${target}`;
@@ -415,6 +427,9 @@ function getConnections(document: Document, selected: ModuleId | EdgeId | null) 
                 targetHandle: 'in',
                 className: 'i-connection' + (highlighted ? ' is-highlighted' : ''),
                 selected: selected === edgeId,
+                ariaLabel:
+                    `Send ${ownDesc} to ${modDescriptions.get(target)} input` +
+                    (selected === edgeId ? ', selected' : ''),
             });
         }
 
@@ -431,6 +446,10 @@ function getConnections(document: Document, selected: ModuleId | EdgeId | null) 
                     className: 'i-connection' + (highlighted ? ' is-highlighted' : ''),
                     selected: selected === edgeId,
                     data: { name },
+                    ariaLabel:
+                        `Provide ${ownDesc} to ${modDescriptions.get(
+                            target
+                        )} named input “${name}”` + (selected === edgeId ? ', selected' : ''),
                 });
             }
         }

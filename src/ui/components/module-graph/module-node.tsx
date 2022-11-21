@@ -27,12 +27,19 @@ export function ModuleNode({ data }: { data: ModuleNode.NodeData }) {
         updateNodeInternals(module.id);
     }, [namedInputs]);
 
+    const modDesc = module.plugin.description(module.data);
+
     return (
         <div
             className={
                 'i-module-item' +
                 (selected ? ' is-selected' : '') +
                 (currentError ? ' is-error' : '')
+            }
+            aria-label={
+                `${index + 1} ${modDesc}, module` +
+                (selected ? ', selected' : '') +
+                (currentError ? ', has error' : '')
             }
             data-id={module.id}
             style={{
@@ -41,7 +48,7 @@ export function ModuleNode({ data }: { data: ModuleNode.NodeData }) {
         >
             <div className="i-header" style={{ [HEIGHT_PROP]: MOD_HEADER_HEIGHT }}>
                 <span className="i-index">{index + 1}</span>
-                <span className="i-label">{module.plugin.description(module.data)}</span>
+                <span className="i-label">{modDesc}</span>
             </div>
             {module.plugin.acceptsInputs ? (
                 <div className="i-input" style={{ [HEIGHT_PROP]: MOD_INPUT_HEIGHT }}>
