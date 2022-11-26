@@ -48,6 +48,11 @@
     }
 
     .post-header {
+        .render-config {
+            display: flex;
+            gap: 0.5em;
+        }
+
         .i-errors-button {
             display: inline-flex;
             gap: 0.3em;
@@ -224,6 +229,22 @@
                     }
                 }
             }
+        }
+    }
+
+    .prose-read-more {
+        font-weight: 700;
+        color: rgb(131 37 79);
+        font-size: 0.875em;
+        line-height: 1.25em;
+        padding-bottom: 0.75em;
+        background: white;
+        cursor: pointer;
+        display: inline-block;
+        text-decoration: inherit;
+
+        &:hover {
+            text-decoration: underline;
         }
     }
 }

@@ -1,8 +1,9 @@
 import { h, VNode } from 'preact';
-import { PureComponent, useEffect, useRef, useState } from 'preact/compat';
+import { Fragment, PureComponent, useEffect, useMemo, useRef, useState } from 'preact/compat';
 import { micromark } from 'micromark';
 import { gfm, gfmHtml } from 'micromark-extension-gfm';
 import { Popover } from './popover';
+import { loadRenderer, RenderFn, RenderConfig, RenderResult } from './cohost-renderer';
 import './post-preview.less';
 
 const STRIP_ELEMENTS = [
@@ -142,6 +143,85 @@ const ERRORS = {
 interface ErrorMessage {
     id: keyof typeof ERRORS;
     props: { [k: string]: any };
+}
+
+function BasicRenderer({ html }: { html: string }) {
+    return (
+        <div
+            class="inner-prose p-prose basic-renderer"
+            dangerouslySetInnerHTML={{ __html: html }}
+        />
+    );
+}
+
+function CohostRenderer({
+    rendered,
+    readMore,
+    onReadMoreChange,
+}: {
+    rendered: RenderResult;
+    readMore: boolean;
+    onReadMoreChange: (r: boolean) => void;
+}) {
+    return (
+        <Fragment>
+            <div class="inner-prose p-prose cohost-renderer">
+                {rendered.initial}
+                {readMore ? rendered.expanded : null}
+            </div>
+            {rendered.expandedLength ? (
+                <a class="prose-read-more" onClick={() => onReadMoreChange(!readMore)}>
+                    {readMore ? 'read less' : 'read more'}
+                </a>
+            ) : null}
+        </Fragment>
+    );
+}
+
+function useCohostRenderer(): RenderFn | null {
+    const rendererPromise = useMemo(() => loadRenderer(), undefined);
+    const [renderer, setRenderer] = useState<{ current: RenderFn | null }>({ current: null });
+
+    useEffect(() => {
+        rendererPromise.then((renderer) => {
+            setRenderer({ current: renderer });
+        });
+    }, [rendererPromise]);
+
+    return renderer.current;
+}
+
+function MarkdownRenderer({
+    cohostRenderer,
+    config,
+    markdown,
+    fallbackHtml,
+    readMore,
+    onReadMoreChange,
+}: {
+    cohostRenderer: RenderFn | null;
+    config: RenderConfig;
+    markdown: string;
+    fallbackHtml: string;
+    readMore: boolean;
+    onReadMoreChange: (b: boolean) => void;
+}) {
+    if (cohostRenderer) {
+        try {
+            const rendered = cohostRenderer(markdown, config);
+            return (
+                <CohostRenderer
+                    rendered={rendered}
+                    readMore={readMore}
+                    onReadMoreChange={onReadMoreChange}
+                />
+            );
+        } catch (err) {
+            // oh well
+            console.error('cohost renderer error', err);
+        }
+    }
+    return <BasicRenderer html={fallbackHtml} />;
 }
 
 function renderMarkdown(
@@ -301,7 +381,15 @@ export function PostPreview({ markdown, error, stale }: PostPreview.Props) {
         error = err as Error;
     }
 
-    const innerProse = useRef<HTMLDivElement>(null);
+    const cohostRenderer = useCohostRenderer();
+    const [config, setConfig] = useState<RenderConfig>({
+        disableEmbeds: false,
+        externalLinksInNewTab: true,
+        hasCohostPlus: true,
+    });
+    const [readMore, setReadMore] = useState(false);
+
+    const proseContainer = useRef<HTMLDivElement>(null);
     const errorBtn = useRef<HTMLButtonElement>(null);
     const [errorsOpen, setErrorsOpen] = useState(false);
     const [asyncErrors, setAsyncErrors] = useState<ErrorMessage[]>([]);
@@ -313,11 +401,10 @@ export function PostPreview({ markdown, error, stale }: PostPreview.Props) {
     };
 
     useEffect(() => {
-        innerProse.current!.innerHTML = html;
         asyncErrors.splice(0);
         setAsyncErrors([...asyncErrors]);
 
-        handleAsyncErrors(innerProse.current!, pushAsyncError);
+        handleAsyncErrors(proseContainer.current!, pushAsyncError);
     }, [html]);
 
     const errorCount = renderErrors.length + asyncErrors.length;
@@ -325,7 +412,11 @@ export function PostPreview({ markdown, error, stale }: PostPreview.Props) {
     return (
         <div class={'post-preview' + (stale ? ' is-stale' : '')}>
             <div class="post-header">
-                <span />
+                <RenderConfig
+                    hasCohostRenderer={!!cohostRenderer}
+                    config={config}
+                    onConfigChange={setConfig}
+                />
                 <span class="i-errors-container">
                     <button
                         ref={errorBtn}
@@ -347,8 +438,8 @@ export function PostPreview({ markdown, error, stale }: PostPreview.Props) {
                 </span>
             </div>
             <hr />
-            <div class="prose-container p-prose-outer">
-                {error ? (
+            {error ? (
+                <div class="prose-container p-prose-outer">
                     <div class="inner-prose p-prose is-error">
                         {error
                             .toString()
@@ -357,10 +448,19 @@ export function PostPreview({ markdown, error, stale }: PostPreview.Props) {
                                 <div key={i}>{line}</div>
                             ))}
                     </div>
-                ) : (
-                    <div class="inner-prose p-prose" ref={innerProse} />
-                )}
-            </div>
+                </div>
+            ) : (
+                <div class="prose-container p-prose-outer" ref={proseContainer}>
+                    <MarkdownRenderer
+                        cohostRenderer={cohostRenderer}
+                        config={config}
+                        markdown={markdown}
+                        fallbackHtml={html}
+                        readMore={readMore}
+                        onReadMoreChange={setReadMore}
+                    />
+                </div>
+            )}
             <hr />
             <div class="post-footer">
                 <ByteSize size={html.length} />
@@ -393,6 +493,56 @@ function ErrorList({ errors }: { errors: ErrorMessage[] }) {
                 );
             })}
         </ul>
+    );
+}
+
+function RenderConfig({
+    hasCohostRenderer,
+    config,
+    onConfigChange,
+}: {
+    hasCohostRenderer: boolean;
+    config: RenderConfig;
+    onConfigChange: (c: RenderConfig) => void;
+}) {
+    const cohostPlusId = Math.random().toString(36);
+    const embedsId = Math.random().toString(36);
+
+    if (!hasCohostRenderer) {
+        return <div class="render-config">(using fallback renderer)</div>;
+    }
+
+    return (
+        <div class="render-config">
+            <span class="config-item">
+                <input
+                    id={cohostPlusId}
+                    type="checkbox"
+                    checked={config.hasCohostPlus}
+                    onChange={(e) => {
+                        onConfigChange({
+                            ...config,
+                            hasCohostPlus: (e.target as HTMLInputElement).checked,
+                        });
+                    }}
+                />{' '}
+                <label for={cohostPlusId}>Cohost Plus!</label>
+            </span>
+            <span class="config-item">
+                <input
+                    id={embedsId}
+                    type="checkbox"
+                    checked={config.disableEmbeds}
+                    onChange={(e) => {
+                        onConfigChange({
+                            ...config,
+                            disableEmbeds: (e.target as HTMLInputElement).checked,
+                        });
+                    }}
+                />{' '}
+                <label for={embedsId}>Disable Embeds</label>
+            </span>
+        </div>
     );
 }
 
