@@ -19,6 +19,7 @@ interface PrechosterState {
 export default class Prechoster extends PureComponent<Prechoster.Props, PrechosterState> {
     state = {
         render: {
+            id: '',
             target: null,
             live: true,
             rendering: false,
@@ -90,6 +91,7 @@ export default class Prechoster extends PureComponent<Prechoster.Props, Prechost
                     rendering: false,
                     output,
                     error,
+                    id: this.renderId.toString(),
                 },
             });
         } catch (err) {

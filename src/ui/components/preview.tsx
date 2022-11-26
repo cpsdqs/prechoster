@@ -29,6 +29,7 @@ export function Preview({
             contents = (
                 <div class="i-post-preview">
                     <PostPreview
+                        renderId={render.id}
                         stale={render.rendering}
                         markdown={render.output.markdownOutput!}
                     />

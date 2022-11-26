@@ -110,6 +110,27 @@ const ERRORS = {
             </div>
         );
     },
+    'strip-img-src-protocol'({
+        protocol,
+        url,
+        isFirstOfType,
+    }: { protocol: string; url: string } & ErrProps) {
+        return (
+            <div>
+                <code>{protocol}</code> image source will be removed:{' '}
+                <code>
+                    {url.substr(0, 100)}
+                    {url.length > 100 ? '…' : ''}
+                </code>
+                {isFirstOfType && (
+                    <div class="quick-help">
+                        Things like <code>data:</code> URLs work in CSS background images, but they
+                        don’t work in regular images.
+                    </div>
+                )}
+            </div>
+        );
+    },
     'img-load-failed'({ url, isFirstOfType }: { url: string } & ErrProps) {
         return (
             <div>
@@ -154,18 +175,23 @@ function BasicRenderer({ html }: { html: string }) {
     );
 }
 
+// TODO: make this configurable maybe
+const RESET_ON_RENDER = true;
+
 function CohostRenderer({
+    renderId,
     rendered,
     readMore,
     onReadMoreChange,
 }: {
+    renderId: string;
     rendered: RenderResult;
     readMore: boolean;
     onReadMoreChange: (r: boolean) => void;
 }) {
     return (
         <Fragment>
-            <div class="inner-prose p-prose cohost-renderer">
+            <div class="inner-prose p-prose cohost-renderer" key={RESET_ON_RENDER && renderId}>
                 {rendered.initial}
                 {readMore ? rendered.expanded : null}
             </div>
@@ -192,6 +218,7 @@ function useCohostRenderer(): RenderFn | null {
 }
 
 function MarkdownRenderer({
+    renderId,
     cohostRenderer,
     config,
     markdown,
@@ -199,6 +226,7 @@ function MarkdownRenderer({
     readMore,
     onReadMoreChange,
 }: {
+    renderId: string;
     cohostRenderer: RenderFn | null;
     config: RenderConfig;
     markdown: string;
@@ -211,6 +239,7 @@ function MarkdownRenderer({
             const rendered = cohostRenderer(markdown, config);
             return (
                 <CohostRenderer
+                    renderId={renderId}
                     rendered={rendered}
                     readMore={readMore}
                     onReadMoreChange={onReadMoreChange}
@@ -273,6 +302,16 @@ function renderMarkdown(
         if (node.type !== 'checkbox') {
             pushError('input-to-checkbox', { type: node.type });
             node.type = 'checkbox';
+        }
+    }
+
+    for (const node of doc.querySelectorAll('img')) {
+        const src = node.getAttribute('src');
+        const allowedProtocols = ['http', 'https'];
+        const protocol = (src || '').match(/^(\w+):/);
+        if (protocol) {
+            pushError('strip-img-src-protocol', { protocol: protocol[1], url: src });
+            node.removeAttribute('src');
         }
     }
 
@@ -372,7 +411,7 @@ function handleAsyncErrors(
     }
 }
 
-export function PostPreview({ markdown, error, stale }: PostPreview.Props) {
+export function PostPreview({ renderId, markdown, error, stale }: PostPreview.Props) {
     let html = '';
     const renderErrors: ErrorMessage[] = [];
     try {
@@ -452,6 +491,7 @@ export function PostPreview({ markdown, error, stale }: PostPreview.Props) {
             ) : (
                 <div class="prose-container p-prose-outer" ref={proseContainer}>
                     <MarkdownRenderer
+                        renderId={renderId}
                         cohostRenderer={cohostRenderer}
                         config={config}
                         markdown={markdown}
@@ -471,6 +511,7 @@ export function PostPreview({ markdown, error, stale }: PostPreview.Props) {
 }
 namespace PostPreview {
     export interface Props {
+        renderId: string;
         markdown: string;
         error?: Error | null;
         stale?: boolean;

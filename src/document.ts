@@ -292,6 +292,8 @@ class ModuleError extends Error {
 export type RenderTarget = ModuleId | null;
 
 export interface RenderState {
+    /** Unique render ID */
+    id: string;
     /** Current render target. */
     target: RenderTarget;
     /** If true, we are currently rendering. */
