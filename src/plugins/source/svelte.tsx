@@ -167,6 +167,7 @@ export default {
             iframe.srcdoc = `<!doctype html>
 <html>
     <head>
+        <meta charset="utf-8" />
         <script>
 window.addEventListener('message', e => {
     if (e.data.type === 'eval') eval(e.data.script);
@@ -230,8 +231,10 @@ window.process = { env: { NODE_ENV: "production" } };
 
     const messageId = "${messageId}";
     const svelteScript = document.createElement('script');
-    const scriptBlob = new Blob([atob("${scriptBase64}")]);
-    svelteScript.src = URL.createObjectURL(scriptBlob);
+    const scriptSource = "data:application/javascript;base64,${scriptBase64}";
+    fetch(scriptSource)
+        .then(res => res.blob())
+        .then(res => svelteScript.src = URL.createObjectURL(res));
 
     // called by the svelteScript (see above)
     window.${componentName}_init = function(component) {
