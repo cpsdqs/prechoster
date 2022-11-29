@@ -129,6 +129,7 @@ export class SplitPanel extends PureComponent<SplitPanel.Props, SplitPanelState>
                         aria-valuemax={Math.round(maxSplit * 100)}
                         aria-valuenow={Math.round(this.state.splitPos * 100)}
                         onKeyDown={this.onResizerKeyPress}
+                        onTouchStart={(e) => e.preventDefault()}
                         onPointerDown={this.onResizerPointerDown}
                         onPointerMove={this.onResizerPointerMove}
                         onPointerUp={this.onResizerPointerUp}

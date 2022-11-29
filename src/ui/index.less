@@ -32,6 +32,7 @@ html {
     --cohost-bg: rgb(255 249 242);
     --cohost-dark-bg: rgb(25 25 25);
     --card-bg: white;
+    --color-fg: black;
     --accent: #7960df;
     --accent-content-fg: white;
     --error: #f43;
@@ -50,10 +51,16 @@ html {
     --resizer-rim: fade(black, 10%);
 
     background: #ddd;
+    color: var(--color-fg);
+    accent-color: var(--accent);
+    user-select: none;
+
+    // stop iOS overscrolling
+    overflow: clip;
 
     @media (prefers-color-scheme: dark) {
         background: #222;
-        color: white;
+        --color-fg: white;
         color-scheme: dark;
         --card-bg: #333;
         --item-bg: rgba(255, 255, 255, 0.1);

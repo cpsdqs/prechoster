@@ -494,9 +494,21 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
                             onFocus={() => onMove('focus', null)}
                             onBlur={() => onMove('blur', null)}
                             onKeyDown={onMoveKeyDown}
-                            onPointerDown={(e) => onMove('dragStart', e)}
-                            onPointerMove={(e) => onMove('maybeDragMove', e)}
-                            onPointerUp={(e) => onMove('dragEnd', e)}
+                            onTouchStart={(e) => {
+                                e.preventDefault();
+                            }}
+                            onPointerDown={(e) => {
+                                e.preventDefault();
+                                onMove('dragStart', e);
+                            }}
+                            onPointerMove={(e) => {
+                                e.preventDefault();
+                                onMove('maybeDragMove', e);
+                            }}
+                            onPointerUp={(e) => {
+                                e.preventDefault();
+                                onMove('dragEnd', e);
+                            }}
                         >
                             <span class="i-drag-icon">
                                 <span class="i-line"></span>
