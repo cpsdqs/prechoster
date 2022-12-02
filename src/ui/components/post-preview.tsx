@@ -309,7 +309,7 @@ function renderMarkdown(
         const src = node.getAttribute('src');
         const allowedProtocols = ['http', 'https'];
         const protocol = (src || '').match(/^(\w+):/);
-        if (protocol) {
+        if (protocol && !allowedProtocols.includes(protocol[1])) {
             pushError('strip-img-src-protocol', { protocol: protocol[1], url: src });
             node.removeAttribute('src');
         }
