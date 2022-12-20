@@ -4,19 +4,19 @@ import * as React from 'preact/compat';
 
 const CONFIG = {
     chunks: [
-        'https://cohost.org/static/1624.709a1e9b0bbc0fd2889c.js',
-        'https://cohost.org/static/2813.c19edb49f6481aa9e51e.js',
+        'https://cohost.org/static/1647.069f7e4b18d3149b9c10.js',
+        'https://cohost.org/static/7553.4f9908657462e37105e1.js',
     ],
     modules: {
         react: 94159,
-        markdown: 21624,
+        markdown: 41647,
     },
     symbols: {
         render: 'e2',
     },
 };
 const extraModules = {
-    45984: function (e: any) {
+    54476: function (e: any) {
         e.exports = {
             ZP: {
                 public: {
@@ -26,7 +26,7 @@ const extraModules = {
             },
         };
     },
-    20314: function (e: any) {
+    82458: function (e: any) {
         e.exports = {
             // this function is called to filter for markdown blocks in the chost data.
             // we don't have attachments, so we can ignore this
@@ -42,7 +42,7 @@ const extraModules = {
             },
         };
     },
-    67368: function (e: any) {
+    57245: function (e: any) {
         e.exports = {
             a: () => {
                 // iframely embed
@@ -55,7 +55,7 @@ const extraModules = {
             },
         };
     },
-    6087: function (e: any, t: any, n: any) {
+    41890: function (e: any, t: any, n: any) {
         const React = n(CONFIG.modules.react);
         const ctx = React.createContext({
             HCAPTCHA_SITE_KEY: '',
@@ -68,7 +68,7 @@ const extraModules = {
             F: ctx,
         };
     },
-    67905: function (e: any) {
+    98385: function (e: any) {
         e.exports = {
             // static assets
             S: (s: string) => 'https://cohost.org/' + s,
