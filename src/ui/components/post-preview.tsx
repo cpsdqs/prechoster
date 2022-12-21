@@ -1,9 +1,18 @@
 import { h, VNode } from 'preact';
-import { Fragment, PureComponent, useEffect, useMemo, useRef, useState } from 'preact/compat';
+import {
+    Fragment,
+    PureComponent,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'preact/compat';
 import { micromark } from 'micromark';
 import { gfm, gfmHtml } from 'micromark-extension-gfm';
 import { Popover } from './popover';
 import { loadRenderer, RenderFn, RenderConfig, RenderResult } from './cohost-renderer';
+import { RenderContext } from '../render-context';
 import './post-preview.less';
 
 const STRIP_ELEMENTS = [
@@ -411,6 +420,16 @@ function handleAsyncErrors(
     }
 }
 
+// keep render config around for future instances of PostPreview
+// (this is a lazy hack to avoid plumbing this config through the entire application)
+let currentGlobalRenderConfig: RenderConfig = {
+    disableEmbeds: false,
+    externalLinksInNewTab: true,
+    hasCohostPlus: true,
+
+    prefersReducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+};
+
 export function PostPreview({ renderId, markdown, error, stale }: PostPreview.Props) {
     let html = '';
     const renderErrors: ErrorMessage[] = [];
@@ -421,11 +440,7 @@ export function PostPreview({ renderId, markdown, error, stale }: PostPreview.Pr
     }
 
     const cohostRenderer = useCohostRenderer();
-    const [config, setConfig] = useState<RenderConfig>({
-        disableEmbeds: false,
-        externalLinksInNewTab: true,
-        hasCohostPlus: true,
-    });
+    const [config, setConfig] = useState<RenderConfig>(currentGlobalRenderConfig);
     const [readMore, setReadMore] = useState(false);
 
     const proseContainer = useRef<HTMLDivElement>(null);
@@ -454,7 +469,10 @@ export function PostPreview({ renderId, markdown, error, stale }: PostPreview.Pr
                 <RenderConfig
                     hasCohostRenderer={!!cohostRenderer}
                     config={config}
-                    onConfigChange={setConfig}
+                    onConfigChange={(cfg) => {
+                        setConfig(cfg);
+                        currentGlobalRenderConfig = cfg;
+                    }}
                 />
                 <span class="i-errors-container">
                     <button
@@ -490,6 +508,7 @@ export function PostPreview({ renderId, markdown, error, stale }: PostPreview.Pr
                 </div>
             ) : (
                 <div class="prose-container p-prose-outer" ref={proseContainer}>
+                    <DynamicStyles config={config} />
                     <MarkdownRenderer
                         renderId={renderId}
                         cohostRenderer={cohostRenderer}
@@ -546,8 +565,8 @@ function RenderConfig({
     config: RenderConfig;
     onConfigChange: (c: RenderConfig) => void;
 }) {
-    const cohostPlusId = Math.random().toString(36);
-    const embedsId = Math.random().toString(36);
+    const configButton = useRef<HTMLButtonElement>(null);
+    const [configOpen, setConfigOpen] = useState(false);
 
     if (!hasCohostRenderer) {
         return <div class="render-config">(using fallback renderer)</div>;
@@ -555,36 +574,134 @@ function RenderConfig({
 
     return (
         <div class="render-config">
-            <span class="config-item">
-                <input
-                    id={cohostPlusId}
-                    type="checkbox"
-                    checked={config.hasCohostPlus}
-                    onChange={(e) => {
-                        onConfigChange({
-                            ...config,
-                            hasCohostPlus: (e.target as HTMLInputElement).checked,
-                        });
-                    }}
-                />{' '}
-                <label for={cohostPlusId}>Cohost Plus!</label>
-            </span>
-            <span class="config-item">
-                <input
-                    id={embedsId}
-                    type="checkbox"
-                    checked={config.disableEmbeds}
-                    onChange={(e) => {
-                        onConfigChange({
-                            ...config,
-                            disableEmbeds: (e.target as HTMLInputElement).checked,
-                        });
-                    }}
-                />{' '}
-                <label for={embedsId}>Disable Embeds</label>
-            </span>
+            <button ref={configButton} class="i-config-button" onClick={() => setConfigOpen(true)}>
+                <svg class="config-icon" viewBox="0 0 20 20">
+                    <path
+                        fill="currentcolor"
+                        fill-rule="evenodd"
+                        d="M11 2a1 1 0 0 1 1 1v1.342A5.994 5.994 0 0 1 13.9 5.439l1.163-.671a1 1 0 0 1 1.366.366l1 1.732a1 1 0 0 1-.366 1.366l-1.162.672a6.034 6.034 0 0 1 0 2.192l1.162.672a1 1 0 0 1 .366 1.366l-1 1.732a1 1 0 0 1-1.366.366l-1.163-.671A5.994 5.994 0 0 1 12 15.658V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-1.342A5.994 5.994 0 0 1 6.1 14.561l-1.163.671a1 1 0 0 1-1.366-.366l-1-1.732a1 1 0 0 1 .366-1.366l1.162-.672a6.034 6.034 0 0 1 0-2.192l-1.162-.672a1 1 0 0 1-.366-1.366l1-1.732a1 1 0 0 1 1.366-.366l1.163.671A5.994 5.994 0 0 1 8 4.342V3a1 1 0 0 1 1-1h2Zm-1 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm0 1a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z"
+                    />
+                </svg>
+                <div class="config-preview-item">
+                    {config.hasCohostPlus ? 'plus! ✓' : 'regular'}
+                </div>
+                <div class="config-preview-item">
+                    {config.disableEmbeds ? 'no embeds' : 'embeds ✓'}
+                </div>
+                <div class="config-preview-item">
+                    {config.prefersReducedMotion ? 'reduced motion' : 'motion ✓'}
+                </div>
+            </button>
+            <Popover
+                anchor={configButton.current}
+                open={configOpen}
+                onClose={() => setConfigOpen(false)}
+            >
+                <RenderConfigPopover config={config} onConfigChange={onConfigChange} />
+            </Popover>
         </div>
     );
+}
+
+function RenderConfigPopover({
+    config,
+    onConfigChange,
+}: {
+    config: RenderConfig;
+    onConfigChange: (c: RenderConfig) => void;
+}) {
+    const renderContext = useContext(RenderContext);
+    const cohostPlusId = Math.random().toString(36);
+    const embedsId = Math.random().toString(36);
+
+    const items = {
+        hasCohostPlus: {
+            label: 'Cohost Plus!',
+            description:
+                'Enables Cohost Plus! features (host emoji). Use this if you have Cohost Plus!',
+            renderOnChange: false,
+        },
+        disableEmbeds: {
+            label: 'Disable Embeds',
+            description:
+                'Disables iframely embeds in the post. This is a feature in cohost settings.',
+            renderOnChange: false,
+        },
+        prefersReducedMotion: {
+            label: 'Reduced Motion',
+            description:
+                'Disables the `spin` animation and enables the `pulse` animation. This simulates the effect of @media (prefers-reduced-motion: reduce) on cohost.',
+            renderOnChange: true,
+        },
+    };
+
+    return (
+        <div class="i-config-contents">
+            <div class="i-config-title">Post Preview Settings</div>
+            {Object.entries(items).map(([k, v]) => {
+                const checkboxId = Math.random().toString(36);
+                return (
+                    <div class="config-item" key={k}>
+                        <div class="item-header">
+                            <input
+                                id={checkboxId}
+                                type="checkbox"
+                                checked={(config as any)[k]}
+                                onChange={(e) => {
+                                    onConfigChange({
+                                        ...config,
+                                        [k]: (e.target as HTMLInputElement).checked,
+                                    });
+                                    if (v.renderOnChange) {
+                                        renderContext.scheduleRender();
+                                    }
+                                }}
+                            />{' '}
+                            <label for={checkboxId}>{v.label}</label>
+                        </div>
+                        <div class="item-description">{v.description}</div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+function DynamicStyles({ config }: { config: RenderConfig }) {
+    const div = useRef<HTMLDivElement>(null);
+    const contents: string[] = [];
+
+    if (config.prefersReducedMotion) {
+        contents.push(
+            `
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+      `.trim()
+        );
+    } else {
+        contents.push(
+            `
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+      `.trim()
+        );
+    }
+
+    useEffect(() => {
+        if (!div.current) return;
+        div.current.innerHTML = '';
+        const style = document.createElement('style');
+        style.innerHTML = contents.join('\n');
+        div.current.append(style);
+    }, [config]);
+
+    return <div class="post-dynamic-styles" ref={div}></div>;
 }
 
 function ByteSize({ size }: { size: number }) {

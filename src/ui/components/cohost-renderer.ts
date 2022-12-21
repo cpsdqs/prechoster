@@ -1,11 +1,13 @@
 import { h } from 'preact';
 import { createRef, PureComponent } from 'preact/compat';
 import * as React from 'preact/compat';
+// @ts-ignore
+import { staticUrlPrefix } from 'prechoster:config';
 
 const CONFIG = {
     chunks: [
-        'https://cohost.org/static/1647.069f7e4b18d3149b9c10.js',
-        'https://cohost.org/static/7553.4f9908657462e37105e1.js',
+        staticUrlPrefix + '1647.8c18d79ff89faeaf64e7.js',
+        staticUrlPrefix + '7553.4f9908657462e37105e1.js',
     ],
     modules: {
         react: 94159,
@@ -20,8 +22,12 @@ const extraModules = {
         e.exports = {
             ZP: {
                 public: {
-                    project: { mainAppProfile: (id: string) => `https://cohost.org/${id}` },
-                    static: { staticAsset: ({ path }: any) => `https://cohost.org${path}` },
+                    project: {
+                        mainAppProfile: ({ projectHandle }: any) => {
+                            return `https://cohost.org/${projectHandle}`;
+                        },
+                    },
+                    static: { staticAsset: ({ path }: any) => `${staticUrlPrefix}${path}` },
                 },
             },
         };
@@ -42,7 +48,7 @@ const extraModules = {
             },
         };
     },
-    57245: function (e: any) {
+    61938: function (e: any) {
         e.exports = {
             a: () => {
                 // iframely embed
@@ -71,7 +77,7 @@ const extraModules = {
     98385: function (e: any) {
         e.exports = {
             // static assets
-            S: (s: string) => 'https://cohost.org/' + s,
+            S: (s: string) => staticUrlPrefix + s,
         };
     },
     84879: function (e: any) {
@@ -111,7 +117,7 @@ const chunkRuntime = function () {
         return Object.prototype.hasOwnProperty.call(obj, prop);
     };
 
-    rt.p = '/static/';
+    rt.p = '/';
 
     rt.d = function (target: any, source: any) {
         for (const prop in source) {
@@ -165,6 +171,9 @@ export interface RenderConfig {
     disableEmbeds: boolean;
     externalLinksInNewTab: boolean;
     hasCohostPlus: boolean;
+
+    // ignored here; used in PostPreview
+    prefersReducedMotion: boolean;
 }
 export interface RenderResult {
     initial: any;

@@ -16,6 +16,18 @@ import offMainThread from '@surma/rollup-plugin-off-main-thread';
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const prod = process.env.NODE_ENV === 'production';
 
+const CONFIG = {
+    staticUrlPrefix: process.env.PRECHOSTER_STATIC || 'https://cohost.org/static/',
+};
+
+console.error(`\x1b[32mUsing PRECHOSTER_STATIC=${CONFIG.staticUrlPrefix}\x1b[m`);
+if (CONFIG.staticUrlPrefix.includes('//cohost.org')) {
+    console.error('\x1b[31m+------------------------------------------------+\x1b[m');
+    console.error('\x1b[31m| loading assets directly from cohost dot org!!! |\x1b[m');
+    console.error('\x1b[31m|           links may be unreliable...           |\x1b[m');
+    console.error('\x1b[31m+------------------------------------------------+\x1b[m');
+}
+
 export default {
     input: 'src/index.tsx',
     preserveEntrySignatures: false,
@@ -41,6 +53,7 @@ export default {
             silenceESMWorkerWarning: true, // it's fine
         }),
         string(),
+        config(),
         hackToFixSvelteWebWorker(),
         typescript(),
         json(),
@@ -72,6 +85,32 @@ function string() {
                         else resolve(`export default ${JSON.stringify(file)};`);
                     });
                 });
+            }
+            return null;
+        },
+    };
+}
+
+/** load build config from js */
+function config() {
+    const scheme = 'prechoster:';
+
+    return {
+        name: 'config',
+        resolveId(id, importer) {
+            if (id.startsWith(scheme)) {
+                return id;
+            }
+            return null;
+        },
+        load(id) {
+            if (id.startsWith(scheme)) {
+                const k = id.substr(scheme.length);
+                if (k === 'config') {
+                    return Object.keys(CONFIG)
+                        .map((k) => `export const ${k} = ${JSON.stringify(CONFIG[k])};`)
+                        .join('\n');
+                }
             }
             return null;
         },

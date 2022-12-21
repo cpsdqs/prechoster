@@ -52,9 +52,9 @@
     .post-header {
         .render-config {
             display: flex;
-            gap: 0.5em;
         }
 
+        .i-config-button,
         .i-errors-button {
             display: inline-flex;
             gap: 0.3em;
@@ -70,11 +70,37 @@
             opacity: var(--inactive-opacity);
             position: relative;
 
+            --inactive-opacity: 0.2;
+        }
+
+        .i-config-button {
+            display: inline-flex;
+            opacity: 1;
+            border-color: var(--accent);
+            --active-bg: var(--accent);
+            gap: 0.1em;
+            padding: 0.1em;
+            white-space: nowrap;
+            flex-wrap: wrap;
+
+            .config-icon {
+                aspect-ratio: 1;
+                width: 20px;
+                margin-right: 0.1em;
+            }
+
+            .config-preview-item {
+                background: #0002;
+                padding: 0.1em 0.2em;
+                border-radius: 0.3em;
+            }
+        }
+
+        .i-errors-button {
             --fg: currentColor;
             --bg: transparent;
             --active-bg: var(--error);
             --active-fg: var(--error-content-fg);
-            --inactive-opacity: 0.2;
 
             .i-errors-icon {
                 display: inline-flex;
@@ -114,28 +140,51 @@
                         transform: scale(2);
                     }
                 }
-
-                &::before {
-                    content: '';
-                    position: absolute;
-                    inset: -4px;
-                    border-radius: calc(0.5em + 3px);
-                    border: 1px solid var(--active-bg);
-                    opacity: 0;
-                    transform: scale(0.9);
-                    transition: all 0.2s;
-                }
-
-                &:hover::before {
-                    opacity: 1;
-                    transform: scale(1);
-                }
             }
 
             .i-errors-count {
                 font-feature-settings: 'tnum' 1;
             }
         }
+
+        .i-config-button,
+        .i-errors-button.has-errors {
+            &::before {
+                content: '';
+                position: absolute;
+                inset: -4px;
+                border-radius: calc(0.5em + 3px);
+                border: 1px solid var(--active-bg);
+                opacity: 0;
+                transform: scale(0.9);
+                transition: all 0.2s;
+            }
+
+            &:hover::before {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .i-config-contents {
+            width: 80vw;
+            max-width: 20em;
+
+            .i-config-title {
+                font-weight: bold;
+                padding: 0.5em;
+            }
+
+            .config-item {
+                padding: 0.5em;
+                border-top: 1px solid var(--separator);
+
+                .item-description {
+                    font-size: smaller;
+                }
+            }
+        }
+
         .i-errors {
             margin: 0;
             padding: 0;

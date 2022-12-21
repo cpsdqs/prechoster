@@ -5,6 +5,7 @@ import { ModuleList } from './components/module-list';
 import { ModuleGraph, EdgeId } from './components/module-graph';
 import { Preview } from './components/preview';
 import { Document, Module, ModuleId, Data, MOD_OUTPUT, RenderState } from '../document';
+import { RenderContext } from './render-context';
 import { MODULES } from '../plugins';
 import { Examples } from './examples';
 // @ts-ignore
@@ -115,62 +116,74 @@ export default class Prechoster extends PureComponent<Prechoster.Props, Prechost
         }
     }
 
+    renderContext = {
+        scheduleRender: () => this.scheduleRender(),
+    };
+
     render() {
         const doc = this.props.document;
         const { render } = this.state;
 
         return (
-            <div class="prechoster">
-                <div class="menu-bar" role="toolbar">
-                    <div class="i-buttons">
-                        <button disabled={!doc.canUndo} onClick={() => doc.undo()}>
-                            undo
-                        </button>
-                        <button disabled={!doc.canRedo} onClick={() => doc.redo()}>
-                            redo
-                        </button>
-                        <SaveLoad document={doc} />
-                        <Examples document={doc} />
+            <RenderContext.Provider value={this.renderContext}>
+                <div class="prechoster">
+                    <div class="menu-bar" role="toolbar">
+                        <div class="i-buttons">
+                            <button disabled={!doc.canUndo} onClick={() => doc.undo()}>
+                                undo
+                            </button>
+                            <button disabled={!doc.canRedo} onClick={() => doc.redo()}>
+                                redo
+                            </button>
+                            <SaveLoad document={doc} />
+                            <Examples document={doc} />
+                        </div>
+                        <div class="i-links">
+                            <a href={sourceLink} target="_blank" rel="nofollow noreferrer">
+                                source
+                            </a>
+                        </div>
                     </div>
-                    <div class="i-links">
-                        <a href={sourceLink} target="_blank" rel="nofollow noreferrer">
-                            source
-                        </a>
-                    </div>
-                </div>
-                <SplitPanel
-                    initialPos={Math.min(0.7, Math.max(500 / innerWidth, 1 - 700 / innerWidth))}
-                >
-                    <ModuleList
-                        document={doc}
-                        selected={this.state.selected}
-                        onSelect={(selected) => this.setState({ selected })}
-                    />
-                    <SplitPanel vertical initialPos={Math.max(0.6, 1 - 300 / innerHeight)}>
-                        <Preview
-                            document={doc}
-                            render={render}
-                            onLiveChange={(live) => {
-                                this.setState({ render: { ...this.state.render, live } }, () => {
-                                    if (live) this.renderPreview();
-                                });
-                            }}
-                            onRender={() => this.renderPreview()}
-                            onTargetChange={(target) => {
-                                this.setState({ render: { ...this.state.render, target } }, () => {
-                                    this.renderPreview();
-                                });
-                            }}
-                        />
-                        <ModuleGraph
+                    <SplitPanel
+                        initialPos={Math.min(0.7, Math.max(500 / innerWidth, 1 - 700 / innerWidth))}
+                    >
+                        <ModuleList
                             document={doc}
                             selected={this.state.selected}
-                            render={render}
                             onSelect={(selected) => this.setState({ selected })}
                         />
+                        <SplitPanel vertical initialPos={Math.max(0.6, 1 - 300 / innerHeight)}>
+                            <Preview
+                                document={doc}
+                                render={render}
+                                onLiveChange={(live) => {
+                                    this.setState(
+                                        { render: { ...this.state.render, live } },
+                                        () => {
+                                            if (live) this.renderPreview();
+                                        }
+                                    );
+                                }}
+                                onRender={() => this.renderPreview()}
+                                onTargetChange={(target) => {
+                                    this.setState(
+                                        { render: { ...this.state.render, target } },
+                                        () => {
+                                            this.renderPreview();
+                                        }
+                                    );
+                                }}
+                            />
+                            <ModuleGraph
+                                document={doc}
+                                selected={this.state.selected}
+                                render={render}
+                                onSelect={(selected) => this.setState({ selected })}
+                            />
+                        </SplitPanel>
                     </SplitPanel>
-                </SplitPanel>
-            </div>
+                </div>
+            </RenderContext.Provider>
         );
     }
 }

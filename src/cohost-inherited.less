@@ -567,21 +567,8 @@
     }
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-  }
+  /* NOTE: spin and pulse are defined in PostPreview */
 
-  @media (prefers-reduced-motion: reduce) {
-    @keyframes pulse {
-      50% {
-        opacity: 0.5;
-      }
-    }
-  }
   .flex {
     display: flex;
   }
@@ -656,6 +643,15 @@
   .text-gray-800 {
     --tw-text-opacity: 1;
     color: rgb(46 45 44 / var(--tw-text-opacity));
+  }
+  .\!font-bold {
+    font-weight: 700!important;
+  }
+  .\!no-underline {
+    text-decoration: none!important;
+  }
+  .hover\:\!underline:hover {
+    text-decoration: underline!important;
   }
 }
 
