@@ -1,0 +1,16 @@
+.plugin-text-rich-text-editor {
+    contain: layout;
+    border: 1px solid var(--separator);
+    background: var(--card-bg);
+    border-radius: 0.5em;
+    padding: 0.5em;
+    position: relative;
+    overflow: hidden scroll;
+    min-height: 100px;
+    height: 300px;
+    resize: vertical;
+
+    @media (max-height: 600px) {
+        height: 50vh;
+    }
+}
