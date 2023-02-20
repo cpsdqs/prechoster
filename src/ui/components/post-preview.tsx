@@ -243,22 +243,40 @@ function MarkdownRenderer({
     readMore: boolean;
     onReadMoreChange: (b: boolean) => void;
 }) {
-    if (cohostRenderer) {
-        try {
-            const rendered = cohostRenderer(markdown, config);
-            return (
-                <CohostRenderer
-                    renderId={renderId}
-                    rendered={rendered}
-                    readMore={readMore}
-                    onReadMoreChange={onReadMoreChange}
-                />
-            );
-        } catch (err) {
-            // oh well
-            console.error('cohost renderer error', err);
+    const [rendered, setRendered] = useState(null);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        if (cohostRenderer) {
+            const thisRenderId = renderId;
+
+            cohostRenderer(markdown, config)
+                .then((result) => {
+                    if (renderId !== thisRenderId) return;
+                    setError(null);
+                    setRendered(result);
+                })
+                .catch((error) => {
+                    if (renderId !== thisRenderId) return;
+                    // oh well
+                    console.error('cohost renderer error', err);
+                    setRendered(null);
+                    setError(error);
+                });
         }
+    }, [cohostRenderer, markdown]);
+
+    if (cohostRenderer && rendered) {
+        return (
+            <CohostRenderer
+                renderId={renderId}
+                rendered={rendered}
+                readMore={readMore}
+                onReadMoreChange={onReadMoreChange}
+            />
+        );
     }
+
     return <BasicRenderer html={fallbackHtml} />;
 }
 

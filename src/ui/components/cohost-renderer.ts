@@ -1,4 +1,4 @@
-import { h } from 'preact';
+import { h, render } from 'preact';
 import { createRef, PureComponent } from 'preact/compat';
 import * as React from 'preact/compat';
 // @ts-ignore
@@ -6,18 +6,44 @@ import { staticUrlPrefix } from 'prechoster:config';
 
 const CONFIG = {
     chunks: [
-        staticUrlPrefix + '1647.8c18d79ff89faeaf64e7.js',
-        staticUrlPrefix + '7553.4f9908657462e37105e1.js',
+        staticUrlPrefix + '1831.d8a0da550110538f8cf8.js',
+        staticUrlPrefix + '7117.f4dc4640158f9eb34a0f.js',
+        staticUrlPrefix + '9780.d11356cd172ad9db7927.js',
     ],
     modules: {
         react: 94159,
-        markdown: 41647,
+        markdown: 81831,
     },
     symbols: {
-        render: 'e2',
+        renderToData: 'e8',
+        renderFromData: 'gM',
     },
 };
 const extraModules = {
+    31976: function (e: any) {
+        // probably react-dom/server
+        e.exports = {
+            // renderToStaticMarkup
+            uS: (markup) => {
+                const node = document.createElement('div');
+                render(markup, node);
+                return node.innerHTML;
+            },
+        };
+    },
+    41890: function (e: any, t: any, n: any) {
+        const React = n(CONFIG.modules.react);
+        const ctx = React.createContext({
+            HCAPTCHA_SITE_KEY: '',
+            IFRAMELY_KEY: '',
+            UNLEASH_APP_NAME: '',
+            UNLEASH_CLIENT_KEY: '',
+            limits: { attachmentSize: { normal: 5242880, cohostPlus: 10485760 } },
+        });
+        e.exports = {
+            F: ctx,
+        };
+    },
     54476: function (e: any) {
         e.exports = {
             ZP: {
@@ -29,6 +55,19 @@ const extraModules = {
                     },
                     static: { staticAsset: ({ path }: any) => `${staticUrlPrefix}${path}` },
                 },
+            },
+        };
+    },
+    61938: function (e: any) {
+        e.exports = {
+            a: () => {
+                // iframely embed
+                return {
+                    data: {
+                        error: 'prechoster doesn’t support embeds, sorry!',
+                    },
+                    status: null,
+                };
             },
         };
     },
@@ -48,43 +87,33 @@ const extraModules = {
             },
         };
     },
-    61938: function (e: any) {
+    84879: function (e: any) {
         e.exports = {
-            a: () => {
-                // iframely embed
-                return {
-                    data: {
-                        error: 'prechoster doesn’t support embeds, sorry!',
-                    },
-                    status: null,
-                };
+            ou: {
+                fromISO: (s: string) => ({ toJSDate: () => new Date(s) }),
             },
         };
     },
-    41890: function (e: any, t: any, n: any) {
+    85030: function (e: any, t: any, n: any) {
         const React = n(CONFIG.modules.react);
-        const ctx = React.createContext({
-            HCAPTCHA_SITE_KEY: '',
-            IFRAMELY_KEY: '',
-            UNLEASH_APP_NAME: '',
-            UNLEASH_CLIENT_KEY: '',
-            limits: { attachmentSize: { normal: 5242880, cohostPlus: 10485760 } },
-        });
         e.exports = {
-            F: ctx,
+            // seems to be some kind of message box
+            v: ({ level, moreClasses, children }) => {
+                return React.createElement(
+                    'div',
+                    {
+                        class: 'cohost-message-box ' + moreClasses,
+                        'data-level': level,
+                    },
+                    children
+                );
+            },
         };
     },
     98385: function (e: any) {
         e.exports = {
             // static assets
             S: (s: string) => staticUrlPrefix + s,
-        };
-    },
-    84879: function (e: any) {
-        e.exports = {
-            ou: {
-                fromISO: (s: string) => ({ toJSDate: () => new Date(s) }),
-            },
         };
     },
     [CONFIG.modules.react]: function (e: any) {
@@ -159,7 +188,7 @@ const chunkRuntime = function () {
         const [, modules] = chunk;
 
         for (const mod in modules) {
-            moduleRegistry[mod] = modules[mod];
+            if (!moduleRegistry[mod]) moduleRegistry[mod] = modules[mod];
         }
     }
 
@@ -203,8 +232,8 @@ function innerLoad(): Promise<RenderFn> {
             const markdown = require(CONFIG.modules.markdown);
             console.log('cohost renderer loaded!');
 
-            return (source: string, config: RenderConfig) =>
-                markdown[CONFIG.symbols.render](
+            return async (source: string, config: RenderConfig) => {
+                const data = await markdown[CONFIG.symbols.renderToData](
                     source.split('\n\n').map((content: string) => ({
                         type: 'markdown',
                         markdown: { content },
@@ -212,6 +241,8 @@ function innerLoad(): Promise<RenderFn> {
                     new Date(),
                     config
                 );
+                return markdown[CONFIG.symbols.renderFromData](data, config);
+            };
         })
         .catch((err) => {
             console.error('failed to load cohost renderer', err);
