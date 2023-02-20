@@ -20,6 +20,7 @@ if (CONFIG.staticUrlPrefix.includes('//cohost.org')) {
 }
 
 export default defineConfig({
+    base: './',
     plugins: [preact(), string(), stringNodeModules(), config(), hackToFixSvelteWebWorker()],
     build: {
         rollupOptions: {
