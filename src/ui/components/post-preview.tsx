@@ -466,7 +466,7 @@ export function PostPreview({ renderId, markdown, error, stale }: PostPreview.Pr
     return (
         <div class={'post-preview' + (stale ? ' is-stale' : '')}>
             <div class="post-header">
-                <RenderConfig
+                <RenderConfigEditor
                     hasCohostRenderer={!!cohostRenderer}
                     config={config}
                     onConfigChange={(cfg) => {
@@ -556,7 +556,7 @@ function ErrorList({ errors }: { errors: ErrorMessage[] }) {
     );
 }
 
-function RenderConfig({
+function RenderConfigEditor({
     hasCohostRenderer,
     config,
     onConfigChange,
@@ -568,10 +568,6 @@ function RenderConfig({
     const configButton = useRef<HTMLButtonElement>(null);
     const [configOpen, setConfigOpen] = useState(false);
 
-    if (!hasCohostRenderer) {
-        return <div class="render-config">(using fallback renderer)</div>;
-    }
-
     return (
         <div class="render-config">
             <button ref={configButton} class="i-config-button" onClick={() => setConfigOpen(true)}>
@@ -582,12 +578,17 @@ function RenderConfig({
                         d="M11 2a1 1 0 0 1 1 1v1.342A5.994 5.994 0 0 1 13.9 5.439l1.163-.671a1 1 0 0 1 1.366.366l1 1.732a1 1 0 0 1-.366 1.366l-1.162.672a6.034 6.034 0 0 1 0 2.192l1.162.672a1 1 0 0 1 .366 1.366l-1 1.732a1 1 0 0 1-1.366.366l-1.163-.671A5.994 5.994 0 0 1 12 15.658V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-1.342A5.994 5.994 0 0 1 6.1 14.561l-1.163.671a1 1 0 0 1-1.366-.366l-1-1.732a1 1 0 0 1 .366-1.366l1.162-.672a6.034 6.034 0 0 1 0-2.192l-1.162-.672a1 1 0 0 1-.366-1.366l1-1.732a1 1 0 0 1 1.366-.366l1.163.671A5.994 5.994 0 0 1 8 4.342V3a1 1 0 0 1 1-1h2Zm-1 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm0 1a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z"
                     />
                 </svg>
-                <div class="config-preview-item">
-                    {config.hasCohostPlus ? 'plus! ✓' : 'regular'}
-                </div>
-                <div class="config-preview-item">
-                    {config.disableEmbeds ? 'no embeds' : 'embeds ✓'}
-                </div>
+                {!hasCohostRenderer && '(using fallback renderer)'}
+                {hasCohostRenderer && (
+                    <div class="config-preview-item">
+                        {config.hasCohostPlus ? 'plus! ✓' : 'regular'}
+                    </div>
+                )}
+                {hasCohostRenderer && (
+                    <div class="config-preview-item">
+                        {config.disableEmbeds ? 'no embeds' : 'embeds ✓'}
+                    </div>
+                )}
                 <div class="config-preview-item">
                     {config.prefersReducedMotion ? 'reduced motion' : 'motion ✓'}
                 </div>
@@ -597,16 +598,22 @@ function RenderConfig({
                 open={configOpen}
                 onClose={() => setConfigOpen(false)}
             >
-                <RenderConfigPopover config={config} onConfigChange={onConfigChange} />
+                <RenderConfigPopover
+                    hasCohostRenderer={hasCohostRenderer}
+                    config={config}
+                    onConfigChange={onConfigChange}
+                />
             </Popover>
         </div>
     );
 }
 
 function RenderConfigPopover({
+    hasCohostRenderer,
     config,
     onConfigChange,
 }: {
+    hasCohostRenderer: boolean;
     config: RenderConfig;
     onConfigChange: (c: RenderConfig) => void;
 }) {
@@ -634,6 +641,11 @@ function RenderConfigPopover({
             renderOnChange: true,
         },
     };
+
+    if (!hasCohostRenderer) {
+        delete items.hasCohostPlus;
+        delete items.disableEmbeds;
+    }
 
     return (
         <div class="i-config-contents">

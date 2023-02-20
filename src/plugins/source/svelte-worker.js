@@ -1,8 +1,8 @@
 import { compile } from 'svelte/compiler';
 import { rollup } from 'rollup/dist/es/rollup.browser.js';
 import { URL } from 'whatwg-url'; // chrome’s built-in URL seems to not be spec-compliant
-import sSvelte from 'string:../../../node_modules/svelte/index.mjs';
-import sSvelteInternal from 'string:../../../node_modules/svelte/internal/index.mjs';
+import sSvelte from 'string-node-modules:svelte/index.mjs';
+import sSvelteInternal from 'string-node-modules:svelte/internal/index.mjs';
 
 const libraryModules = {
     'lib:///svelte/index.mjs': sSvelte,

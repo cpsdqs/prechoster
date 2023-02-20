@@ -5,12 +5,13 @@
   "main": "index.js",
   "scripts": {
     "fmt": "prettier --write .",
-    "watch": "rollup -c --watch",
-    "build": "NODE_ENV=production rollup -c"
+    "dev": "vite dev",
+    "build": "vite build"
   },
   "homepage": "https://github.com/cpsdqs/prechoster",
   "license": "MIT",
   "devDependencies": {
+    "@preact/preset-vite": "^2.5.0",
     "@rollup/plugin-alias": "^4.0.2",
     "@rollup/plugin-babel": "^5.3.1",
     "@rollup/plugin-commonjs": "^22.0.1",
@@ -28,7 +29,8 @@
     "prettier": "^2.7.1",
     "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-terser": "^7.0.2",
-    "typescript": "^4.7.4"
+    "typescript": "^4.7.4",
+    "vite": "^4.1.2"
   },
   "dependencies": {
     "@bramus/specificity": "^2.1.0",
@@ -48,7 +50,7 @@
     "react-dom": "^18.2.0",
     "reactflow": "^11.2.0",
     "rollup": "^2.77.0",
-    "svelte": "^3.49.0",
+    "svelte": "^3.55.1",
     "svgo": "^2.8.0",
     "whatwg-url": "^11.0.0"
   }

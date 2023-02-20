@@ -50,7 +50,7 @@ class ExamplesMenu extends PureComponent<ExamplesProps & { onClose: () => void }
     load() {
         this.setState({ loading: true, items: {}, error: null });
         (async () => {
-            const res = await fetch(new URL('../assets/examples/index.json', import.meta.url));
+            const res = await fetch(new URL('../../assets/examples/index.json', import.meta.url));
             if (!res.ok) throw await res.text();
             return await res.json();
         })()
@@ -69,7 +69,7 @@ class ExamplesMenu extends PureComponent<ExamplesProps & { onClose: () => void }
     loadExample(id: string) {
         this.setState({ loadingExample: true });
         (async () => {
-            const res = await fetch(new URL(`../assets/examples/${id}`, import.meta.url));
+            const res = await fetch(new URL(`../../assets/examples/${id}`, import.meta.url));
             if (!res.ok) throw await res.text();
             return await res.json();
         })()

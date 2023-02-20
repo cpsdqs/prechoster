@@ -14,8 +14,6 @@ import { SvelteComponentData } from './svelte-component';
 import { EditorView } from '@codemirror/view';
 import { html } from '@codemirror/lang-html';
 import base64js from 'base64-js';
-// @ts-ignore
-import svelteWorker from 'omt:./svelte-worker.js';
 
 type SvelteModules = Map<string, { contents: string }>;
 
@@ -25,7 +23,7 @@ let worker: Worker | null = null;
 function bundleModules(modules: SvelteModules, main: string, mainId: string): Promise<string> {
     return new Promise((resolve, reject) => {
         if (!worker) {
-            worker = new Worker(new URL(svelteWorker, import.meta.url), {
+            worker = new Worker(new URL('./svelte-worker.js', import.meta.url), {
                 name: 'svelte-worker',
                 type: 'module',
             });
