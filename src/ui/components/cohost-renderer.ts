@@ -6,13 +6,13 @@ import { staticUrlPrefix } from 'prechoster:config';
 
 const CONFIG = {
     chunks: [
-        staticUrlPrefix + '1831.d8a0da550110538f8cf8.js',
-        staticUrlPrefix + '7117.f4dc4640158f9eb34a0f.js',
-        staticUrlPrefix + '9780.d11356cd172ad9db7927.js',
+        staticUrlPrefix + '1316.1984a23687e236f8a30e.js',
+        staticUrlPrefix + '3828.2b9038191a8d3aa326e1.js',
+        staticUrlPrefix + '9780.9e49081de0cd09ac0ab0.js',
     ],
     modules: {
         react: 94159,
-        markdown: 81831,
+        markdown: 18933,
     },
     symbols: {
         renderToData: 'e8',
@@ -31,7 +31,7 @@ const extraModules = {
             },
         };
     },
-    41890: function (e: any, t: any, n: any) {
+    80641: function (e: any, t: any, n: any) {
         const React = n(CONFIG.modules.react);
         const ctx = React.createContext({
             HCAPTCHA_SITE_KEY: '',
@@ -44,7 +44,7 @@ const extraModules = {
             F: ctx,
         };
     },
-    54476: function (e: any) {
+    94586: function (e: any) {
         e.exports = {
             ZP: {
                 public: {
@@ -71,7 +71,7 @@ const extraModules = {
             },
         };
     },
-    82458: function (e: any) {
+    63275: function (e: any) {
         e.exports = {
             // this function is called to filter for markdown blocks in the chost data.
             // we don't have attachments, so we can ignore this
@@ -94,7 +94,7 @@ const extraModules = {
             },
         };
     },
-    85030: function (e: any, t: any, n: any) {
+    56575: function (e: any, t: any, n: any) {
         const React = n(CONFIG.modules.react);
         e.exports = {
             // seems to be some kind of message box
@@ -110,10 +110,36 @@ const extraModules = {
             },
         };
     },
-    98385: function (e: any) {
+    98591: function (e: any) {
         e.exports = {
             // static assets
             S: (s: string) => staticUrlPrefix + s,
+        };
+    },
+    61888: function (e: any) {
+        // lodash isEqual polyfill
+        function isEqual(a, b) {
+            if (typeof a !== typeof b) return false;
+            if (Array.isArray(a)) {
+                if (a.length !== b.length) return false;
+                for (let i = 0; i < a.length; i++) {
+                    if (!isEqual(a[i], b[i])) return false;
+                }
+                return true;
+            }
+            if (typeof a === 'object') {
+                for (const k in a) {
+                    if (!(k in b) || !isEqual(a[k], b[k])) return false;
+                }
+                for (const k in b) {
+                    if (!(k in a)) return false;
+                }
+                return true;
+            }
+            return a === b;
+        }
+        e.exports = {
+            isEqual,
         };
     },
     [CONFIG.modules.react]: function (e: any) {
