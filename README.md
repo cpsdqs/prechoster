@@ -17,10 +17,10 @@ in the repository:
 
 ```sh
 npm install
-npm run build # or npm run watch
+npm run build # or npm run dev
 ```
 
-Look in `static` for the output.
+Look in `dist` for the output.
 
 ### Browser Support
 Major feature gates:
