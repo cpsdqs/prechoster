@@ -6,9 +6,9 @@ import { staticUrlPrefix } from 'prechoster:config';
 
 const CONFIG = {
     chunks: [
-        staticUrlPrefix + '1316.1984a23687e236f8a30e.js',
-        staticUrlPrefix + '3828.2b9038191a8d3aa326e1.js',
-        staticUrlPrefix + '9780.9e49081de0cd09ac0ab0.js',
+        staticUrlPrefix + '3828.1155f1140c93a3d804a3.js',
+        staticUrlPrefix + '8027.d314e24fe9da609873d8.js',
+        staticUrlPrefix + '9174.3bc339529976aba59da4.js',
     ],
     modules: {
         react: 94159,
@@ -94,7 +94,7 @@ const extraModules = {
             },
         };
     },
-    56575: function (e: any, t: any, n: any) {
+    11177: function (e: any, t: any, n: any) {
         const React = n(CONFIG.modules.react);
         e.exports = {
             // seems to be some kind of message box
