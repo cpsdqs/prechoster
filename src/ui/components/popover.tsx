@@ -81,22 +81,52 @@ export class Popover extends PureComponent<Popover.Props> {
 
         const hasEnoughSpaceAbove = anchorMin[1] - ARROW_SIZE - popoverSize[1] > popoverMinLoc[0];
         const hasEnoughSpaceBelow = anchorMax[1] + ARROW_SIZE < popoverMaxLoc[1];
+        const hasEnoughSpaceOnLeft = anchorMin[0] - ARROW_SIZE > popoverMinLoc[0];
         const hasEnoughSpaceOnRight = anchorMax[0] + ARROW_SIZE < popoverMaxLoc[0];
-        if (hasEnoughSpaceAbove) {
+
+        const placeAbove = () => {
             popoverLoc = [
                 anchorCenter[0] - popoverSize[0] / 2,
                 anchorMin[1] - ARROW_SIZE - popoverSize[1],
             ];
             this.anchorLoc = [anchorCenter[0], anchorMin[1]];
             arrowLocType = 'bottom';
-        } else if (hasEnoughSpaceBelow) {
+        };
+        const placeBelow = () => {
             popoverLoc = [anchorCenter[0] - popoverSize[0] / 2, anchorMax[1] + ARROW_SIZE];
             this.anchorLoc = [anchorCenter[0], anchorMax[1]];
             arrowLocType = 'top';
-        } else if (hasEnoughSpaceOnRight) {
+        };
+        const placeLeft = () => {
+            popoverLoc = [
+                anchorMin[0] - ARROW_SIZE - popoverSize[0],
+                anchorCenter[1] - popoverSize[1] / 2,
+            ];
+            this.anchorLoc = [anchorMin[0], anchorCenter[1]];
+            arrowLocType = 'right';
+        };
+        const placeRight = () => {
             popoverLoc = [anchorMax[0] + ARROW_SIZE, anchorCenter[1] - popoverSize[1] / 2];
             this.anchorLoc = [anchorMax[0], anchorCenter[1]];
             arrowLocType = 'left';
+        };
+
+        if (this.props.anchorBias === 'above' && hasEnoughSpaceAbove) {
+            placeAbove();
+        } else if (this.props.anchorBias === 'below' && hasEnoughSpaceBelow) {
+            placeBelow();
+        } else if (this.props.anchorBias === 'left' && hasEnoughSpaceOnLeft) {
+            placeLeft();
+        } else if (this.props.anchorBias === 'right' && hasEnoughSpaceOnRight) {
+            placeRight();
+        } else if (hasEnoughSpaceAbove) {
+            placeAbove();
+        } else if (hasEnoughSpaceBelow) {
+            placeBelow();
+        } else if (hasEnoughSpaceOnRight) {
+            placeRight();
+        } else if (hasEnoughSpaceOnLeft) {
+            placeLeft();
         }
 
         popoverLoc[0] = Math.max(popoverMinLoc[0], Math.min(popoverLoc[0], popoverMaxLoc[0]));
@@ -128,6 +158,12 @@ export class Popover extends PureComponent<Popover.Props> {
             const y = this.anchorLoc[1] - this.positionY.value;
             if (y > ARROW_MARGIN && y < this.height.value - ARROW_MARGIN) {
                 this.arrowLoc = ['left', x, y];
+            }
+        } else if (arrowLocType === 'right') {
+            const x = this.width.value;
+            const y = this.anchorLoc[1] - this.positionY.value;
+            if (y > ARROW_MARGIN && y < this.height.value - ARROW_MARGIN) {
+                this.arrowLoc = ['right', x, y];
             }
         } else if (arrowLocType === 'top' || arrowLocType === 'bottom') {
             const x = this.anchorLoc[0] - this.positionX.value;
@@ -255,6 +291,7 @@ namespace Popover {
     export interface Props {
         /** Anchor where the popover will appear from. Either an element or client coordinates */
         anchor?: HTMLElement | [number, number] | null;
+        anchorBias?: 'above' | 'below' | 'left' | 'right';
         /** Whether the popover is open */
         open: boolean;
         /** Close callback. */

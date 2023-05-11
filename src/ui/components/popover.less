@@ -47,6 +47,12 @@
             border-right-color: var(--arrow-color);
             left: calc(var(--arrow-size) * -1);
         }
+        &[data-type='right']::before,
+        &[data-type='right']::after {
+            border-left-color: var(--arrow-color);
+            left: auto;
+            right: calc(var(--arrow-size) * -1);
+        }
         &[data-type='top']::before,
         &[data-type='top']::after {
             border-bottom-color: var(--arrow-color);

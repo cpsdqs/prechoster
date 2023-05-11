@@ -264,7 +264,7 @@ function MarkdownRenderer({
                     setError(error);
                 });
         }
-    }, [cohostRenderer, markdown]);
+    }, [cohostRenderer, config, markdown]);
 
     if (cohostRenderer && rendered) {
         return (
@@ -438,17 +438,32 @@ function handleAsyncErrors(
     }
 }
 
-// keep render config around for future instances of PostPreview
-// (this is a lazy hack to avoid plumbing this config through the entire application)
-let currentGlobalRenderConfig: RenderConfig = {
+export interface PreviewConfig {
+    render: RenderConfig;
+    prefersReducedMotion: boolean;
+}
+
+const DEFAULT_RENDER_CONFIG: RenderConfig = {
     disableEmbeds: false,
     externalLinksInNewTab: true,
     hasCohostPlus: true,
+};
 
+export const DEFAULT_PREVIEW_CONFIG: PreviewConfig = {
+    render: DEFAULT_RENDER_CONFIG,
+
+    cohostRenderer: true,
     prefersReducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
 };
 
-export function PostPreview({ renderId, markdown, error, stale }: PostPreview.Props) {
+export function PostPreview({
+    renderId,
+    markdown,
+    error,
+    stale,
+    config,
+    onConfigChange,
+}: PostPreview.Props) {
     let html = '';
     const renderErrors: ErrorMessage[] = [];
     try {
@@ -458,7 +473,6 @@ export function PostPreview({ renderId, markdown, error, stale }: PostPreview.Pr
     }
 
     const cohostRenderer = useCohostRenderer();
-    const [config, setConfig] = useState<RenderConfig>(currentGlobalRenderConfig);
     const [readMore, setReadMore] = useState(false);
 
     const proseContainer = useRef<HTMLDivElement>(null);
@@ -482,15 +496,18 @@ export function PostPreview({ renderId, markdown, error, stale }: PostPreview.Pr
     const errorCount = renderErrors.length + asyncErrors.length;
 
     return (
-        <div class={'post-preview' + (stale ? ' is-stale' : '')}>
+        <div
+            class={
+                'post-preview' +
+                (stale ? ' is-stale' : '') +
+                (config.simulateUserstyles ? ' simulate-userstyles' : '')
+            }
+        >
             <div class="post-header">
                 <RenderConfigEditor
                     hasCohostRenderer={!!cohostRenderer}
                     config={config}
-                    onConfigChange={(cfg) => {
-                        setConfig(cfg);
-                        currentGlobalRenderConfig = cfg;
-                    }}
+                    onConfigChange={onConfigChange}
                 />
                 <span class="i-errors-container">
                     <button
@@ -529,8 +546,8 @@ export function PostPreview({ renderId, markdown, error, stale }: PostPreview.Pr
                     <DynamicStyles config={config} />
                     <MarkdownRenderer
                         renderId={renderId}
-                        cohostRenderer={cohostRenderer}
-                        config={config}
+                        cohostRenderer={config.cohostRenderer && cohostRenderer}
+                        config={config.render}
                         markdown={markdown}
                         fallbackHtml={html}
                         readMore={readMore}
@@ -552,6 +569,8 @@ namespace PostPreview {
         markdown: string;
         error?: Error | null;
         stale?: boolean;
+        config: PreviewConfig;
+        onConfigChange: (c: PreviewConfig) => void;
     }
 }
 
@@ -574,6 +593,44 @@ function ErrorList({ errors }: { errors: ErrorMessage[] }) {
     );
 }
 
+const RENDER_CONFIG_ITEMS = {
+    cohostRenderer: {
+        short: null,
+        label: 'Cohost Renderer',
+        description: 'Uses the cohost markdown renderer instead of an approximation.',
+        requiresCohostRenderer: true,
+    },
+    hasCohostPlus: {
+        short: ['regular', 'plus! ✓'],
+        label: 'Cohost Plus!',
+        description:
+            'Enables Cohost Plus! features (host emoji). Use this if you have Cohost Plus!',
+        inRender: true,
+        requiresCohostRenderer: true,
+    },
+    disableEmbeds: {
+        short: ['embeds ✓', 'no embeds'],
+        label: 'Disable Embeds',
+        description: 'Disables iframely embeds in the post. This is a feature in cohost settings.',
+        inRender: true,
+        requiresCohostRenderer: true,
+    },
+    prefersReducedMotion: {
+        short: ['motion ✓', 'reduced motion'],
+        label: 'Reduced Motion',
+        description:
+            'Disables the `spin` animation and enables the `pulse` animation. This simulates the effect of @media (prefers-reduced-motion: reduce) on cohost.',
+        inRender: true,
+        renderOnChange: true,
+    },
+    simulateUserstyles: {
+        short: [null, 'userstyles ✓'],
+        label: 'Simulate Userstyles',
+        description:
+            'Changes a bunch of colors, for testing the effects of some cohost userstyles.',
+    },
+};
+
 function RenderConfigEditor({
     hasCohostRenderer,
     config,
@@ -586,6 +643,27 @@ function RenderConfigEditor({
     const configButton = useRef<HTMLButtonElement>(null);
     const [configOpen, setConfigOpen] = useState(false);
 
+    const items = [];
+
+    if (!hasCohostRenderer || !config.cohostRenderer) {
+        items.push('(inaccurate preview)');
+    }
+
+    for (const k in RENDER_CONFIG_ITEMS) {
+        const v = RENDER_CONFIG_ITEMS[k];
+
+        if (!v.short) continue;
+        if (v.requiresCohostRenderer && (!hasCohostRenderer || !config.cohostRenderer)) continue;
+        const enabled = v.inRender ? config.render[k] : config[k];
+        const label = enabled ? v.short[1] : v.short[0];
+        if (!label) continue;
+        items.push(
+            <div class="config-preview-item" key={k}>
+                {label}
+            </div>
+        );
+    }
+
     return (
         <div class="render-config">
             <button ref={configButton} class="i-config-button" onClick={() => setConfigOpen(true)}>
@@ -596,23 +674,11 @@ function RenderConfigEditor({
                         d="M11 2a1 1 0 0 1 1 1v1.342A5.994 5.994 0 0 1 13.9 5.439l1.163-.671a1 1 0 0 1 1.366.366l1 1.732a1 1 0 0 1-.366 1.366l-1.162.672a6.034 6.034 0 0 1 0 2.192l1.162.672a1 1 0 0 1 .366 1.366l-1 1.732a1 1 0 0 1-1.366.366l-1.163-.671A5.994 5.994 0 0 1 12 15.658V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-1.342A5.994 5.994 0 0 1 6.1 14.561l-1.163.671a1 1 0 0 1-1.366-.366l-1-1.732a1 1 0 0 1 .366-1.366l1.162-.672a6.034 6.034 0 0 1 0-2.192l-1.162-.672a1 1 0 0 1-.366-1.366l1-1.732a1 1 0 0 1 1.366-.366l1.163.671A5.994 5.994 0 0 1 8 4.342V3a1 1 0 0 1 1-1h2Zm-1 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm0 1a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z"
                     />
                 </svg>
-                {!hasCohostRenderer && '(using fallback renderer)'}
-                {hasCohostRenderer && (
-                    <div class="config-preview-item">
-                        {config.hasCohostPlus ? 'plus! ✓' : 'regular'}
-                    </div>
-                )}
-                {hasCohostRenderer && (
-                    <div class="config-preview-item">
-                        {config.disableEmbeds ? 'no embeds' : 'embeds ✓'}
-                    </div>
-                )}
-                <div class="config-preview-item">
-                    {config.prefersReducedMotion ? 'reduced motion' : 'motion ✓'}
-                </div>
+                {items}
             </button>
             <Popover
                 anchor={configButton.current}
+                anchorBias="left"
                 open={configOpen}
                 onClose={() => setConfigOpen(false)}
             >
@@ -639,36 +705,13 @@ function RenderConfigPopover({
     const cohostPlusId = Math.random().toString(36);
     const embedsId = Math.random().toString(36);
 
-    const items = {
-        hasCohostPlus: {
-            label: 'Cohost Plus!',
-            description:
-                'Enables Cohost Plus! features (host emoji). Use this if you have Cohost Plus!',
-            renderOnChange: false,
-        },
-        disableEmbeds: {
-            label: 'Disable Embeds',
-            description:
-                'Disables iframely embeds in the post. This is a feature in cohost settings.',
-            renderOnChange: false,
-        },
-        prefersReducedMotion: {
-            label: 'Reduced Motion',
-            description:
-                'Disables the `spin` animation and enables the `pulse` animation. This simulates the effect of @media (prefers-reduced-motion: reduce) on cohost.',
-            renderOnChange: true,
-        },
-    };
-
-    if (!hasCohostRenderer) {
-        delete items.hasCohostPlus;
-        delete items.disableEmbeds;
-    }
-
     return (
         <div class="i-config-contents">
             <div class="i-config-title">Post Preview Settings</div>
-            {Object.entries(items).map(([k, v]) => {
+            {Object.entries(RENDER_CONFIG_ITEMS).map(([k, v]) => {
+                if (v.requiresCohostRenderer && !hasCohostRenderer) return null;
+                if (k !== 'cohostRenderer' && v.requiresCohostRenderer && !config.cohostRenderer)
+                    return null;
                 const checkboxId = Math.random().toString(36);
                 return (
                     <div class="config-item" key={k}>
@@ -676,12 +719,18 @@ function RenderConfigPopover({
                             <input
                                 id={checkboxId}
                                 type="checkbox"
-                                checked={(config as any)[k]}
+                                checked={
+                                    v.inRender ? (config.render as any)[k] : (config as any)[k]
+                                }
                                 onChange={(e) => {
-                                    onConfigChange({
-                                        ...config,
-                                        [k]: (e.target as HTMLInputElement).checked,
-                                    });
+                                    const value = (e.target as HTMLInputElement).checked;
+                                    const newConfig = { ...config };
+                                    if (v.inRender) {
+                                        newConfig.render = { ...newConfig.render, [k]: value };
+                                    } else {
+                                        newConfig[k] = value;
+                                    }
+                                    onConfigChange(newConfig);
                                     if (v.renderOnChange) {
                                         renderContext.scheduleRender();
                                     }
@@ -701,7 +750,7 @@ function DynamicStyles({ config }: { config: RenderConfig }) {
     const div = useRef<HTMLDivElement>(null);
     const contents: string[] = [];
 
-    if (config.prefersReducedMotion) {
+    if (config.render.prefersReducedMotion) {
         contents.push(
             `
 @keyframes pulse {

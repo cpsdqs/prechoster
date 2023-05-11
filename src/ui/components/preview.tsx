@@ -1,9 +1,9 @@
 import { h, createRef } from 'preact';
-import { PureComponent } from 'preact/compat';
+import { useState, PureComponent } from 'preact/compat';
 import { Document, RenderState, RenderTarget } from '../../document';
 import { CodeEditor } from './code-editor';
 import { javascript } from '@codemirror/lang-javascript';
-import { PostPreview } from './post-preview';
+import { PostPreview, PreviewConfig, DEFAULT_PREVIEW_CONFIG } from './post-preview';
 import { DataPreview } from './data-preview';
 import './preview.less';
 
@@ -15,6 +15,7 @@ export function Preview({
     onRender,
 }: Preview.Props) {
     let contents = null;
+    const [previewConfig, onPreviewConfigChange] = useState<PreviewConfig>(DEFAULT_PREVIEW_CONFIG);
 
     if (render.output) {
         if (render.output.target) {
@@ -32,6 +33,8 @@ export function Preview({
                         renderId={render.id}
                         stale={render.rendering}
                         markdown={render.output.markdownOutput!}
+                        config={previewConfig}
+                        onConfigChange={onPreviewConfigChange}
                     />
                 </div>
             );

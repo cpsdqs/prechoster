@@ -226,9 +226,6 @@ export interface RenderConfig {
     disableEmbeds: boolean;
     externalLinksInNewTab: boolean;
     hasCohostPlus: boolean;
-
-    // ignored here; used in PostPreview
-    prefersReducedMotion: boolean;
 }
 export interface RenderResult {
     initial: any;
