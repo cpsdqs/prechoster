@@ -6,9 +6,9 @@ import { staticUrlPrefix } from 'prechoster:config';
 
 const CONFIG = {
     chunks: [
-        staticUrlPrefix + '3828.1155f1140c93a3d804a3.js',
+        staticUrlPrefix + '3828.09613ba5bd723af4c658.js',
+        staticUrlPrefix + '7727.b3e0ec7746c54fba659c.js',
         staticUrlPrefix + '8027.d314e24fe9da609873d8.js',
-        staticUrlPrefix + '9174.3bc339529976aba59da4.js',
     ],
     modules: {
         react: 94159,
