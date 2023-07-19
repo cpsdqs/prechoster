@@ -156,6 +156,7 @@ export default {
         const result = compileString(data.contents, {
             importer: sassImporter(namedInputs),
             url: entryUrl,
+            syntax: data.syntax,
         });
         return new CssData(result.css);
     },
