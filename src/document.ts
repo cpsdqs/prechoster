@@ -447,7 +447,7 @@ export interface ModulePluginProps<T> {
     onChange: (v: T) => void;
 }
 
-type Class<T> = { new (...args: any[]): T };
+export type Class<T> = { new (...args: any[]): T };
 
 export abstract class Data {
     typeId = 'NULL';

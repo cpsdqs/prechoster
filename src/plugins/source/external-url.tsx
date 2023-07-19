@@ -1,9 +1,16 @@
-import { JavascriptData, ModulePlugin, ModulePluginProps, PlainTextData } from '../../document';
+import {
+    CssData,
+    JavascriptData,
+    ModulePlugin,
+    ModulePluginProps,
+    PlainTextData,
+} from '../../document';
 import { useMemo } from 'react';
+import { SassModuleData } from './sass';
 
 export type ExternalUrlPluginData = {
     url: string;
-    type: 'javascript';
+    type: 'javascript' | 'css' | 'scss';
 };
 
 function ExternalUrlEditor({ data, onChange }: ModulePluginProps<ExternalUrlPluginData>) {
@@ -30,6 +37,8 @@ function ExternalUrlEditor({ data, onChange }: ModulePluginProps<ExternalUrlPlug
                     }}
                 >
                     <option value="javascript">Javascript</option>
+                    <option value="css">CSS</option>
+                    <option value="scss">SCSS Module</option>
                 </select>
             </div>
         </div>
@@ -61,12 +70,20 @@ export default {
     },
     description(data: ExternalUrlPluginData) {
         if (data.type === 'javascript') return 'Load Javascript from URL';
+        if (data.type === 'css') return 'Load CSS from URL';
+        if (data.type === 'scss') return 'Load SCSS Module from URL';
         return 'Load from external URL';
     },
     async eval(data: ExternalUrlPluginData) {
         const result = await fetchCached(data);
         if (data.type === 'javascript') {
             return new JavascriptData(result);
+        }
+        if (data.type === 'css') {
+            return new CssData(result);
+        }
+        if (data.type === 'scss') {
+            return new SassModuleData(result, 'scss');
         }
         return new PlainTextData(result);
     },

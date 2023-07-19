@@ -36,6 +36,8 @@
     "@codemirror/lang-css": "^6.0.0",
     "@codemirror/lang-html": "^6.1.0",
     "@codemirror/lang-javascript": "^6.0.2",
+    "@codemirror/lang-less": "^6.0.1",
+    "@codemirror/lang-sass": "^6.0.2",
     "@codemirror/view": "^6.1.0",
     "@uiw/codemirror-theme-xcode": "^4.11.4",
     "@uiw/react-codemirror": "^4.11.4",
@@ -49,6 +51,7 @@
     "react-dom": "^18.2.0",
     "reactflow": "^11.2.0",
     "rollup": "^2.77.0",
+    "sass": "^1.63.6",
     "svelte": "^3.55.1",
     "svgo": "^2.8.0",
     "whatwg-url": "^11.0.0"

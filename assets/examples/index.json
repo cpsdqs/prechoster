@@ -7,6 +7,10 @@
         "title": "LessCSS Inline Files",
         "description": "Use LessCSS to include files as background images."
     },
+    "scss-files.json": {
+        "title": "Sass Inline Files and Modules",
+        "description": "Use Sass modules to include files as background images."
+    },
     "svelte-templates.json": {
         "title": "Svelte Templating",
         "description": "Use Svelte components for various kinds of templating."

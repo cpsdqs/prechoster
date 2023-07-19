@@ -27,16 +27,28 @@ export const MODULES: { [k: string]: ModuleDef } = {
         description: 'LessCSS source. Outputs compiled CSS.',
         load: lazy(() => import('./source/lesscss')),
     },
+    'source.sass': {
+        title: 'Sass',
+        description:
+            'Sass source and module context. Outputs compiled CSS. Accepts Sass modules and text data. To use text data: @use "./<name>"; and <name>.$value',
+        load: lazy(() => import('./source/sass')),
+    },
+    'source.sass-module': {
+        title: 'Sass Module',
+        description:
+            'A Sass module. Provide this to a Sass context and do @use "./<name>.scss" or @use "./<name>.sass", depending on mode.',
+        load: lazy(() => import('./source/sass').then((r) => ({ default: r.sassModule }))),
+    },
     'source.svelte': {
         title: 'Svelte',
         description:
-            'Svelte source. Outputs compiled HTML. Data provided to this module will be available to import as "./<name>".',
+            'Svelte source and module context. Outputs compiled HTML. Data provided to this module will be available to import as "./<name>" from any other module.',
         load: lazy(() => import('./source/svelte')),
     },
     'source.svelte-component': {
         title: 'Svelte Component',
         description:
-            'Svelte component source. Outputs a Svelte component you can send to a Svelte module, and then import as "./<name>.svelte".',
+            'Svelte component source. Outputs a Svelte component you can send to a Svelte context, and then import as "./<name>.svelte".',
         load: lazy(() => import('./source/svelte-component')),
     },
     'source.file-data': {
@@ -51,7 +63,8 @@ export const MODULES: { [k: string]: ModuleDef } = {
     },
     'source.external-url-data': {
         title: 'Load from URL',
-        description: 'Load a script from an external URL.',
+        description:
+            'Load a script or stylesheet from an external URL. You can then send e.g. scripts to Svelte and stylesheets to Sass.',
         load: lazy(() => import('./source/external-url')),
     },
     'transform.style-inliner': {

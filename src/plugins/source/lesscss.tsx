@@ -8,7 +8,7 @@ import {
     CssData,
 } from '../../document';
 import { CodeEditor } from '../../ui/components/code-editor';
-import { css } from '@codemirror/lang-css';
+import { less as cmLess } from '@codemirror/lang-less';
 import './lesscss.less';
 
 // @ts-ignore
@@ -35,7 +35,7 @@ export type LessPluginData = {
 };
 
 class LessEditor extends PureComponent<ModulePluginProps<LessPluginData>> {
-    extensions = [css()];
+    extensions = [cmLess()];
 
     render() {
         const { data, namedInputKeys, onChange } = this.props;
