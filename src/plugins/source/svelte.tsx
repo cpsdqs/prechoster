@@ -1,5 +1,4 @@
-import { h } from 'preact';
-import { PureComponent } from 'preact/compat';
+import { PureComponent } from 'react';
 import {
     ModulePlugin,
     ModulePluginProps,
@@ -74,9 +73,10 @@ export type SveltePluginData = {
 class SvelteEditor extends PureComponent<ModulePluginProps<SveltePluginData>> {
     extensions = [html(), EditorView.lineWrapping];
 
-    render({ data, namedInputKeys, onChange }: ModulePluginProps<SveltePluginData>) {
+    render() {
+        const { data, onChange } = this.props;
         return (
-            <div class="plugin-less-editor">
+            <div className="plugin-less-editor">
                 <CodeEditor
                     value={data.contents}
                     onChange={(contents) => onChange({ ...data, contents })}

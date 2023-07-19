@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import url from 'url';
 import { defineConfig } from 'vite';
-import preact from '@preact/preset-vite';
+import react from '@vitejs/plugin-react';
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const prod = process.env.NODE_ENV === 'production';
@@ -21,7 +21,7 @@ if (CONFIG.staticUrlPrefix.includes('//cohost.org')) {
 
 export default defineConfig({
     base: './',
-    plugins: [preact(), string(), stringNodeModules(), config(), hackToFixSvelteWebWorker()],
+    plugins: [react(), string(), stringNodeModules(), config(), hackToFixSvelteWebWorker()],
     build: {
         rollupOptions: {
             // i dont know why but some of these need to be repeated here for some reason

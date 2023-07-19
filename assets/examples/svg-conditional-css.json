@@ -1,0 +1,70 @@
+{
+    "modules": [
+        {
+            "id": "de1cb17dfe34fcee",
+            "data": {
+                "contents": "### triggering conditional CSS inside SVG backgrounds\n\nThe &lt;details&gt; element here has a size of 200×200 pixels, but when opened, it has a size of 200×201 pixels (because of the .inner-spacer element).\n\nBy using an SVG background that does not have a viewBox and a background-size of 100%, the browser will actually pass the size of the container to the SVG image. So, inside the SVG (module #6 LessCSS), we can check for the case where the container is larger than 200 pixels, and apply a simple animation (or a more complex animation…)\n\n<details class=\"svg-container\">\n  <summary></summary>\n  <div class=\"inner-spacer\"></div>\n</details>",
+                "language": "html"
+            },
+            "pluginId": "source.text",
+            "sends": ["74c01129a3605da4"],
+            "namedSends": {},
+            "graphPos": null
+        },
+        {
+            "id": "12ad96bf8041c86e",
+            "data": {
+                "contents": ".svg-container {\n  display: inline-block;\n  background: url(\"@{svg}\") top left no-repeat;\n  background-size: 100% 100%;\n\n  & > summary {\n    width: 200px;\n    height: 200px;\n    font-size: 0; /* hide the arrow */\n  }\n\n  .inner-spacer {\n    height: 1px;\n  }\n}"
+            },
+            "pluginId": "source.lesscss",
+            "sends": ["74c01129a3605da4"],
+            "namedSends": {},
+            "graphPos": null
+        },
+        {
+            "id": "74c01129a3605da4",
+            "data": { "mode": "attr" },
+            "pluginId": "transform.style-inliner",
+            "sends": ["output"],
+            "namedSends": {},
+            "graphPos": null
+        },
+        {
+            "id": "3ea0f2afbbb2d491",
+            "data": { "mime": "image/svg+xml" },
+            "pluginId": "transform.to-data-url",
+            "sends": [],
+            "namedSends": { "12ad96bf8041c86e": ["svg"] },
+            "graphPos": null
+        },
+        {
+            "id": "cd1fcf9c868b1397",
+            "data": {
+                "contents": "<svg\n  xmlns=\"http://www.w3.org/2000/svg\"\n  width=\"200\"\n  height=\"200\">\n  <foreignObject width=\"200\" height=\"200\">\n    <div class=\"container\" xmlns=\"http://www.w3.org/1999/xhtml\">\n      <div class=\"animation-fix\"></div>\n      <div class=\"click-prompt\">\n        click me…\n      </div>\n      <div class=\"contents\">\n        click me to go back\n      </div>\n    </div>\n  </foreignObject>\n</svg>",
+                "language": "html"
+            },
+            "pluginId": "source.text",
+            "sends": ["6807a324739bb37b"],
+            "namedSends": {},
+            "graphPos": null
+        },
+        {
+            "id": "fbec84080af20bc6",
+            "data": {
+                "contents": "/*\n in several browsers, animation does not work inside\n svgs loaded as an image unless you have something\n animating constantly.\n if you don't need animation, you can remove this to\n save resources!\n */\n.animation-fix {\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 1px;\n  height: 1px;\n  animation: animation-fix 1s infinite;\n}\n@keyframes animation-fix {\n  100% { transform: rotate(360deg) }\n}\n\n.container {\n  font-family: sans-serif;\n}\n\n.click-prompt {\n  position: absolute;\n  width: 200px;\n  height: 200px;\n  padding: 1em;\n  box-sizing: border-box;\n  background: black;\n  color: white;\n  transition: all 1s;\n}\n.contents {\n  position: relative;\n  width: 200px;\n  height: 200px;\n  padding: 1em;\n  box-sizing: border-box;\n  background: #4a0;\n  color: white;\n  transition: all 1s;\n  transform: translateY(100%);\n}\n\n/*\n here we define what happens when the container is clicked,\n i.e. when it's taller than 200px\n */\n@media (min-height: 201px) {\n  .click-prompt {\n    transform: scale(0);\n  }\n  .contents {\n    transform: none;\n  }\n}"
+            },
+            "pluginId": "source.lesscss",
+            "sends": ["6807a324739bb37b"],
+            "namedSends": {},
+            "graphPos": null
+        },
+        {
+            "id": "6807a324739bb37b",
+            "data": { "mode": "element" },
+            "pluginId": "transform.style-inliner",
+            "sends": ["3ea0f2afbbb2d491"],
+            "namedSends": {},
+            "graphPos": null
+        }
+    ]
+}

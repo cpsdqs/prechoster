@@ -1,18 +1,14 @@
-import { h, render } from 'preact';
-import { createRef, PureComponent } from 'preact/compat';
-import * as React from 'preact/compat';
+import React from 'react';
+import { createRoot } from 'react-dom/client';
 // @ts-ignore
 import { staticUrlPrefix } from 'prechoster:config';
 
+export const COHOST_RENDERER_VERSION = '2023-07-19';
 const CONFIG = {
-    chunks: [
-        staticUrlPrefix + '3828.09613ba5bd723af4c658.js',
-        staticUrlPrefix + '7727.b3e0ec7746c54fba659c.js',
-        staticUrlPrefix + '8027.d314e24fe9da609873d8.js',
-    ],
+    chunks: [staticUrlPrefix + 'client.00462073a457ca582a09.js'],
     modules: {
         react: 94159,
-        markdown: 18933,
+        markdown: 84717,
     },
     symbols: {
         renderToData: 'e8',
@@ -24,9 +20,10 @@ const extraModules = {
         // probably react-dom/server
         e.exports = {
             // renderToStaticMarkup
-            uS: (markup) => {
+            uS: (markup: any) => {
                 const node = document.createElement('div');
-                render(markup, node);
+                const root = createRoot(node);
+                root.render(markup);
                 return node.innerHTML;
             },
         };
@@ -71,15 +68,6 @@ const extraModules = {
             },
         };
     },
-    63275: function (e: any) {
-        e.exports = {
-            // this function is called to filter for markdown blocks in the chost data.
-            // we don't have attachments, so we can ignore this
-            D_() {
-                return true;
-            },
-        };
-    },
     84008: function (e: any) {
         e.exports = {
             ZP: {
@@ -94,15 +82,15 @@ const extraModules = {
             },
         };
     },
-    11177: function (e: any, t: any, n: any) {
+    56575: function (e: any, t: any, n: any) {
         const React = n(CONFIG.modules.react);
         e.exports = {
             // seems to be some kind of message box
-            v: ({ level, moreClasses, children }) => {
+            v: ({ level, className, children }: any) => {
                 return React.createElement(
                     'div',
                     {
-                        class: 'cohost-message-box ' + moreClasses,
+                        className: 'cohost-message-box ' + className,
                         'data-level': level,
                     },
                     children
@@ -118,7 +106,7 @@ const extraModules = {
     },
     61888: function (e: any) {
         // lodash isEqual polyfill
-        function isEqual(a, b) {
+        function isEqual(a: any, b: any) {
             if (typeof a !== typeof b) return false;
             if (Array.isArray(a)) {
                 if (a.length !== b.length) return false;
@@ -221,7 +209,7 @@ const chunkRuntime = function () {
     return rt;
 };
 
-export type RenderFn = (markdown: string, config: RenderConfig) => RenderResult;
+export type RenderFn = (markdown: string, config: RenderConfig) => Promise<RenderResult>;
 export interface RenderConfig {
     disableEmbeds: boolean;
     externalLinksInNewTab: boolean;

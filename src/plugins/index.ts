@@ -49,6 +49,11 @@ export const MODULES: { [k: string]: ModuleDef } = {
         description: 'Outputs a file as a `data:` URL (plain text data).',
         load: lazy(() => import('./source/file-data-url')),
     },
+    'source.external-url-data': {
+        title: 'Load from URL',
+        description: 'Load a script from an external URL.',
+        load: lazy(() => import('./source/external-url')),
+    },
     'transform.style-inliner': {
         title: 'Style Inliner',
         description: 'Given HTML and CSS input, inlines the CSS into the HTML.',

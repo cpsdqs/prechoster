@@ -1,4 +1,4 @@
-import { AnyComponent } from 'preact';
+import { Component, FunctionComponent } from 'react';
 import { MODULES } from './plugins';
 
 export type JsonValue = null | boolean | number | string | JsonValue[] | { [k: string]: JsonValue };
@@ -405,7 +405,7 @@ export interface ModulePlugin<T> {
     wantsDebounce?: boolean;
 
     /** The component that renders the GUI for this module. */
-    component: AnyComponent<ModulePluginProps<T>, any>;
+    component: Component<ModulePluginProps<T>> | FunctionComponent<ModulePluginProps<T>>;
 
     /** Returns a default initial value. */
     initialData(): T;

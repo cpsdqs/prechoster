@@ -1,5 +1,4 @@
-import { h, createRef, ComponentChildren } from 'preact';
-import { PureComponent } from 'preact/compat';
+import React, { createRef, PureComponent } from 'react';
 import CodeMirror from './codemirror';
 import { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { xcodeLight, xcodeDark } from '@uiw/codemirror-theme-xcode';
@@ -26,12 +25,13 @@ export class CodeEditor extends PureComponent<CodeEditor.Props> {
         this.props.onChange(newValue);
     };
 
-    render({ value, onChange, extensions, footer, readOnly }: CodeEditor.Props) {
+    render() {
+        const { value, extensions, footer, readOnly } = this.props;
         const light = window.matchMedia('(prefers-color-scheme: light)').matches;
         const theme = light ? xcodeLight : xcodeDark;
 
         return (
-            <div class="code-editor">
+            <div className="code-editor">
                 <CodeMirror
                     ref={this.editor}
                     readOnly={readOnly}
@@ -40,7 +40,7 @@ export class CodeEditor extends PureComponent<CodeEditor.Props> {
                     theme={theme}
                     extensions={extensions}
                 />
-                <footer class="editor-footer">{footer}</footer>
+                <footer className="editor-footer">{footer}</footer>
             </div>
         );
     }
@@ -49,7 +49,7 @@ namespace CodeEditor {
     export interface Props {
         value: string;
         extensions: any[];
-        footer?: ComponentChildren;
+        footer?: React.ReactNode;
         onChange: (v: string) => void;
         readOnly?: boolean;
     }

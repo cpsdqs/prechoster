@@ -1,5 +1,4 @@
-import { h } from 'preact';
-import { Fragment, PureComponent, useRef, useState } from 'preact/compat';
+import { Fragment, PureComponent, useRef, useState } from 'react';
 import { Document } from '../document';
 import { Popover } from './components/popover';
 import './examples.less';
@@ -87,35 +86,37 @@ class ExamplesMenu extends PureComponent<ExamplesProps & { onClose: () => void }
     render() {
         let contents;
         if (this.state.loading) {
-            contents = <div class="i-loading">Loading…</div>;
+            contents = <div className="i-loading">Loading…</div>;
         } else if (this.state.error) {
             contents = (
-                <div class="i-error">
-                    <div class="i-error-text">
+                <div className="i-error">
+                    <div className="i-error-text">
                         Could not load examples
                         <br />
                         {(this.state.error as any).toString()}
                     </div>
-                    <div class="i-retry-container">
+                    <div className="i-retry-container">
                         <button onClick={() => this.load()}>try again</button>
                     </div>
                 </div>
             );
         } else {
             contents = (
-                <ul class={'i-items' + (this.state.loadingExample ? ' is-loading-example' : '')}>
+                <ul
+                    className={'i-items' + (this.state.loadingExample ? ' is-loading-example' : '')}
+                >
                     {Object.entries(this.state.items).map(([id, item]) => (
-                        <ExampleItem id={id} item={item} onLoad={() => this.loadExample(id)} />
+                        <ExampleItem key={id} item={item} onLoad={() => this.loadExample(id)} />
                     ))}
                 </ul>
             );
         }
 
         return (
-            <div class="examples-menu">
-                <div class="i-header">
-                    <h1 class="i-title">Examples</h1>
-                    <div class="i-description">
+            <div className="examples-menu">
+                <div className="i-header">
+                    <h1 className="i-title">Examples</h1>
+                    <div className="i-description">
                         Load an example document (note that this will overwrite your current
                         document!)
                     </div>
@@ -126,15 +127,15 @@ class ExamplesMenu extends PureComponent<ExamplesProps & { onClose: () => void }
     }
 }
 
-function ExampleItem({ id, item, onLoad }: { id: string; item: ExampleDef; onLoad: () => void }) {
+function ExampleItem({ item, onLoad }: { item: ExampleDef; onLoad: () => void }) {
     return (
-        <li class="i-example-item">
-            <div class="i-details">
-                <div class="i-title">{item.title}</div>
-                <div class="i-description">{item.description}</div>
+        <li className="i-example-item">
+            <div className="i-details">
+                <div className="i-title">{item.title}</div>
+                <div className="i-description">{item.description}</div>
             </div>
-            <div class="i-actions">
-                <button class="i-load-button" onClick={onLoad}>
+            <div className="i-actions">
+                <button className="i-load-button" onClick={onLoad}>
                     load
                 </button>
             </div>

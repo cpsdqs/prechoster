@@ -1,13 +1,10 @@
-import { h, createRef, RefObject, AnyComponent } from 'preact';
-import { PureComponent, useState, useEffect, useRef } from 'preact/compat';
+import React, { createRef, RefObject, PureComponent, useState, useRef } from 'react';
 import {
     Document,
     Module,
     ModuleId,
     AnyModule,
     JsonValue,
-    ModulePlugin,
-    ModulePluginProps,
     NamedSends,
     MOD_OUTPUT,
 } from '../../document';
@@ -59,7 +56,7 @@ export class ModuleList extends PureComponent<ModuleList.Props, ModuleListState>
         focusedMove: null,
         moveDragging: null,
     };
-    list = createRef();
+    list = createRef<HTMLDivElement>();
     listItems = new Map<ModuleId, ListItemState>();
     listHeight = 0;
     animCtrl = new AnimationController();
@@ -309,7 +306,8 @@ export class ModuleList extends PureComponent<ModuleList.Props, ModuleListState>
         }
     };
 
-    render({ document }: ModuleList.Props) {
+    render() {
+        const { document } = this.props;
         const knownModules = new Set();
         for (const mod of document.modules) {
             knownModules.add(mod.id);
@@ -331,9 +329,9 @@ export class ModuleList extends PureComponent<ModuleList.Props, ModuleListState>
         }
 
         return (
-            <div class="module-list-container" aria-label="Modules">
-                <div class="module-list" ref={this.list} role="list">
-                    <div style={{ height: this.listHeight }} class="module-list-height" />
+            <div className="module-list-container" aria-label="Modules">
+                <div className="module-list" ref={this.list} role="list">
+                    <div style={{ height: this.listHeight }} className="module-list-height" />
                     {document.modules.map((module, i) => (
                         <ModuleItem
                             key={module.id}
@@ -383,7 +381,7 @@ function AddModule({ onAdd }: { onAdd: (m: AnyModule) => void }) {
     const button = useRef<HTMLElement>();
 
     return (
-        <div class="add-module">
+        <div className="add-module">
             <button ref={button as any} onClick={() => setOpen(true)} aria-label="add module" />
             <ModulePicker
                 anchor={button.current}
@@ -419,17 +417,18 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
         }
     }
 
-    render({
-        document,
-        index,
-        module,
-        onSelect,
-        onChange,
-        onMove,
-        moveState,
-        onRemove,
-        selection,
-    }: ModuleItem.Props) {
+    render() {
+        const {
+            document,
+            index,
+            module,
+            onSelect,
+            onChange,
+            onMove,
+            moveState,
+            onRemove,
+            selection,
+        } = this.props;
         const Editor = module.plugin.component as any; // typescript is yelling at me :(
 
         let className = 'module-item';
@@ -439,7 +438,7 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
         if (moveState.dragging?.module === module.id) className += ' is-being-dragged';
         if (this.state.collapsed || moveState.dragging) className += ' is-collapsed';
 
-        const onMoveKeyDown = (e: KeyboardEvent) => {
+        const onMoveKeyDown = (e: React.KeyboardEvent) => {
             if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
                 e.preventDefault();
                 onMove('delta', -1);
@@ -461,31 +460,33 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
                 id={this.nodeId}
                 role="listitem"
                 aria-labelledby={this.labelNodeId}
-                class={className}
+                className={className}
                 onPointerDown={onSelect}
                 data-id={module.id}
                 style={{ top, transform }}
                 ref={this.node}
             >
-                <header class="i-header" ref={this.header}>
-                    <div class="i-title">
+                <header className="i-header" ref={this.header}>
+                    <div className="i-title">
                         <button
-                            class="i-remove"
+                            className="i-remove"
                             onClick={onRemove}
                             aria-label="remove this module"
                         />
-                        <span class="i-label" id={this.labelNodeId}>
-                            <span class="i-index">{index + 1}</span>
-                            <span class="i-label">{module.plugin.description(module.data)}</span>
+                        <span className="i-label" id={this.labelNodeId}>
+                            <span className="i-index">{index + 1}</span>
+                            <span className="i-label">
+                                {module.plugin.description(module.data)}
+                            </span>
                         </span>
                     </div>
-                    <div class="i-header-controls">
+                    <div className="i-header-controls">
                         <button
-                            class="i-drag-button"
+                            className="i-drag-button"
                             ref={this.moveButton}
                             aria-label="move this module"
                             role="slider"
-                            aria-valuemin="1"
+                            aria-valuemin={1}
                             aria-valuenow={index + 1}
                             aria-valuemax={document.modules.length}
                             aria-valuetext={`${index + 1}${
@@ -510,14 +511,14 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
                                 onMove('dragEnd', e);
                             }}
                         >
-                            <span class="i-drag-icon">
-                                <span class="i-line"></span>
-                                <span class="i-line"></span>
-                                <span class="i-line"></span>
+                            <span className="i-drag-icon">
+                                <span className="i-line"></span>
+                                <span className="i-line"></span>
+                                <span className="i-line"></span>
                             </span>
                         </button>
                         <button
-                            class="i-collapse-button"
+                            className="i-collapse-button"
                             aria-expanded={!this.state.collapsed}
                             aria-controls={this.nodeId}
                             aria-label="show contents"
@@ -527,7 +528,7 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
                         </button>
                     </div>
                 </header>
-                <div class="i-editor">
+                <div className="i-editor">
                     <Editor
                         document={document}
                         id={module.id}
@@ -542,7 +543,7 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
                         }}
                     />
                 </div>
-                <footer class="i-footer" aria-label="Connections">
+                <footer className="i-footer" aria-label="Connections">
                     <ModuleSends
                         document={document}
                         sends={module.sends}
@@ -589,7 +590,7 @@ function ModuleSends({ document, sends, onChange }: ModuleSends.Props) {
     ) => {
         return (
             <select
-                class="send-target"
+                className="send-target"
                 key={key}
                 value={value || ''}
                 onChange={(e) => onChange((e.target as HTMLSelectElement).value)}
@@ -602,7 +603,11 @@ function ModuleSends({ document, sends, onChange }: ModuleSends.Props) {
                         if (!mod.plugin.acceptsInputs) return null;
 
                         const label = `${i + 1}. ${mod.plugin.description(mod.data)}`;
-                        return <option value={mod.id}>{label}</option>;
+                        return (
+                            <option key={i} value={mod.id}>
+                                {label}
+                            </option>
+                        );
                     })
                     .filter((x) => x)}
                 <option value={MOD_OUTPUT}>output</option>
@@ -611,11 +616,11 @@ function ModuleSends({ document, sends, onChange }: ModuleSends.Props) {
     };
 
     return (
-        <div class="i-sends">
-            <div class="i-label">Send to</div>
-            <ul class="i-list">
+        <div className="i-sends">
+            <div className="i-label">Send to</div>
+            <ul className="i-list">
                 {sends.map((target, i) => (
-                    <li class="i-send-target">
+                    <li key={i} className="i-send-target">
                         {makeModuleSelect(i.toString(), target, (newTarget) => {
                             const newSends = sends.slice();
                             if (newTarget) newSends[i] = newTarget;
@@ -624,7 +629,7 @@ function ModuleSends({ document, sends, onChange }: ModuleSends.Props) {
                         })}
                     </li>
                 ))}
-                <li class="i-send-target is-new-target">
+                <li className="i-send-target is-new-target">
                     {makeModuleSelect(
                         (sends.length + 1).toString(),
                         null,
@@ -651,7 +656,7 @@ function ModuleNamedSends({ document, namedSends, onChange }: ModuleNamedSends.P
     ) => {
         return (
             <select
-                class="send-target"
+                className="send-target"
                 key={key}
                 value={value || ''}
                 onChange={(e) => onChange((e.target as HTMLSelectElement).value)}
@@ -664,7 +669,11 @@ function ModuleNamedSends({ document, namedSends, onChange }: ModuleNamedSends.P
                         if (!mod.plugin.acceptsNamedInputs) return null;
 
                         const label = `${i + 1}. ${mod.plugin.description(mod.data)}`;
-                        return <option value={mod.id}>{label}</option>;
+                        return (
+                            <option key={i} value={mod.id}>
+                                {label}
+                            </option>
+                        );
                     })
                     .filter((x) => x)}
             </select>
@@ -673,11 +682,11 @@ function ModuleNamedSends({ document, namedSends, onChange }: ModuleNamedSends.P
 
     // FIXME: this is super hacky and bad
     return (
-        <div class="i-sends">
-            <div class="i-label">Provide to</div>
-            <ul class="i-list">
+        <div className="i-sends">
+            <div className="i-label">Provide to</div>
+            <ul className="i-list">
                 {[...namedSends.keys()].map((target, i) => (
-                    <li class="i-send-target">
+                    <li key={i} className="i-send-target">
                         {makeModuleSelect(i.toString(), target, (newTarget) => {
                             const newSends = new Map(namedSends);
                             if (newTarget) {
@@ -699,7 +708,7 @@ function ModuleNamedSends({ document, namedSends, onChange }: ModuleNamedSends.P
                         />
                     </li>
                 ))}
-                <li class="i-send-target is-new-target">
+                <li className="i-send-target is-new-target">
                     {makeModuleSelect((namedSends.size + 1).toString(), null, (newTarget) => {
                         if (newTarget) {
                             const newSends = new Map(namedSends);

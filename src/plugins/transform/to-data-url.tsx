@@ -1,5 +1,3 @@
-import { h } from 'preact';
-import { PureComponent } from 'preact/compat';
 import {
     ModulePlugin,
     ModulePluginProps,
@@ -19,7 +17,7 @@ function ToDataUrl({ data, onChange }: ModulePluginProps<ToDataUrlData>) {
     return (
         <div>
             <div>
-                <label for={mimeId}>MIME type:</label>{' '}
+                <label htmlFor={mimeId}>MIME type:</label>{' '}
                 <input
                     id={mimeId}
                     type="text"

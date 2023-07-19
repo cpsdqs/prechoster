@@ -1,14 +1,6 @@
-import { createElement as h, useEffect, useState } from 'react';
-import { Position, Handle, Node, useUpdateNodeInternals } from 'reactflow';
-import {
-    Document,
-    Module,
-    ModuleId,
-    AnyModule,
-    Data,
-    MOD_OUTPUT,
-    RenderState,
-} from '../../../document';
+import { useEffect } from 'react';
+import { Position, Handle, useUpdateNodeInternals } from 'reactflow';
+import { AnyModule, Data } from '../../../document';
 import {
     MOD_BASE_WIDTH,
     MOD_HEADER_HEIGHT,

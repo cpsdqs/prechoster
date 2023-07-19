@@ -1,10 +1,7 @@
-import { createRef, h } from 'preact';
-import { PureComponent } from 'preact/compat';
+import { createRef, PureComponent } from 'react';
 import {
     ModulePlugin,
     ModulePluginProps,
-    Data,
-    NamedInputData,
     HtmlData,
     CssData,
     JavascriptData,
@@ -54,11 +51,12 @@ class TextEditor extends PureComponent<ModulePluginProps<TextPluginData>> {
         return this.memoizedExtensions;
     }
 
-    render({ data, onChange }: ModulePluginProps<TextPluginData>) {
+    render() {
+        const { data, onChange } = this.props;
         const useRichTextCheckboxId = Math.random().toString(36);
 
         const footer = (
-            <div class="i-footer">
+            <div className="i-footer">
                 <span>
                     <label>Mode:</label>
                     <select
@@ -69,7 +67,9 @@ class TextEditor extends PureComponent<ModulePluginProps<TextPluginData>> {
                         }}
                     >
                         {Object.keys(LANGUAGES).map((k) => (
-                            <option value={k}>{LANGUAGE_LABELS[k]}</option>
+                            <option key={k} value={k}>
+                                {LANGUAGE_LABELS[k]}
+                            </option>
                         ))}
                     </select>
                 </span>
@@ -86,7 +86,7 @@ class TextEditor extends PureComponent<ModulePluginProps<TextPluginData>> {
                                 });
                             }}
                         />
-                        <label for={useRichTextCheckboxId}>Rich Text Editor</label>
+                        <label htmlFor={useRichTextCheckboxId}>Rich Text Editor</label>
                     </span>
                 ) : null}
             </div>
@@ -114,7 +114,7 @@ class TextEditor extends PureComponent<ModulePluginProps<TextPluginData>> {
             );
         }
 
-        return <div class="plugin-plain-text-editor">{editor}</div>;
+        return <div className="plugin-plain-text-editor">{editor}</div>;
     }
 }
 
@@ -157,7 +157,11 @@ class RichTextEditor extends PureComponent<RichTextEditor.Props> {
 
     render() {
         return (
-            <div class="plugin-text-rich-text-editor" contentEditable={true} ref={this.node}></div>
+            <div
+                className="plugin-text-rich-text-editor"
+                contentEditable={true}
+                ref={this.node}
+            ></div>
         );
     }
 }

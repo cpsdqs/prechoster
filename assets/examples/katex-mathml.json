@@ -1,0 +1,63 @@
+{
+    "modules": [
+        {
+            "id": "27f201bad492551d",
+            "data": {
+                "contents": "here’s some math:\n$$f*g = \\int_{-\\infty}^\\infty f(t)\\,g(x-t)\\,dt$$\n\nand some inline math also: $e^{\\tau i}=1$\n\n<div class=\"spin-container\">\n  <div class=\"spinning\">\n    $$\n      \\left[\\begin{matrix}\n        \\cos\\theta & -\\sin\\theta \\\\\n        \\sin\\theta & \\cos\\theta\n      \\end{matrix}\\right]\n    $$\n  </div>\n</div>",
+                "language": "html"
+            },
+            "pluginId": "source.text",
+            "sends": [],
+            "namedSends": { "dc9ca7515597e706": ["text"] },
+            "graphPos": null
+        },
+        {
+            "id": "e42673c2efcaef42",
+            "data": {
+                "contents": ".spin-container {\n  text-align: center;\n  padding: 1em 0;\n}\n\n.spinning {\n  display: inline-block;\n  animation: spin 10s infinite linear;\n}",
+                "language": "css"
+            },
+            "pluginId": "source.text",
+            "sends": ["18006fab0fb46a7f"],
+            "namedSends": {},
+            "graphPos": null
+        },
+        {
+            "id": "18006fab0fb46a7f",
+            "data": { "mode": "attr" },
+            "pluginId": "transform.style-inliner",
+            "sends": ["4bb63dd8e0043243"],
+            "namedSends": {},
+            "graphPos": null
+        },
+        {
+            "id": "4bb63dd8e0043243",
+            "data": { "useSvgo": true },
+            "pluginId": "transform.svg-to-background",
+            "sends": ["output"],
+            "namedSends": {},
+            "graphPos": null
+        },
+        {
+            "id": "dc9ca7515597e706",
+            "data": {
+                "contents": "<script>\n  import katex from './katex.js';\n  import text from './text';\n\n  function katexRender(c, display) {\n    return katex.renderToString(c, {\n      output: 'mathml',\n      displayMode: display,\n      throwOnError: false,\n    });\n  }\n\n  const rendered = text.replace(/\\$\\$(((?!\\$\\$)[\\s\\S])+)\\$\\$/g, (m, c) => {\n    return katexRender(c, true);\n  }).replace(/\\$(((?!\\$|\\\\\\$)[\\s\\S])+)\\$/g, (m, c) => {\n    return katexRender(c);\n  });\n</script>\n{@html rendered}"
+            },
+            "pluginId": "source.svelte",
+            "sends": ["18006fab0fb46a7f"],
+            "namedSends": {},
+            "graphPos": null
+        },
+        {
+            "id": "a9c250deb4197177",
+            "data": {
+                "url": "https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.mjs",
+                "type": "javascript"
+            },
+            "pluginId": "source.external-url-data",
+            "sends": [],
+            "namedSends": { "dc9ca7515597e706": ["katex.js"] },
+            "graphPos": null
+        }
+    ]
+}

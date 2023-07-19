@@ -1,5 +1,4 @@
-import { h, createRef } from 'preact';
-import { PureComponent } from 'preact/compat';
+import { createRef, PureComponent } from 'react';
 import { Data, PlainTextData, HtmlData } from '../../document';
 import './data-preview.less';
 
@@ -13,7 +12,7 @@ export function DataPreview({ data }: { data: Data }) {
 }
 
 class HtmlPreview extends PureComponent<{ html: string }> {
-    node = createRef();
+    node = createRef<HTMLDivElement>();
 
     componentDidMount() {
         this.renderHtml();
@@ -26,25 +25,25 @@ class HtmlPreview extends PureComponent<{ html: string }> {
     }
 
     renderHtml() {
-        if (!this.node.current.shadowRoot) {
-            this.node.current.attachShadow({ mode: 'open' });
+        if (!this.node.current!.shadowRoot) {
+            this.node.current!.attachShadow({ mode: 'open' });
         }
         const doc = new DOMParser().parseFromString(this.props.html, 'text/html');
         for (const node of doc.querySelectorAll('script, iframe')) {
             node.remove();
         }
-        this.node.current.shadowRoot.innerHTML = doc.body.innerHTML;
+        this.node.current!.shadowRoot!.innerHTML = doc.body.innerHTML;
     }
 
     render() {
-        return <div class="data-preview-html" ref={this.node} />;
+        return <div className="data-preview-html" ref={this.node} />;
     }
 }
 
 function TextPreview({ text }: { text: string }) {
-    return <div class="data-preview-text">{text}</div>;
+    return <div className="data-preview-text">{text}</div>;
 }
 
 function UnknownPreview({ type }: { type: string }) {
-    return <div class="data-preview-unknown">no preview for {type}</div>;
+    return <div className="data-preview-unknown">no preview for {type}</div>;
 }

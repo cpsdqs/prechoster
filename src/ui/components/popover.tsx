@@ -1,5 +1,4 @@
-import { h, createRef, ComponentChildren } from 'preact';
-import { PureComponent } from 'preact/compat';
+import React, { createRef, PureComponent } from 'react';
 import { AnimationController, Spring } from '../animation';
 import './popover.less';
 
@@ -21,8 +20,8 @@ export class Popover extends PureComponent<Popover.Props> {
     positionY = new Spring({ stiffness: 439, damping: 42 });
     width = new Spring({ stiffness: 439, damping: 42 });
     height = new Spring({ stiffness: 439, damping: 42 });
-    dialog = createRef();
-    popover = createRef();
+    dialog = createRef<HTMLDialogElement>();
+    popover = createRef<HTMLDivElement>();
     popoverContent: { current: HTMLElement | null } = { current: null };
     popoverContentRef = (node: HTMLElement | null) => {
         this.popoverContent.current = node;
@@ -143,8 +142,6 @@ export class Popover extends PureComponent<Popover.Props> {
             this.snapToNextPosition = false;
         }
 
-        const prevPresence = this.presence.value;
-
         let done = true;
         done = this.presence.update(dt) && done;
         done = this.width.update(dt) && done;
@@ -178,19 +175,19 @@ export class Popover extends PureComponent<Popover.Props> {
         // render only if there is something visible
         if (shouldShow) this.forceUpdate();
 
-        if (shouldShow && !this.dialog.current.open) {
-            this.dialog.current.showModal();
+        if (shouldShow && !this.dialog.current?.open) {
+            this.dialog.current?.showModal();
             this.shouldRenderContents = true;
-        } else if (!shouldShow && this.dialog.current.open) {
-            this.dialog.current.close();
+        } else if (!shouldShow && this.dialog.current?.open) {
+            this.dialog.current?.close();
         }
 
         return done;
     }
 
     componentDidMount() {
-        this.dialog.current.addEventListener('close', this.onDialogClose);
-        this.dialog.current.addEventListener('cancel', this.onDialogClose);
+        this.dialog.current!.addEventListener('close', this.onDialogClose);
+        this.dialog.current!.addEventListener('cancel', this.onDialogClose);
         window.addEventListener('resize', this.onResize);
 
         if (this.props.open) {
@@ -225,12 +222,13 @@ export class Popover extends PureComponent<Popover.Props> {
         this.animCtrl.add(this);
     };
 
-    onDialogClose = (e: Event) => {
+    onDialogClose = (e: React.MouseEvent | Event) => {
         e.preventDefault();
         this.props.onClose();
     };
 
-    render({ anchor, children }: Popover.Props) {
+    render() {
+        const { children } = this.props;
         const presence = this.presence.value;
         const popoverOpacity = this.props.open ? 1 : this.presence.value;
         const anchorLoc = this.anchorLoc;
@@ -246,7 +244,7 @@ export class Popover extends PureComponent<Popover.Props> {
         if (this.arrowLoc[0] !== 'none') {
             arrow = (
                 <div
-                    class="i-arrow"
+                    className="i-arrow"
                     data-type={this.arrowLoc[0]}
                     style={{
                         transform: [
@@ -261,15 +259,15 @@ export class Popover extends PureComponent<Popover.Props> {
         }
 
         return (
-            <dialog class="popover-dialog" ref={this.dialog}>
+            <dialog className="popover-dialog" ref={this.dialog}>
                 <div
-                    class="inner-backdrop"
+                    className="inner-backdrop"
                     onClick={this.onDialogClose}
                     style={{ opacity: presence }}
                 />
                 <div
                     ref={this.popover}
-                    class="inner-popover"
+                    className="inner-popover"
                     style={{
                         width: this.width.value + 'px',
                         height: this.height.value + 'px',
@@ -278,7 +276,7 @@ export class Popover extends PureComponent<Popover.Props> {
                         opacity: popoverOpacity,
                     }}
                 >
-                    <div class="i-content" ref={this.popoverContentRef}>
+                    <div className="i-content" ref={this.popoverContentRef}>
                         {this.shouldRenderContents && children}
                     </div>
                 </div>
@@ -297,6 +295,6 @@ namespace Popover {
         /** Close callback. */
         onClose: () => void;
         /** Popover contents */
-        children: ComponentChildren;
+        children: React.ReactNode;
     }
 }

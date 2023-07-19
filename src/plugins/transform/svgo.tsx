@@ -1,5 +1,3 @@
-import { h } from 'preact';
-import { PureComponent } from 'preact/compat';
 import { ModulePlugin, ModulePluginProps, PlainTextData, Data } from '../../document';
 // @ts-ignore
 import { optimize } from 'svgo/dist/svgo.browser';

@@ -1,5 +1,4 @@
-import { createRef, h, VNode } from 'preact';
-import { PureComponent } from 'preact/compat';
+import React, { createRef, PureComponent } from 'react';
 import './split-panel.less';
 
 type ResizerDragState = {
@@ -16,8 +15,8 @@ export class SplitPanel extends PureComponent<SplitPanel.Props, SplitPanelState>
         splitPos: Number.isFinite(this.props.initialPos) ? this.props.initialPos! : 0.5,
     };
 
-    panel = createRef();
-    resizer = createRef();
+    panel = createRef<HTMLDivElement>();
+    resizer = createRef<HTMLDivElement>();
 
     hv<T>(x: T, y: T): T {
         return this.props.vertical ? y : x;
@@ -30,12 +29,12 @@ export class SplitPanel extends PureComponent<SplitPanel.Props, SplitPanelState>
     }
 
     resizerDragState: ResizerDragState | null = null;
-    onResizerPointerDown = (e: PointerEvent) => {
+    onResizerPointerDown = (e: React.PointerEvent) => {
         e.preventDefault();
         if (this.resizerDragState) return;
-        this.resizer.current.setPointerCapture(e.pointerId);
+        this.resizer.current!.setPointerCapture(e.pointerId);
 
-        const panelRect = this.panel.current.getBoundingClientRect();
+        const panelRect = this.panel.current!.getBoundingClientRect();
         const panelBase = this.hv(panelRect.left, panelRect.top);
         const panelSize = this.hv(panelRect.width, panelRect.height);
         const pointerLoc = this.hv(e.clientX, e.clientY);
@@ -46,12 +45,12 @@ export class SplitPanel extends PureComponent<SplitPanel.Props, SplitPanelState>
             offset: this.state.splitPos - normalizedPointerLoc,
         };
     };
-    onResizerPointerMove = (e: PointerEvent) => {
+    onResizerPointerMove = (e: React.PointerEvent) => {
         e.preventDefault();
         if (!this.resizerDragState) return;
         const state = this.resizerDragState;
 
-        const panelRect = this.panel.current.getBoundingClientRect();
+        const panelRect = this.panel.current!.getBoundingClientRect();
         const panelBase = this.hv(panelRect.left, panelRect.top);
         const panelSize = this.hv(panelRect.width, panelRect.height);
         const pointerLoc = this.hv(e.clientX, e.clientY);
@@ -63,18 +62,18 @@ export class SplitPanel extends PureComponent<SplitPanel.Props, SplitPanelState>
             splitPos: Math.max(minSplit, Math.min(normalizedPointerLoc + state.offset, maxSplit)),
         });
     };
-    onResizerPointerUp = (e: PointerEvent) => {
+    onResizerPointerUp = (e: React.PointerEvent) => {
         e.preventDefault();
         if (!this.resizerDragState) return;
         const state = this.resizerDragState;
-        this.resizer.current.releasePointerCapture(state.pointerId);
+        this.resizer.current!.releasePointerCapture(state.pointerId);
         this.resizerDragState = null;
     };
 
-    onResizerKeyPress = (e: KeyboardEvent) => {
+    onResizerKeyPress = (e: React.KeyboardEvent) => {
         const [minSplit, maxSplit] = this.bounds;
 
-        const panelRect = this.panel.current.getBoundingClientRect();
+        const panelRect = this.panel.current!.getBoundingClientRect();
         const panelSize = this.hv(panelRect.width, panelRect.height);
         const increment = 10 / panelSize;
 
@@ -96,9 +95,16 @@ export class SplitPanel extends PureComponent<SplitPanel.Props, SplitPanelState>
         }
     };
 
-    render({ vertical, children }: SplitPanel.Props) {
-        if (!Array.isArray(children)) children = [children];
-        children = children.filter((x) => x);
+    render() {
+        const { vertical, children: originalChildren } = this.props;
+
+        let children: React.ReactNode[];
+        if (Array.isArray(originalChildren)) {
+            children = originalChildren;
+        } else {
+            children = [originalChildren];
+        }
+        children = children.filter((x: any) => x);
         if (children.length > 2) throw new Error('SplitPanel: more than 2 children not supported');
 
         const doSplit = children.length > 1;
@@ -113,9 +119,9 @@ export class SplitPanel extends PureComponent<SplitPanel.Props, SplitPanelState>
         return (
             <div
                 ref={this.panel}
-                class={'split-panel' + (vertical ? ' is-vertical' : ' is-horizontal')}
+                className={'split-panel' + (vertical ? ' is-vertical' : ' is-horizontal')}
             >
-                <div class="inner-container" role="group" style={style1}>
+                <div className="inner-container" role="group" style={style1}>
                     {children[0]}
                 </div>
                 {doSplit && (
@@ -124,7 +130,7 @@ export class SplitPanel extends PureComponent<SplitPanel.Props, SplitPanelState>
                         tabIndex={0}
                         role="separator"
                         aria-orientation={this.hv('vertical', 'horizontal')}
-                        class="inner-resizer"
+                        className="inner-resizer"
                         aria-valuemin={Math.round(minSplit * 100)}
                         aria-valuemax={Math.round(maxSplit * 100)}
                         aria-valuenow={Math.round(this.state.splitPos * 100)}
@@ -134,11 +140,11 @@ export class SplitPanel extends PureComponent<SplitPanel.Props, SplitPanelState>
                         onPointerMove={this.onResizerPointerMove}
                         onPointerUp={this.onResizerPointerUp}
                     >
-                        <div class="inner-affordance" />
+                        <div className="inner-affordance" />
                     </div>
                 )}
                 {doSplit && (
-                    <div class="inner-container" role="group" style={style2}>
+                    <div className="inner-container" role="group" style={style2}>
                         {children[1]}
                     </div>
                 )}
@@ -153,6 +159,6 @@ namespace SplitPanel {
         initialPos?: number;
         /** The min and max split values. (Default: [0.1, 0.9]) */
         bounds?: [number, number];
-        children: VNode | VNode[];
+        children: React.ReactNode;
     }
 }

@@ -1,5 +1,4 @@
-import { h } from 'preact';
-import { PureComponent } from 'preact/compat';
+import { PureComponent } from 'react';
 import {
     ModulePlugin,
     ModulePluginProps,
@@ -38,14 +37,15 @@ export type LessPluginData = {
 class LessEditor extends PureComponent<ModulePluginProps<LessPluginData>> {
     extensions = [css()];
 
-    render({ data, namedInputKeys, onChange }: ModulePluginProps<LessPluginData>) {
+    render() {
+        const { data, namedInputKeys, onChange } = this.props;
         return (
-            <div class="plugin-less-editor">
+            <div className="plugin-less-editor">
                 {namedInputKeys.size ? (
-                    <div class="less-variables">
+                    <div className="less-variables">
                         <label>variables: </label>
                         {[...namedInputKeys].map((key) => (
-                            <span class="less-variable" key={key}>
+                            <span className="less-variable" key={key}>
                                 @{key}
                             </span>
                         ))}

@@ -1,5 +1,4 @@
-import { h, createRef } from 'preact';
-import { useState, PureComponent } from 'preact/compat';
+import { createRef, useState, PureComponent, useRef, useInsertionEffect } from 'react';
 import { Document, RenderState, RenderTarget } from '../../document';
 import { CodeEditor } from './code-editor';
 import { javascript } from '@codemirror/lang-javascript';
@@ -16,19 +15,27 @@ export function Preview({
 }: Preview.Props) {
     let contents = null;
     const [previewConfig, onPreviewConfigChange] = useState<PreviewConfig>(DEFAULT_PREVIEW_CONFIG);
+    const lastPostPreviewHeight = useRef(0);
+    const previewContainer = useRef<HTMLDivElement>(null);
+
+    useInsertionEffect(() => {
+        const preview = previewContainer.current;
+        if (!preview) return;
+        lastPostPreviewHeight.current = preview.offsetHeight;
+    });
 
     if (render.output) {
         if (render.output.target) {
             const data = render.output.outputs.get(render.output.target)!;
 
             contents = (
-                <div class="i-data-preview">
+                <div className="i-data-preview" ref={previewContainer}>
                     <DataPreview data={data} />
                 </div>
             );
         } else {
             contents = (
-                <div class="i-post-preview">
+                <div className="i-post-preview" ref={previewContainer}>
                     <PostPreview
                         renderId={render.id}
                         stale={render.rendering}
@@ -55,18 +62,23 @@ export function Preview({
         let sourceJavascriptLine = (render.error.error as any).sourceJavascriptLine;
 
         contents = (
-            <div class="preview-error">
+            <div
+                className="preview-error"
+                style={{
+                    minHeight: lastPostPreviewHeight.current,
+                }}
+            >
                 {moduleIndex !== null ? (
-                    <div class="error-title">
+                    <div className="error-title">
                         Error in {moduleIndex + 1}. {moduleLabel}
                     </div>
                 ) : (
-                    <div class="error-title">Error</div>
+                    <div className="error-title">Error</div>
                 )}
-                <div class="error-contents">{errorString}</div>
+                <div className="error-contents">{errorString}</div>
                 {sourceJavascript ? (
-                    <div class="error-source">
-                        <div class="inner-title">Source Script</div>
+                    <div className="error-source">
+                        <div className="inner-title">Source Script</div>
                         <SourceJavascript source={sourceJavascript} line={sourceJavascriptLine} />
                     </div>
                 ) : null}
@@ -88,11 +100,11 @@ export function Preview({
     const liveCheckbox = Math.random().toString(36);
 
     return (
-        <div class="data-preview" aria-label="Preview">
-            <div class="preview-header">
-                <div class="preview-config">
+        <div className="data-preview" aria-label="Preview">
+            <div className="preview-header">
+                <div className="preview-config">
                     <select
-                        class="output-select"
+                        className="output-select"
                         value={render.target || 'output'}
                         onChange={(e) => {
                             const target = (e.target as HTMLSelectElement).value;
@@ -103,7 +115,7 @@ export function Preview({
                         {outputTargets}
                         <option value="output">output</option>
                     </select>
-                    <span class="live-update">
+                    <span className="live-update">
                         <input
                             id={liveCheckbox}
                             checked={render.live}
@@ -112,15 +124,15 @@ export function Preview({
                             }}
                             type="checkbox"
                         />{' '}
-                        <label for={liveCheckbox}>Live Update</label>
+                        <label htmlFor={liveCheckbox}>Live Update</label>
                     </span>
                     {!render.live && (
-                        <button class="render-button" onClick={onRender}>
+                        <button className="render-button" onClick={onRender}>
                             Render
                         </button>
                     )}
                 </div>
-                <span class={'render-indicator' + (render.rendering ? ' is-rendering' : '')} />
+                <span className={'render-indicator' + (render.rendering ? ' is-rendering' : '')} />
             </div>
             {contents}
         </div>

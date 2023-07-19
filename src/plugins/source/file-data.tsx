@@ -1,5 +1,4 @@
-import { h, createRef } from 'preact';
-import { PureComponent } from 'preact/compat';
+import { createRef, PureComponent } from 'react';
 import { ModulePlugin, ModulePluginProps, PlainTextData, BlobData } from '../../document';
 import base64js from 'base64-js';
 import './file-data.less';
@@ -11,7 +10,7 @@ export type FileDataPluginData = {
 };
 
 class FileDataEditor extends PureComponent<ModulePluginProps<FileDataPluginData>> {
-    fileInput = createRef();
+    fileInput = createRef<HTMLInputElement>();
 
     onFile = () => {
         const fileInput = this.fileInput.current! as HTMLInputElement;
@@ -32,14 +31,15 @@ class FileDataEditor extends PureComponent<ModulePluginProps<FileDataPluginData>
         }
     };
 
-    render({ data, onChange }: ModulePluginProps<FileDataPluginData>) {
+    render() {
+        const { data, onChange } = this.props;
         const type = data.mime;
         let preview = null;
 
         if (type.startsWith('text/')) {
             const buf = base64js.toByteArray(data.dataBase64);
             const contents = new TextDecoder().decode(buf);
-            preview = <textarea readonly>{contents}</textarea>;
+            preview = <textarea readOnly>{contents}</textarea>;
         } else if (type.startsWith('image/')) {
             const dataUrl = `data:${type};base64,${data.dataBase64}`;
 
@@ -53,11 +53,11 @@ class FileDataEditor extends PureComponent<ModulePluginProps<FileDataPluginData>
         const outputId = Math.random().toString(36);
 
         return (
-            <div class="plugin-file-data-editor">
+            <div className="plugin-file-data-editor">
                 <input ref={this.fileInput} type="file" onChange={this.onFile} />
-                <div class="file-preview">{preview}</div>
+                <div className="file-preview">{preview}</div>
                 <div>
-                    <label for={outputId}>Output as:</label>{' '}
+                    <label htmlFor={outputId}>Output as:</label>{' '}
                     <select
                         value={data.outputMode}
                         onChange={(e) => {

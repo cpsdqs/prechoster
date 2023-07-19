@@ -58,62 +58,6 @@
             background: var(--item-selected-bg);
         }
 
-        &.is-receiving-selected {
-            &::before {
-                content: '';
-                position: absolute;
-                border: 1em solid transparent;
-                margin-top: -1em;
-                border-left-color: var(--accent);
-                top: 50%;
-                left: 0;
-
-                animation: module-list-item-receiving-selected 3s infinite;
-                @keyframes module-list-item-receiving-selected {
-                    0% {
-                        transform: translateX(-1em);
-                        opacity: 0;
-                    }
-                    40%,
-                    70% {
-                        opacity: 1;
-                    }
-                    100% {
-                        opacity: 0;
-                        transform: none;
-                    }
-                }
-            }
-        }
-
-        &.is-sending-to-selected {
-            &::before {
-                content: '';
-                position: absolute;
-                border: 0.5em solid transparent;
-                margin-top: -0.5em;
-                border-left-color: var(--accent);
-                bottom: 1em;
-                right: 0;
-
-                animation: module-list-item-sending-to-selected 3s infinite;
-                @keyframes module-list-item-sending-to-selected {
-                    0% {
-                        transform: none;
-                        opacity: 0;
-                    }
-                    40%,
-                    70% {
-                        opacity: 1;
-                    }
-                    100% {
-                        opacity: 0;
-                        transform: translateX(1em);
-                    }
-                }
-            }
-        }
-
         &.is-being-dragged {
             z-index: 1;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);

@@ -1,14 +1,5 @@
-import { h, createRef } from 'preact';
-import { lazy, Fragment, Suspense, PureComponent, useRef, useState } from 'preact/compat';
-import {
-    Document,
-    Module,
-    ModuleId,
-    AnyModule,
-    Data,
-    MOD_OUTPUT,
-    RenderState,
-} from '../../../document';
+import { createRef, lazy, Suspense, PureComponent } from 'react';
+import { Document, Module, ModuleId, MOD_OUTPUT, RenderState } from '../../../document';
 import {
     Connection,
     NodeChange,
@@ -26,7 +17,7 @@ import './index.less';
 
 export type EdgeId = string;
 
-const ReactFlow = lazy(() => import('./reactflow').then((r) => r.ReactFlow));
+const ReactFlow = lazy(() => import('./reactflow'));
 
 export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
     state = {
@@ -298,7 +289,8 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
         document.emitChange();
     };
 
-    render({ document, selected, render }: ModuleGraph.Props) {
+    render() {
+        const { document, selected, render } = this.props;
         const layout = layoutNodes(document);
         const nodes: any[] = [];
 
@@ -349,7 +341,7 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
 
         return (
             <div
-                class={'module-graph' + (this.state.draggingNode ? ' is-dragging-node' : '')}
+                className={'module-graph' + (this.state.draggingNode ? ' is-dragging-node' : '')}
                 aria-label="Module Graph"
                 ref={this.containerNode}
             >
@@ -358,6 +350,8 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
                         fitView
                         snapToGrid
                         snapGrid={[GRID_SIZE, GRID_SIZE]}
+                        panOnScroll
+                        panOnScrollSpeed={1}
                         nodes={nodes}
                         edges={edges}
                         onInit={this.onReactFlowInit}
@@ -370,7 +364,7 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
                         onNodeDragStop={() => this.setState({ draggingNode: false })}
                     />
                 </Suspense>
-                <div class="i-actions">
+                <div className="i-actions">
                     <button onClick={this.runAutoLayout}>auto layout</button>{' '}
                     <button
                         ref={this.addModuleButton}

@@ -15,8 +15,16 @@
         "title": "Chat Log",
         "description": "Use Svelte to create a simple chat log template."
     },
+    "katex-mathml.json": {
+        "title": "KaTeX MathML",
+        "description": "Use KaTeX to easily render TeX markup to MathML."
+    },
     "animated-svg-background.json": {
         "title": "Animated SVG Background",
         "description": "Use @keyframes to animate SVG elements and embed them as a background image."
+    },
+    "svg-conditional-css.json": {
+        "title": "Conditional CSS inside SVG",
+        "description": "Use SVG backgrounds to trigger CSS animation with a click interaction."
     }
 }

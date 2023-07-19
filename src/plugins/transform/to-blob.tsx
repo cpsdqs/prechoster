@@ -1,5 +1,4 @@
-import { h } from 'preact';
-import { PureComponent, useState } from 'preact/compat';
+import { useState } from 'react';
 import {
     ModulePlugin,
     ModulePluginProps,
@@ -8,7 +7,6 @@ import {
     PlainTextData,
     Data,
 } from '../../document';
-import base64js from 'base64-js';
 
 export type ToBlobData = {
     mime: string;
@@ -45,7 +43,7 @@ function ToBlob({ id, data, onChange, document }: ModulePluginProps<ToBlobData>)
     return (
         <div>
             <div>
-                <label for={mimeId}>MIME type:</label>{' '}
+                <label htmlFor={mimeId}>MIME type:</label>{' '}
                 <input
                     id={mimeId}
                     type="text"
@@ -71,11 +69,11 @@ function ToBlob({ id, data, onChange, document }: ModulePluginProps<ToBlobData>)
                         onChange({ ...data, useOverride: (e.target as HTMLInputElement).checked });
                     }}
                 />{' '}
-                <label for={useOverrideId}>Override with uploaded file</label>
+                <label htmlFor={useOverrideId}>Override with uploaded file</label>
             </div>
             {data.useOverride && (
                 <div>
-                    <label for={overrideId}>URL:</label>{' '}
+                    <label htmlFor={overrideId}>URL:</label>{' '}
                     <input
                         id={overrideId}
                         type="text"

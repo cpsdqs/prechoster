@@ -1,6 +1,5 @@
-import { h, render } from 'preact';
-import { Document, Module, AnyModule, JsonValue, MOD_OUTPUT } from './document';
-import { MODULES } from './plugins';
+import { createRoot } from 'react-dom/client';
+import { Document } from './document';
 import Prechoster from './ui';
 
 let canInit = true;
@@ -32,6 +31,7 @@ if (canInit) {
     const container = document.createElement('div');
     container.id = 'prechoster-root';
     document.body.appendChild(container);
+    const reactRoot = createRoot(container);
 
     init()
         .then((doc) => {
@@ -51,7 +51,7 @@ if (canInit) {
                 scheduleSave();
             });
 
-            render(<Prechoster document={doc} />, container);
+            reactRoot.render(<Prechoster document={doc} />);
         })
         .catch((err) => {
             alert('Error during initialization\n\n' + err);

@@ -1,5 +1,3 @@
-import { h } from 'preact';
-import { PureComponent } from 'preact/compat';
 import { ModulePlugin, ModulePluginProps, HtmlData, Data } from '../../document';
 // @ts-ignore
 import { optimize } from 'svgo/dist/svgo.browser';
@@ -22,7 +20,7 @@ function SvgToBackground({ data, onChange }: ModulePluginProps<SvgToBackgroundDa
                         onChange({ ...data, useSvgo: (e.target as HTMLInputElement).checked });
                     }}
                 />{' '}
-                <label for={useSvgoId}>Use SVG Optimizer</label>
+                <label htmlFor={useSvgoId}>Use SVG Optimizer</label>
             </div>
         </div>
     );

@@ -1,6 +1,7 @@
 .data-preview {
     box-sizing: border-box;
     overflow: auto;
+    contain: layout;
 
     & > .preview-header {
         padding: 0.5em 1em;
@@ -69,6 +70,7 @@
         padding: 0.5em 1em;
         margin: 1em;
         user-select: text;
+        box-sizing: border-box;
 
         .error-title {
             font-weight: bold;

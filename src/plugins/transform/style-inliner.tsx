@@ -1,5 +1,3 @@
-import { h } from 'preact';
-import { PureComponent } from 'preact/compat';
 import { parse as cssParse, walk as cssWalk, generate as cssGenerate } from 'css-tree';
 import Specificity from '@bramus/specificity';
 import { ModulePlugin, ModulePluginProps, HtmlData, CssData, Data } from '../../document';

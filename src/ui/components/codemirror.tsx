@@ -1,8 +1,7 @@
 // from https://github.com/uiwjs/react-codemirror/blob/56fb55855a42888bf93d3d4dbe251cfc7c8e37ee/
 // core/src/useCodeMirror.ts
 
-import { h } from 'preact';
-import { forwardRef, useRef, useEffect, useState, useImperativeHandle } from 'preact/compat';
+import { forwardRef, useRef, useEffect, useState, useImperativeHandle } from 'react';
 import { EditorState, StateEffect } from '@codemirror/state';
 import { indentWithTab } from '@codemirror/commands';
 import { EditorView, keymap, ViewUpdate, placeholder } from '@codemirror/view';
@@ -18,7 +17,6 @@ export function useCodeMirror(props: UseCodeMirror) {
         value,
         selection,
         onChange,
-        onStatistics,
         onCreateEditor,
         onUpdate,
         extensions = [],
@@ -191,7 +189,7 @@ export default forwardRef<ReactCodeMirrorRef, ReactCodeMirrorProps>((props, ref)
         ...other
     } = props;
     const editor = useRef<HTMLDivElement>(null);
-    const { state, view, container, setContainer } = useCodeMirror({
+    const { state, view, container } = useCodeMirror({
         container: editor.current,
         root,
         value,

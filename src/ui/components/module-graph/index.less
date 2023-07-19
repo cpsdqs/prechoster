@@ -184,9 +184,16 @@
     }
 
     .i-output-node {
+        cursor: grab;
+
+        &.is-patting {
+            cursor: grabbing;
+        }
+
         .eggbug-containment-zone {
             width: 48px;
             height: 48px;
+            transform-origin: 50% 90%;
 
             svg {
                 width: 100%;

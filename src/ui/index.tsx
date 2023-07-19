@@ -1,12 +1,10 @@
-import { h } from 'preact';
-import { Fragment, PureComponent, useState } from 'preact/compat';
+import React, { Fragment, PureComponent, useState } from 'react';
 import { SplitPanel } from './components/split-panel';
 import { ModuleList } from './components/module-list';
 import { ModuleGraph, EdgeId } from './components/module-graph';
 import { Preview } from './components/preview';
-import { Document, Module, ModuleId, Data, MOD_OUTPUT, RenderState } from '../document';
+import { Document, ModuleId, RenderState } from '../document';
 import { RenderContext } from './render-context';
-import { MODULES } from '../plugins';
 import { Examples } from './examples';
 // @ts-ignore
 import { homepage as sourceLink } from '../../package.json';
@@ -126,9 +124,9 @@ export default class Prechoster extends PureComponent<Prechoster.Props, Prechost
 
         return (
             <RenderContext.Provider value={this.renderContext}>
-                <div class="prechoster">
-                    <div class="menu-bar" role="toolbar">
-                        <div class="i-buttons">
+                <div className="prechoster">
+                    <div className="menu-bar" role="toolbar">
+                        <div className="i-buttons">
                             <button disabled={!doc.canUndo} onClick={() => doc.undo()}>
                                 undo
                             </button>
@@ -138,7 +136,7 @@ export default class Prechoster extends PureComponent<Prechoster.Props, Prechost
                             <SaveLoad document={doc} />
                             <Examples document={doc} />
                         </div>
-                        <div class="i-links">
+                        <div className="i-links">
                             <a href={sourceLink} target="_blank" rel="nofollow noreferrer">
                                 source
                             </a>
@@ -202,7 +200,7 @@ function SaveLoad({ document }: { document: Document }) {
     const onLoadDragLeave = () => {
         setHoveringWithFile(false);
     };
-    const onLoadDragOver = (e: DragEvent) => {
+    const onLoadDragOver = (e: React.DragEvent) => {
         e.preventDefault();
     };
     const loadFile = (file: File) => {
@@ -224,7 +222,7 @@ function SaveLoad({ document }: { document: Document }) {
         });
     };
 
-    const onLoadDrop = async (e: DragEvent) => {
+    const onLoadDrop = async (e: React.DragEvent) => {
         setHoveringWithFile(false);
         e.preventDefault();
 

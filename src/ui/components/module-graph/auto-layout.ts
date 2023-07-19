@@ -1,14 +1,5 @@
+import { Document, ModuleId, AnyModule, MOD_OUTPUT } from '../../../document';
 import {
-    Document,
-    Module,
-    ModuleId,
-    AnyModule,
-    Data,
-    MOD_OUTPUT,
-    RenderState,
-} from '../../../document';
-import {
-    MOD_BASE_WIDTH,
     MOD_HEADER_HEIGHT,
     MOD_INPUT_HEIGHT,
     MOD_OUTPUT_HEIGHT,

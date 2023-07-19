@@ -1,12 +1,10 @@
-import { h } from 'preact';
-import { PureComponent } from 'preact/compat';
+import { PureComponent } from 'react';
 import {
     ModulePlugin,
     ModulePluginProps,
     Data,
     NamedInputData,
     PlainTextData,
-    HtmlData,
 } from '../../document';
 import { CodeEditor } from '../../ui/components/code-editor';
 import { EditorView } from '@codemirror/view';
@@ -34,9 +32,10 @@ export type SvelteComponentPluginData = {
 class SvelteComponentEditor extends PureComponent<ModulePluginProps<SvelteComponentPluginData>> {
     extensions = [html(), EditorView.lineWrapping];
 
-    render({ data, namedInputKeys, onChange }: ModulePluginProps<SvelteComponentPluginData>) {
+    render() {
+        const { data, onChange } = this.props;
         return (
-            <div class="plugin-svelte-component-editor">
+            <div className="plugin-svelte-component-editor">
                 <label>Name:</label>{' '}
                 <input
                     value={data.name}

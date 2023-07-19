@@ -1,17 +1,14 @@
-import { h, VNode } from 'preact';
-import {
-    Fragment,
-    PureComponent,
-    useContext,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from 'preact/compat';
+import { Fragment, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { micromark } from 'micromark';
 import { gfm, gfmHtml } from 'micromark-extension-gfm';
 import { Popover } from './popover';
-import { loadRenderer, RenderFn, RenderConfig, RenderResult } from './cohost-renderer';
+import {
+    COHOST_RENDERER_VERSION,
+    loadRenderer,
+    RenderFn,
+    RenderConfig,
+    RenderResult,
+} from './cohost-renderer';
 import { RenderContext } from '../render-context';
 import './post-preview.less';
 
@@ -78,7 +75,7 @@ const ERRORS = {
             <div>
                 Element will be removed: &lt;{tagName}&gt;
                 {isFirstOfType && (
-                    <div class="quick-help">This element type is not supported in posts.</div>
+                    <div className="quick-help">This element type is not supported in posts.</div>
                 )}
             </div>
         );
@@ -87,7 +84,9 @@ const ERRORS = {
         return (
             <div>
                 An input of type <code>{type}</code> will be converted to a checkbox.
-                {isFirstOfType && <div class="quick-help">Cohost does this for some reason.</div>}
+                {isFirstOfType && (
+                    <div className="quick-help">Cohost does this for some reason.</div>
+                )}
             </div>
         );
     },
@@ -96,7 +95,7 @@ const ERRORS = {
             <div>
                 The ID <code>{id}</code> will be renamed to <code>user-content-{id}</code>.
                 {isFirstOfType && (
-                    <div class="quick-help">
+                    <div className="quick-help">
                         A reference to this element ID elsewhere will be broken.
                     </div>
                 )}
@@ -105,14 +104,13 @@ const ERRORS = {
     },
     'strip-css-variable'({
         name,
-        node,
         isFirstOfType,
     }: { name: string; node: HTMLElement | SVGElement } & ErrProps) {
         return (
             <div>
                 CSS variable will be removed: <code>{name}</code>
                 {isFirstOfType && (
-                    <div class="quick-help">
+                    <div className="quick-help">
                         CSS variable declarations are not supported in posts.
                     </div>
                 )}
@@ -128,11 +126,11 @@ const ERRORS = {
             <div>
                 <code>{protocol}</code> image source will be removed:{' '}
                 <code>
-                    {url.substr(0, 100)}
+                    {url.substring(0, 100)}
                     {url.length > 100 ? '…' : ''}
                 </code>
                 {isFirstOfType && (
-                    <div class="quick-help">
+                    <div className="quick-help">
                         Things like <code>data:</code> URLs work in CSS background images, but they
                         don’t work in regular images.
                     </div>
@@ -145,11 +143,11 @@ const ERRORS = {
             <div>
                 Could not load image resource:{' '}
                 <code>
-                    {url.substr(0, 100)}
+                    {url.substring(0, 100)}
                     {url.length > 100 ? '…' : ''}
                 </code>
                 {isFirstOfType && (
-                    <div class="quick-help">
+                    <div className="quick-help">
                         Check your URL maybe…
                         <br />
                         To include an image in a post, you can upload it to cohost in a draft post
@@ -178,7 +176,7 @@ interface ErrorMessage {
 function BasicRenderer({ html }: { html: string }) {
     return (
         <div
-            class="inner-prose p-prose basic-renderer"
+            className="inner-prose p-prose basic-renderer"
             dangerouslySetInnerHTML={{ __html: html }}
         />
     );
@@ -200,12 +198,12 @@ function CohostRenderer({
 }) {
     return (
         <Fragment>
-            <div class="inner-prose p-prose cohost-renderer" key={RESET_ON_RENDER && renderId}>
+            <div className="inner-prose p-prose cohost-renderer" key={RESET_ON_RENDER && renderId}>
                 {rendered.initial}
                 {readMore ? rendered.expanded : null}
             </div>
             {rendered.expandedLength ? (
-                <a class="prose-read-more" onClick={() => onReadMoreChange(!readMore)}>
+                <a className="prose-read-more" onClick={() => onReadMoreChange(!readMore)}>
                     {readMore ? 'read less' : 'read more'}
                 </a>
             ) : null}
@@ -243,7 +241,7 @@ function MarkdownRenderer({
     readMore: boolean;
     onReadMoreChange: (b: boolean) => void;
 }) {
-    const [rendered, setRendered] = useState(null);
+    const [rendered, setRendered] = useState<RenderResult | null>(null);
     const [error, setError] = useState(null);
 
     useEffect(() => {
@@ -259,7 +257,7 @@ function MarkdownRenderer({
                 .catch((error) => {
                     if (renderId !== thisRenderId) return;
                     // oh well
-                    console.error('cohost renderer error', err);
+                    console.error('cohost renderer error', error);
                     setRendered(null);
                     setError(error);
                 });
@@ -322,7 +320,8 @@ function renderMarkdown(
 
     for (const node of doc.querySelectorAll(STRIP_ELEMENTS.join(', '))) {
         pushError('strip-element', { node });
-        node.remove();
+        // unsanitized output
+        // node.remove();
     }
     for (const node of doc.querySelectorAll('input')) {
         node.disabled = true;
@@ -338,7 +337,8 @@ function renderMarkdown(
         const protocol = (src || '').match(/^(\w+):/);
         if (protocol && !allowedProtocols.includes(protocol[1])) {
             pushError('strip-img-src-protocol', { protocol: protocol[1], url: src });
-            node.removeAttribute('src');
+            // unsanitized output
+            // node.removeAttribute('src');
         }
     }
 
@@ -440,7 +440,9 @@ function handleAsyncErrors(
 
 export interface PreviewConfig {
     render: RenderConfig;
+    cohostRenderer: boolean;
     prefersReducedMotion: boolean;
+    simulateUserstyles: boolean;
 }
 
 const DEFAULT_RENDER_CONFIG: RenderConfig = {
@@ -454,6 +456,7 @@ export const DEFAULT_PREVIEW_CONFIG: PreviewConfig = {
 
     cohostRenderer: true,
     prefersReducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    simulateUserstyles: false,
 };
 
 export function PostPreview({
@@ -497,28 +500,28 @@ export function PostPreview({
 
     return (
         <div
-            class={
+            className={
                 'post-preview' +
                 (stale ? ' is-stale' : '') +
                 (config.simulateUserstyles ? ' simulate-userstyles' : '')
             }
         >
-            <div class="post-header">
+            <div className="post-header">
                 <RenderConfigEditor
                     hasCohostRenderer={!!cohostRenderer}
                     config={config}
                     onConfigChange={onConfigChange}
                 />
-                <span class="i-errors-container">
+                <span className="i-errors-container">
                     <button
                         ref={errorBtn}
-                        class={'i-errors-button' + (errorCount ? ' has-errors' : '')}
+                        className={'i-errors-button' + (errorCount ? ' has-errors' : '')}
                         disabled={!errorCount}
                         onClick={() => setErrorsOpen(true)}
                         aria-label={errorCount === 1 ? '1 error' : `${errorCount} errors`}
                     >
-                        <span class="i-errors-icon">!</span>
-                        <span class="i-errors-count">{errorCount}</span>
+                        <span className="i-errors-icon">!</span>
+                        <span className="i-errors-count">{errorCount}</span>
                     </button>
                     <Popover
                         anchor={errorBtn.current}
@@ -531,8 +534,8 @@ export function PostPreview({
             </div>
             <hr />
             {error ? (
-                <div class="prose-container p-prose-outer">
-                    <div class="inner-prose p-prose is-error">
+                <div className="prose-container p-prose-outer">
+                    <div className="inner-prose p-prose is-error">
                         {error
                             .toString()
                             .split('\n')
@@ -542,11 +545,11 @@ export function PostPreview({
                     </div>
                 </div>
             ) : (
-                <div class="prose-container p-prose-outer" ref={proseContainer}>
+                <div className="prose-container p-prose-outer" ref={proseContainer}>
                     <DynamicStyles config={config} />
                     <MarkdownRenderer
                         renderId={renderId}
-                        cohostRenderer={config.cohostRenderer && cohostRenderer}
+                        cohostRenderer={config.cohostRenderer ? cohostRenderer : null}
                         config={config.render}
                         markdown={markdown}
                         fallbackHtml={html}
@@ -556,7 +559,7 @@ export function PostPreview({
                 </div>
             )}
             <hr />
-            <div class="post-footer">
+            <div className="post-footer">
                 <ByteSize size={html.length} />
                 <CopyToClipboard disabled={!!error} data={markdown} label="Copy to clipboard" />
             </div>
@@ -578,13 +581,13 @@ function ErrorList({ errors }: { errors: ErrorMessage[] }) {
     const seenTypes = new Set<string>();
 
     return (
-        <ul class="i-errors">
+        <ul className="i-errors">
             {errors.map(({ id, props }, i) => {
                 const Component = (ERRORS as any)[id];
                 const isFirstOfType = !seenTypes.has(id.toString());
                 seenTypes.add(id.toString());
                 return (
-                    <li class="i-error" key={'r' + i}>
+                    <li className="i-error" key={'r' + i}>
                         <Component {...props} isFirstOfType={isFirstOfType} />
                     </li>
                 );
@@ -593,25 +596,33 @@ function ErrorList({ errors }: { errors: ErrorMessage[] }) {
     );
 }
 
-const RENDER_CONFIG_ITEMS = {
+interface RenderConfigItem {
+    short: [string | null, string] | null;
+    label: string;
+    description: string;
+    inRender?: boolean;
+    renderOnChange?: boolean;
+    requiresCohostRenderer?: boolean;
+}
+const RENDER_CONFIG_ITEMS: { [k: string]: RenderConfigItem } = {
     cohostRenderer: {
         short: null,
         label: 'Cohost Renderer',
-        description: 'Uses the cohost markdown renderer instead of an approximation.',
+        description: `Uses the cohost markdown renderer (from ${COHOST_RENDERER_VERSION}). Turn this off to test with an approximate renderer that is less strict.`,
         requiresCohostRenderer: true,
     },
     hasCohostPlus: {
         short: ['regular', 'plus! ✓'],
         label: 'Cohost Plus!',
-        description:
-            'Enables Cohost Plus! features (host emoji). Use this if you have Cohost Plus!',
+        description: 'Enables Cohost Plus! features (emoji). Use this if you have Cohost Plus!',
         inRender: true,
         requiresCohostRenderer: true,
     },
     disableEmbeds: {
-        short: ['embeds ✓', 'no embeds'],
+        short: [null, 'no embeds'],
         label: 'Disable Embeds',
-        description: 'Disables iframely embeds in the post. This is a feature in cohost settings.',
+        description:
+            'Disables iframely embeds in the post. This is a feature in cohost settings. Though, quite frankly, it’s not very useful here.',
         inRender: true,
         requiresCohostRenderer: true,
     },
@@ -620,14 +631,13 @@ const RENDER_CONFIG_ITEMS = {
         label: 'Reduced Motion',
         description:
             'Disables the `spin` animation and enables the `pulse` animation. This simulates the effect of @media (prefers-reduced-motion: reduce) on cohost.',
-        inRender: true,
         renderOnChange: true,
     },
     simulateUserstyles: {
         short: [null, 'userstyles ✓'],
         label: 'Simulate Userstyles',
         description:
-            'Changes a bunch of colors, for testing the effects of some cohost userstyles.',
+            'Changes a bunch of colors to a dark theme, for testing the effects of some cohost userstyles.',
     },
 };
 
@@ -637,8 +647,8 @@ function RenderConfigEditor({
     onConfigChange,
 }: {
     hasCohostRenderer: boolean;
-    config: RenderConfig;
-    onConfigChange: (c: RenderConfig) => void;
+    config: PreviewConfig;
+    onConfigChange: (c: PreviewConfig) => void;
 }) {
     const configButton = useRef<HTMLButtonElement>(null);
     const [configOpen, setConfigOpen] = useState(false);
@@ -646,7 +656,7 @@ function RenderConfigEditor({
     const items = [];
 
     if (!hasCohostRenderer || !config.cohostRenderer) {
-        items.push('(inaccurate preview)');
+        items.push('(unsanitized preview)');
     }
 
     for (const k in RENDER_CONFIG_ITEMS) {
@@ -654,23 +664,29 @@ function RenderConfigEditor({
 
         if (!v.short) continue;
         if (v.requiresCohostRenderer && (!hasCohostRenderer || !config.cohostRenderer)) continue;
-        const enabled = v.inRender ? config.render[k] : config[k];
+        const enabled = v.inRender
+            ? config.render[k as unknown as keyof RenderConfig]
+            : config[k as unknown as keyof PreviewConfig];
         const label = enabled ? v.short[1] : v.short[0];
         if (!label) continue;
         items.push(
-            <div class="config-preview-item" key={k}>
+            <div className="config-preview-item" key={k}>
                 {label}
             </div>
         );
     }
 
     return (
-        <div class="render-config">
-            <button ref={configButton} class="i-config-button" onClick={() => setConfigOpen(true)}>
-                <svg class="config-icon" viewBox="0 0 20 20">
+        <div className="render-config">
+            <button
+                ref={configButton}
+                className="i-config-button"
+                onClick={() => setConfigOpen(true)}
+            >
+                <svg className="config-icon" viewBox="0 0 20 20">
                     <path
                         fill="currentcolor"
-                        fill-rule="evenodd"
+                        fillRule="evenodd"
                         d="M11 2a1 1 0 0 1 1 1v1.342A5.994 5.994 0 0 1 13.9 5.439l1.163-.671a1 1 0 0 1 1.366.366l1 1.732a1 1 0 0 1-.366 1.366l-1.162.672a6.034 6.034 0 0 1 0 2.192l1.162.672a1 1 0 0 1 .366 1.366l-1 1.732a1 1 0 0 1-1.366.366l-1.163-.671A5.994 5.994 0 0 1 12 15.658V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-1.342A5.994 5.994 0 0 1 6.1 14.561l-1.163.671a1 1 0 0 1-1.366-.366l-1-1.732a1 1 0 0 1 .366-1.366l1.162-.672a6.034 6.034 0 0 1 0-2.192l-1.162-.672a1 1 0 0 1-.366-1.366l1-1.732a1 1 0 0 1 1.366-.366l1.163.671A5.994 5.994 0 0 1 8 4.342V3a1 1 0 0 1 1-1h2Zm-1 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm0 1a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z"
                     />
                 </svg>
@@ -698,24 +714,22 @@ function RenderConfigPopover({
     onConfigChange,
 }: {
     hasCohostRenderer: boolean;
-    config: RenderConfig;
-    onConfigChange: (c: RenderConfig) => void;
+    config: PreviewConfig;
+    onConfigChange: (c: PreviewConfig) => void;
 }) {
     const renderContext = useContext(RenderContext);
-    const cohostPlusId = Math.random().toString(36);
-    const embedsId = Math.random().toString(36);
 
     return (
-        <div class="i-config-contents">
-            <div class="i-config-title">Post Preview Settings</div>
+        <div className="i-config-contents">
+            <div className="i-config-title">Post Preview Settings</div>
             {Object.entries(RENDER_CONFIG_ITEMS).map(([k, v]) => {
                 if (v.requiresCohostRenderer && !hasCohostRenderer) return null;
                 if (k !== 'cohostRenderer' && v.requiresCohostRenderer && !config.cohostRenderer)
                     return null;
                 const checkboxId = Math.random().toString(36);
                 return (
-                    <div class="config-item" key={k}>
-                        <div class="item-header">
+                    <div className="config-item" key={k}>
+                        <div className="item-header">
                             <input
                                 id={checkboxId}
                                 type="checkbox"
@@ -728,7 +742,8 @@ function RenderConfigPopover({
                                     if (v.inRender) {
                                         newConfig.render = { ...newConfig.render, [k]: value };
                                     } else {
-                                        newConfig[k] = value;
+                                        newConfig[k as unknown as keyof PreviewConfig] =
+                                            value as any;
                                     }
                                     onConfigChange(newConfig);
                                     if (v.renderOnChange) {
@@ -736,9 +751,9 @@ function RenderConfigPopover({
                                     }
                                 }}
                             />{' '}
-                            <label for={checkboxId}>{v.label}</label>
+                            <label htmlFor={checkboxId}>{v.label}</label>
                         </div>
-                        <div class="item-description">{v.description}</div>
+                        <div className="item-description">{v.description}</div>
                     </div>
                 );
             })}
@@ -746,11 +761,11 @@ function RenderConfigPopover({
     );
 }
 
-function DynamicStyles({ config }: { config: RenderConfig }) {
+function DynamicStyles({ config }: { config: PreviewConfig }) {
     const div = useRef<HTMLDivElement>(null);
     const contents: string[] = [];
 
-    if (config.render.prefersReducedMotion) {
+    if (config.prefersReducedMotion) {
         contents.push(
             `
 @keyframes pulse {
@@ -780,7 +795,7 @@ function DynamicStyles({ config }: { config: RenderConfig }) {
         div.current.append(style);
     }, [config]);
 
-    return <div class="post-dynamic-styles" ref={div}></div>;
+    return <div className="post-dynamic-styles" ref={div}></div>;
 }
 
 function ByteSize({ size }: { size: number }) {
@@ -817,7 +832,7 @@ function CopyToClipboard({ data, label, disabled }: CopyToClipboard.Props) {
     return (
         <button
             disabled={disabled}
-            class={'copy-to-clipboard' + (copied ? ' did-copy' : '')}
+            className={'copy-to-clipboard' + (copied ? ' did-copy' : '')}
             onClick={copy}
         >
             {label}

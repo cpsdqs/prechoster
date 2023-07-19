@@ -1,5 +1,4 @@
-import { h, createRef } from 'preact';
-import { PureComponent } from 'preact/compat';
+import { createRef, PureComponent } from 'react';
 import { ModulePlugin, ModulePluginProps, PlainTextData } from '../../document';
 import './file-data.less';
 
@@ -8,7 +7,7 @@ export type FileDataUrlPluginData = {
 };
 
 class FileDataUrlEditor extends PureComponent<ModulePluginProps<FileDataUrlPluginData>> {
-    fileInput = createRef();
+    fileInput = createRef<HTMLInputElement>();
 
     onFile = () => {
         const fileInput = this.fileInput.current! as HTMLInputElement;
@@ -21,7 +20,8 @@ class FileDataUrlEditor extends PureComponent<ModulePluginProps<FileDataUrlPlugi
         }
     };
 
-    render({ data, onChange }: ModulePluginProps<FileDataUrlPluginData>) {
+    render() {
+        const { data, onChange } = this.props;
         const typeMatch = data.url.match(/^data:(.+?);/);
         const type = typeMatch ? typeMatch[1] : '';
         let preview = null;
@@ -29,7 +29,7 @@ class FileDataUrlEditor extends PureComponent<ModulePluginProps<FileDataUrlPlugi
         if (type.startsWith('text/')) {
             const contents = atob(data.url.split(',')[1]);
             if (contents) {
-                preview = <textarea readonly>{contents}</textarea>;
+                preview = <textarea readOnly>{contents}</textarea>;
             } else {
                 preview = <span />;
             }
@@ -42,9 +42,9 @@ class FileDataUrlEditor extends PureComponent<ModulePluginProps<FileDataUrlPlugi
         }
 
         return (
-            <div class="plugin-file-data-editor">
+            <div className="plugin-file-data-editor">
                 <input ref={this.fileInput} type="file" onChange={this.onFile} />
-                <div class="file-preview">{preview}</div>
+                <div className="file-preview">{preview}</div>
             </div>
         );
     }

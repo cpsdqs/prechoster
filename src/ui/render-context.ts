@@ -1,4 +1,4 @@
-import { createContext } from 'preact/compat';
+import { createContext } from 'react';
 
 export const RenderContext = createContext({
     scheduleRender: () => {},
