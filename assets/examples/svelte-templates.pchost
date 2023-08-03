@@ -1,0 +1,51 @@
+{
+  version = 1;
+  title = "Svelte Templating";
+  modules = [
+    {
+      plugin = "source.svelte";
+      data = {
+        contents = ''
+          <script>
+            import Box from './Box.svelte';
+            import textData from './text-data';
+          </script>
+
+          <Box>
+            Hello {textData.toUpperCase()}
+          </Box>'';
+      };
+      sends = [3];
+    }
+    {
+      plugin = "source.text";
+      data = { contents = "world!"; language = "text"; };
+      namedSends = { "0" = ["text-data"]; };
+    }
+    {
+      plugin = "source.svelte-component";
+      data = {
+        name = "Box";
+        contents = ''
+          <div class="box">
+            <slot></slot>
+          </div>
+
+          <style>
+            .box {
+              border: 0.3em solid black;
+              background: linear-gradient(to bottom, #fff, #eee);
+              border-radius: 0.5em;
+              padding: 0.5em 1em;
+            }
+          </style>'';
+      };
+      sends = [0];
+    }
+    {
+      plugin = "transform.style-inliner";
+      data = { mode = "attr"; };
+      sends = ["output"];
+    }
+  ];
+}

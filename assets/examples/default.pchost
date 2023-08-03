@@ -1,0 +1,76 @@
+{
+  version = 1;
+  modules = [
+    {
+      plugin = "source.text";
+      data = {
+        contents = ''
+          <div class="a-thing">
+            hello world
+          </div>
+
+          <p>
+            see <b>Examples and Templates</b> in the
+            <span class="toolbar-button">
+              <span class="sidebar-icon">
+                <svg data-background width="24" height="24">
+                  <g fill="none" stroke="white">
+                    <rect x="2.5" y="4.5" width="19" height="15" rx="3"></rect>
+                    <line x1="4.5" y1="7.5" x2="8.5" y2="7.5"></line>
+                    <line x1="4.5" y1="10.5" x2="8.5" y2="10.5"></line>
+                    <line x1="4.5" y1="13.5" x2="8.5" y2="13.5"></line>
+                    <line x1="10.5" y1="6" x2="10.5" y2="18"></line>
+                  </g>
+                </svg>
+              </span>
+            </span>
+            sidebar for more examples!
+          </p>'';
+        language = "html";
+      };
+      sends = [2];
+    }
+    {
+      plugin = "source.text";
+      data = {
+        contents = ''
+          .a-thing {
+            color: red;
+          }
+
+          .toolbar-button {
+            display: inline-flex;
+            vertical-align: middle;
+
+            align-items: center;
+            justify-content: center;
+            padding: 0 0.1em;
+
+            background: black;
+            border: 1px solid #fff4;
+            border-radius: 0.5em;
+          }
+          .sidebar-icon {
+            display: block;
+            vertical-align: middle;
+            width: 24px;
+            aspect-ratio: 1;
+            background-size: contain;
+          }'';
+        language = "css";
+      };
+      sends = [2];
+    }
+    {
+      plugin = "transform.style-inliner";
+      data = { mode = "attr"; };
+      sends = [3];
+    }
+    {
+      plugin = "transform.svg-to-background";
+      data = { useSvgo = true; };
+      sends = ["output"];
+    }
+  ];
+  title = "Style Inlining";
+}

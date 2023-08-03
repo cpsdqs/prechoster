@@ -11,6 +11,10 @@
         position: absolute;
         top: 1em;
         left: 1em;
+
+        .uikit-button {
+            font-size: smaller;
+        }
     }
 
     .react-flow__connection-path {
@@ -59,9 +63,9 @@
     .i-module-item {
         background: var(--graph-node-bg);
         --shading: inset 0 1px rgba(255, 255, 255, 0.3), inset 0 -1px rgba(0, 0, 0, 0.3);
-        --conn-port-in: var(--accent);
-        --conn-port-out: var(--accent);
-        --selected: var(--accent);
+        --conn-port-in: rgb(var(--color-accent));
+        --conn-port-out: rgb(var(--color-accent));
+        --selected: rgb(var(--color-accent));
         box-shadow: var(--shading);
         border-radius: 0.5em;
         cursor: default;

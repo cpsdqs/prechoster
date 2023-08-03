@@ -9,6 +9,7 @@ import './preview.less';
 export function Preview({
     document,
     render,
+    clickToRender,
     onTargetChange,
     onLiveChange,
     onRender,
@@ -24,7 +25,14 @@ export function Preview({
         lastPostPreviewHeight.current = preview.offsetHeight;
     });
 
-    if (render.output) {
+    if (clickToRender) {
+        contents = (
+            <div className="i-preview-click-to-render">
+                <p className="i-description">rendering paused</p>
+                <button onClick={clickToRender}>render</button>
+            </div>
+        );
+    } else if (render.output) {
         if (render.output.target) {
             const data = render.output.outputs.get(render.output.target)!;
 
@@ -142,6 +150,7 @@ namespace Preview {
     export interface Props {
         document: Document;
         render: RenderState;
+        clickToRender: (() => void) | null;
         onTargetChange: (target: RenderTarget) => void;
         onLiveChange: (live: boolean) => void;
         onRender: () => void;

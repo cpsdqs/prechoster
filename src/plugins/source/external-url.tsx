@@ -7,6 +7,7 @@ import {
 } from '../../document';
 import { useMemo } from 'react';
 import { SassModuleData } from './sass';
+import { TextField } from '../../uikit/text-field';
 
 export type ExternalUrlPluginData = {
     url: string;
@@ -21,10 +22,10 @@ function ExternalUrlEditor({ data, onChange }: ModulePluginProps<ExternalUrlPlug
         <div className="plugin-external-url-editor">
             <div>
                 <label htmlFor={urlInput}>URL</label>{' '}
-                <input
+                <TextField
                     value={data.url}
-                    onChange={(e) => {
-                        onChange({ ...data, url: e.target.value });
+                    onChange={(url) => {
+                        onChange({ ...data, url });
                     }}
                 />
             </div>

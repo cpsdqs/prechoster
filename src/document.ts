@@ -13,26 +13,104 @@ export const MAX_EVAL_STEPS = 1024;
 export const MAX_HISTORY_LEN = 300;
 export const MOD_OUTPUT: ModuleId = 'output';
 
+export enum ChangeType {
+    Load = 'load',
+    AddModule = 'add module',
+    RemoveModule = 'remove module',
+    UpdateModule = 'update module',
+    RearrangeModules = 'rearrange modules',
+    SetTitle = 'set title',
+}
+
+type HistoryChangeDesc =
+    | {
+          type: ChangeType.UpdateModule;
+          module: ModuleId;
+      }
+    | {
+          type: ChangeType.Load;
+      }
+    | {
+          type: ChangeType.RemoveModule;
+      }
+    | {
+          type: ChangeType.AddModule;
+      }
+    | {
+          type: ChangeType.RearrangeModules;
+      }
+    | {
+          type: ChangeType.SetTitle;
+      };
+
+const HISTORY_COALESION_TIME_MS = 5000;
+
+function shouldCoalesceChanges(a: HistoryChangeDesc, b: HistoryChangeDesc) {
+    if (a.type === ChangeType.UpdateModule && b.type === ChangeType.UpdateModule) {
+        if (a.module === b.module) return true;
+    }
+    if (a.type === ChangeType.SetTitle && a.type === b.type) return true;
+    return false;
+}
+
+interface HistoryEntry {
+    state: DocumentState;
+    desc: HistoryChangeDesc;
+    time: number;
+}
+
+export interface DocumentState {
+    title: string;
+    titleInPost: boolean;
+    modules: AnyModule[];
+}
+
 export class Document extends EventTarget {
-    history: AnyModule[][] = [[]];
+    history: HistoryEntry[] = [
+        {
+            state: { title: '', titleInPost: false, modules: [] },
+            desc: { type: ChangeType.Load },
+            time: Date.now(),
+        },
+    ];
     historyCursor = 0;
 
-    get modules() {
-        return this.history[this.historyCursor];
+    init(state: DocumentState) {
+        if (this.history.length > 1) throw new Error('cannot init in this state');
+        this.history[0].state = state;
+    }
+
+    get state(): Readonly<DocumentState> {
+        return this.history[this.historyCursor].state;
+    }
+
+    get title(): string {
+        return this.state.title;
+    }
+
+    get titleInPost(): boolean {
+        return this.state.titleInPost;
+    }
+
+    get modules(): Readonly<AnyModule[]> {
+        return this.state.modules;
     }
 
     get canUndo() {
         return this.historyCursor > 0;
     }
+
     get canRedo() {
         return this.historyCursor < this.history.length - 1;
     }
+
     undo() {
         if (this.canUndo) {
             this.historyCursor--;
             this.emitChange();
         }
     }
+
     redo() {
         if (this.canRedo) {
             this.historyCursor++;
@@ -40,31 +118,74 @@ export class Document extends EventTarget {
         }
     }
 
-    beginChange() {
+    pushHistoryState(state: DocumentState, desc: HistoryChangeDesc) {
         this.history.splice(this.historyCursor + 1);
         while (this.history.length > MAX_HISTORY_LEN) {
             this.history.shift();
             this.historyCursor--;
         }
-        this.history.push(this.modules.slice());
-        this.historyCursor++;
+
+        const lastItem = this.history[this.history.length - 1];
+        const newItem: HistoryEntry = {
+            state,
+            desc,
+            time: Date.now(),
+        };
+        if (
+            lastItem &&
+            shouldCoalesceChanges(lastItem.desc, newItem.desc) &&
+            lastItem.time > Date.now() - HISTORY_COALESION_TIME_MS
+        ) {
+            newItem.time = lastItem.time;
+            this.history[this.history.length - 1] = newItem;
+        } else {
+            this.history.push(newItem);
+            this.historyCursor++;
+        }
+
+        this.emitChange();
     }
+
+    pushModulesState(modules: AnyModule[], desc: HistoryChangeDesc) {
+        return this.pushHistoryState(
+            {
+                title: this.title,
+                titleInPost: false,
+                modules,
+            },
+            desc
+        );
+    }
+
     emitChange() {
         this.dispatchEvent(new CustomEvent('change'));
     }
-    setModules(modules: AnyModule[]) {
-        if (!modules) throw new Error('setModules argument missing');
-        this.history[this.historyCursor] = modules;
-        this.emitChange();
+
+    beginBatch(): { end: () => void } {
+        const pos = this.historyCursor;
+        return {
+            end: () => {
+                if (this.historyCursor <= pos) return;
+                this.history[pos] = this.history[this.historyCursor];
+                this.history.splice(pos, this.historyCursor - pos);
+                this.historyCursor = pos;
+            },
+        };
     }
 
     insertModule(module: AnyModule) {
         const index = this.modules.findIndex((m) => m.id === module.id);
         if (index === -1) {
-            this.modules.push(module);
+            this.pushModulesState(this.modules.concat([module]), { type: ChangeType.AddModule });
             return;
+        } else {
+            const newModules = this.modules.slice();
+            newModules[index] = module;
+            this.pushModulesState(newModules, {
+                type: ChangeType.UpdateModule,
+                module: module.id,
+            });
         }
-        this.modules[index] = module;
     }
 
     removeModule(moduleId: ModuleId) {
@@ -72,7 +193,6 @@ export class Document extends EventTarget {
         const index = modules.findIndex((module) => module.id === moduleId);
         if (index === -1) return;
 
-        this.beginChange();
         modules.splice(index, 1);
 
         for (let i = 0; i < modules.length; i++) {
@@ -87,7 +207,17 @@ export class Document extends EventTarget {
             }
         }
 
-        this.setModules(modules);
+        this.pushModulesState(modules, { type: ChangeType.RemoveModule });
+    }
+
+    setTitle(title: string) {
+        this.pushHistoryState(
+            {
+                ...this.state,
+                title,
+            },
+            { type: ChangeType.SetTitle }
+        );
     }
 
     /** Lazily evaluates the output of the given module. */
@@ -258,21 +388,8 @@ export class Document extends EventTarget {
         }
     }
 
-    cloneFrom(doc: Document) {
-        this.beginChange();
-        this.setModules(doc.modules);
-    }
-
-    static deserialize(_data: JsonValue): Document {
-        const data = _data as any; // just assume it's fine
-
-        const doc = new Document();
-        doc.setModules(data.modules.map((module: JsonValue) => Module.deserialize(doc, module)));
-        return doc;
-    }
-
-    serialize(): JsonValue {
-        return { modules: this.modules.map((module) => module.serialize()) };
+    loadFrom(doc: Document) {
+        this.pushHistoryState(doc.state, { type: ChangeType.Load });
     }
 }
 
@@ -314,6 +431,7 @@ export interface RenderOutput {
     outputs: Map<ModuleId, Data>;
     /** The final markdown output, if the render target is the output */
     markdownOutput: string | null;
+
     /** Drops all resources allocated by the render output */
     drop(): void;
 }
@@ -356,37 +474,6 @@ export class Module<T extends JsonValue> {
         mod.graphPos = this.graphPos;
         return mod as this;
     }
-
-    static deserialize(document: Document, _data: JsonValue): Module<JsonValue> {
-        // just assume it's fine
-        const data = _data as any;
-
-        const module = new Module(new UnloadedPlugin(data.pluginId, document), data.data);
-        module.id = data.id;
-        module.sends = data.sends;
-        for (const k in data.namedSends) {
-            module.namedSends.set(k, new Set(data.namedSends[k]));
-        }
-        if (data.graphPos) {
-            module.graphPos = { x: data.graphPos[0], y: data.graphPos[1] };
-        }
-        // TODO: validate sends
-        return module;
-    }
-
-    serialize(): JsonValue {
-        const namedSends: JsonValue = {};
-        for (const [k, v] of this.namedSends) namedSends[k] = [...v];
-
-        return {
-            id: this.id,
-            data: this.data,
-            pluginId: this.plugin.id,
-            sends: this.sends,
-            namedSends,
-            graphPos: this.graphPos ? [this.graphPos.x, this.graphPos.y] : null,
-        };
-    }
 }
 
 export type ModuleId = string;
@@ -421,19 +508,24 @@ export class UnloadedPlugin implements ModulePlugin<JsonValue> {
     acceptsInputs = false;
     acceptsNamedInputs = false;
     document: Document;
+
     constructor(id: string, document: Document) {
         this.id = id;
         this.document = document;
     }
+
     component() {
         return null;
     }
+
     initialData(): JsonValue {
         throw new Error('plugin not loaded');
     }
+
     description() {
         return 'Loading';
     }
+
     eval(): Promise<Data> {
         throw new Error('plugin not loaded');
     }
@@ -508,6 +600,7 @@ export class PlainTextData extends Data {
 
 export class HtmlData extends PlainTextData {
     typeId = 'text/html';
+
     asMdOutput() {
         return this.contents;
     }

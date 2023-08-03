@@ -5,7 +5,14 @@
 .module-list {
     flex: 1;
     position: relative;
-    overflow: hidden scroll;
+    animation: module-list-fade-in 0.5s 0.3s backwards;
+
+    /* hide the janky initial layout */
+    @keyframes module-list-fade-in {
+        0% {
+            opacity: 0;
+        }
+    }
 
     .add-module {
         padding: 0.75em;
@@ -73,19 +80,18 @@
                     font: inherit;
                     margin: 0;
                     padding: 0;
-                    border: none;
                     background: none;
                     width: 1.5em;
                     height: 1.5em;
                     border-radius: 0.5em;
                     color: inherit;
-                    border: 1px solid var(--accent);
+                    border: 1px solid rgb(var(--color-accent));
                     position: relative;
                     vertical-align: 0.3em;
 
                     &:active {
-                        background: var(--accent);
-                        color: var(--accent-content-fg);
+                        background: rgb(var(--color-accent));
+                        color: rgb(var(--color-accent-fg));
                     }
 
                     &::before {

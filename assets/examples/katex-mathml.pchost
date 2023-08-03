@@ -1,0 +1,98 @@
+{
+  version = 1;
+  title = "KaTeX MathML";
+  modules = [
+    {
+      plugin = "source.text";
+      data = {
+        contents = ''
+          here’s some math:
+          $$f*g = \int_{-\infty}^\infty f(t)\,g(x-t)\,dt$$
+
+          and some inline math also: $e^{\tau i}=1$
+
+          <div class="spin-container">
+            <div class="spinning">
+              $$
+                \left[\begin{matrix}
+                  \cos\theta & -\sin\theta \\
+                  \sin\theta & \cos\theta
+                \end{matrix}\right]
+              $$
+            </div>
+          </div>'';
+        language = "html";
+      };
+      namedSends = { "4" = ["text"]; };
+    }
+    {
+      plugin = "source.text";
+      data = {
+        contents = ''
+          .spin-container {
+            text-align: center;
+            padding: 1em 0;
+          }
+
+          .spinning {
+            display: inline-block;
+            animation: spin 10s infinite linear;
+          }'';
+        language = "css";
+      };
+      sends = [2];
+    }
+    {
+      plugin = "transform.style-inliner";
+      data = { mode = "attr"; };
+      sends = [3];
+    }
+    {
+      plugin = "transform.svg-to-background";
+      data = { useSvgo = true; };
+      sends = ["output"];
+    }
+    {
+      plugin = "source.svelte";
+      data = {
+        contents = ''
+          <script>
+            import katex from './katex.js';
+            import text from './text';
+
+            function katexRender(c, display) {
+              const element = document.createElement('div');
+              katex.render(c, element, {
+                output: 'mathml',
+                displayMode: display,
+                throwOnError: false,
+              });
+
+              // annotations are not supported
+              for (const annotation of element.querySelectorAll('annotation')) {
+                annotation.remove();
+              }
+
+              return element.innerHTML;
+            }
+
+            const rendered = text.replace(/\$\$(((?!\$\$)[\s\S])+)\$\$/g, (m, c) => {
+              return katexRender(c, true);
+            }).replace(/\$(((?!\$|\\\$)[\s\S])+)\$/g, (m, c) => {
+              return katexRender(c);
+            });
+          </script>
+          {@html rendered}'';
+      };
+      sends = [2];
+    }
+    {
+      plugin = "source.external-url-data";
+      data = {
+        url = "https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.mjs";
+        type = "javascript";
+      };
+      namedSends = { "4" = ["katex.js"]; };
+    }
+  ];
+}

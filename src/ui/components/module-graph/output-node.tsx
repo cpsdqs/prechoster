@@ -4,7 +4,7 @@ import { Position, Handle } from 'reactflow';
 import eggbug from 'string:eggbug.svg';
 // @ts-ignore
 import eggbugSleep from 'string:eggbug-sleep.svg';
-import { AnimationController, Spring } from '../../animation';
+import { AnimationController, Spring } from '../../../uikit/frame-animation';
 
 export function OutputNode({ data }: { data: any }) {
     const node = useRef<HTMLDivElement>(null);

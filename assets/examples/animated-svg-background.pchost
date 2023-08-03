@@ -1,0 +1,72 @@
+{
+  version = 1;
+  title = "Animated SVG Background";
+  modules = [
+    {
+      plugin = "source.text";
+      data = {
+        contents = ''
+          <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+            <circle class="animated-circle" cx="100" cy="100" r="50" />
+          </svg>'';
+        language = "html";
+      };
+      sends = [2];
+    }
+    {
+      plugin = "source.lesscss";
+      data = {
+        contents = ''
+          .animated-circle {
+            transform-origin: 50% 50%;
+            animation: pulse 2s infinite;
+          }
+
+          @keyframes pulse {
+            0%, 100% {
+              transform: scale(0.5);
+            }
+            50% {
+              transform: scale(1);
+            }
+          }'';
+      };
+      sends = [2];
+    }
+    {
+      plugin = "transform.style-inliner";
+      data = { mode = "element"; };
+      sends = [3];
+    }
+    {
+      plugin = "transform.to-data-url";
+      data = { mime = "image/svg+xml"; };
+      namedSends = { "5" = ["svg"]; };
+    }
+    {
+      plugin = "source.text";
+      data = {
+        contents = "<div class=\"svg-container\"></div>";
+        language = "html";
+      };
+      sends = [6];
+    }
+    {
+      plugin = "source.lesscss";
+      data = {
+        contents = ''
+          .svg-container {
+            width: 200px;
+            height: 200px;
+            background: url("@{svg}");
+          }'';
+      };
+      sends = [6];
+    }
+    {
+      plugin = "transform.style-inliner";
+      data = { mode = "attr"; };
+      sends = ["output"];
+    }
+  ];
+}

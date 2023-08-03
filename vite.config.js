@@ -1,6 +1,7 @@
-import fs from 'fs';
-import path from 'path';
-import url from 'url';
+import fs from 'node:fs';
+import path from 'node:path';
+import url from 'node:url';
+import childProcess from 'node:child_process';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
@@ -9,6 +10,12 @@ const prod = process.env.NODE_ENV === 'production';
 
 const CONFIG = {
     staticUrlPrefix: process.env.PRECHOSTER_STATIC || 'https://cohost.org/static/',
+    gitCommitHash: childProcess
+        .execSync('git rev-parse --short HEAD', {
+            cwd: __dirname,
+            encoding: 'utf-8',
+        })
+        .trim(),
 };
 
 console.error(`\x1b[32mUsing PRECHOSTER_STATIC=${CONFIG.staticUrlPrefix}\x1b[m`);

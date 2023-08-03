@@ -1,7 +1,11 @@
-import { Fragment, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { micromark } from 'micromark';
-import { gfm, gfmHtml } from 'micromark-extension-gfm';
-import { Popover } from './popover';
+import React, { Fragment, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { unified } from 'unified';
+import remarkParse from 'remark-parse';
+import remarkBreaks from 'remark-breaks';
+import remarkGfm from 'remark-gfm';
+import remarkRehype from 'remark-rehype';
+import rehypeStringify from 'rehype-stringify';
+import { DirPopover } from '../../uikit/dir-popover';
 import {
     COHOST_RENDERER_VERSION,
     loadRenderer,
@@ -11,6 +15,7 @@ import {
 } from './cohost-renderer';
 import { RenderContext } from '../render-context';
 import './post-preview.less';
+import { CohostPlusIcon, CohostRegularIcon, PreviewRenderIcon } from './icons';
 
 const STRIP_ELEMENTS = [
     'address',
@@ -64,6 +69,7 @@ const STRIP_ELEMENTS = [
 interface ErrProps {
     isFirstOfType: boolean;
 }
+
 const ERRORS = {
     'strip-element'({ node, isFirstOfType }: { node: Element } & ErrProps) {
         let tagName = '???';
@@ -177,6 +183,7 @@ function BasicRenderer({ html }: { html: string }) {
     return (
         <div
             className="inner-prose p-prose basic-renderer"
+            role="article"
             dangerouslySetInnerHTML={{ __html: html }}
         />
     );
@@ -198,7 +205,11 @@ function CohostRenderer({
 }) {
     return (
         <Fragment>
-            <div className="inner-prose p-prose cohost-renderer" key={RESET_ON_RENDER && renderId}>
+            <div
+                className="inner-prose p-prose cohost-renderer"
+                role="article"
+                key={RESET_ON_RENDER && renderId}
+            >
                 {rendered.initial}
                 {readMore ? rendered.expanded : null}
             </div>
@@ -282,16 +293,23 @@ function renderMarkdown(
     markdown: string,
     pushError: (id: keyof typeof ERRORS, props: { [k: string]: any }) => void
 ) {
+    const renderedMarkdown = unified()
+        .use(remarkParse)
+        .use(remarkBreaks)
+        .use(remarkGfm, {
+            singleTilde: false,
+        })
+        .use(remarkRehype, {
+            allowDangerousHtml: true,
+        })
+        .use(rehypeStringify, {
+            allowDangerousHtml: true,
+        })
+        .processSync(markdown)
+        .toString();
+
     const doc = new DOMParser().parseFromString(
-        [
-            '<!doctype html><html><head></head><body>',
-            micromark(markdown, {
-                allowDangerousHtml: true,
-                extensions: [gfm({ singleTilde: false })],
-                htmlExtensions: [gfmHtml()],
-            }),
-            '</body></html>',
-        ].join(''),
+        ['<!doctype html><html><head></head><body>', renderedMarkdown, '</body></html>'].join(''),
         'text/html'
     );
 
@@ -493,7 +511,9 @@ export function PostPreview({
         asyncErrors.splice(0);
         setAsyncErrors([...asyncErrors]);
 
-        handleAsyncErrors(proseContainer.current!, pushAsyncError);
+        if (proseContainer.current) {
+            handleAsyncErrors(proseContainer.current, pushAsyncError);
+        }
     }, [html]);
 
     const errorCount = renderErrors.length + asyncErrors.length;
@@ -523,13 +543,13 @@ export function PostPreview({
                         <span className="i-errors-icon">!</span>
                         <span className="i-errors-count">{errorCount}</span>
                     </button>
-                    <Popover
+                    <DirPopover
                         anchor={errorBtn.current}
                         open={errorsOpen}
                         onClose={() => setErrorsOpen(false)}
                     >
                         <ErrorList errors={renderErrors.concat(asyncErrors)} />
-                    </Popover>
+                    </DirPopover>
                 </span>
             </div>
             <hr />
@@ -566,6 +586,7 @@ export function PostPreview({
         </div>
     );
 }
+
 namespace PostPreview {
     export interface Props {
         renderId: string;
@@ -604,6 +625,7 @@ interface RenderConfigItem {
     renderOnChange?: boolean;
     requiresCohostRenderer?: boolean;
 }
+
 const RENDER_CONFIG_ITEMS: { [k: string]: RenderConfigItem } = {
     cohostRenderer: {
         short: null,
@@ -612,7 +634,7 @@ const RENDER_CONFIG_ITEMS: { [k: string]: RenderConfigItem } = {
         requiresCohostRenderer: true,
     },
     hasCohostPlus: {
-        short: ['regular', 'plus! ✓'],
+        short: null,
         label: 'Cohost Plus!',
         description: 'Enables Cohost Plus! features (emoji). Use this if you have Cohost Plus!',
         inRender: true,
@@ -656,7 +678,11 @@ function RenderConfigEditor({
     const items = [];
 
     if (!hasCohostRenderer || !config.cohostRenderer) {
-        items.push('(unsanitized preview)');
+        items.push(<PreviewRenderIcon key="preview" />);
+    } else if (config.render.hasCohostPlus) {
+        items.push(<CohostPlusIcon key="preview" />);
+    } else {
+        items.push(<CohostRegularIcon key="preview" />);
     }
 
     for (const k in RENDER_CONFIG_ITEMS) {
@@ -692,7 +718,7 @@ function RenderConfigEditor({
                 </svg>
                 {items}
             </button>
-            <Popover
+            <DirPopover
                 anchor={configButton.current}
                 anchorBias="left"
                 open={configOpen}
@@ -703,7 +729,7 @@ function RenderConfigEditor({
                     config={config}
                     onConfigChange={onConfigChange}
                 />
-            </Popover>
+            </DirPopover>
         </div>
     );
 }
@@ -722,6 +748,14 @@ function RenderConfigPopover({
     return (
         <div className="i-config-contents">
             <div className="i-config-title">Post Preview Settings</div>
+            {!hasCohostRenderer && (
+                <div className="i-cohost-unavailable">
+                    <div className="i-icon">
+                        <PreviewRenderIcon />
+                    </div>
+                    <div>cohost renderer unavailable</div>
+                </div>
+            )}
             {Object.entries(RENDER_CONFIG_ITEMS).map(([k, v]) => {
                 if (v.requiresCohostRenderer && !hasCohostRenderer) return null;
                 if (k !== 'cohostRenderer' && v.requiresCohostRenderer && !config.cohostRenderer)
@@ -839,6 +873,7 @@ function CopyToClipboard({ data, label, disabled }: CopyToClipboard.Props) {
         </button>
     );
 }
+
 namespace CopyToClipboard {
     export interface Props {
         data: string;

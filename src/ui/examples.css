@@ -1,13 +1,13 @@
 .examples-menu {
-    width: 30em;
-    max-width: 100%;
-
     .i-header {
         padding: 0.75em;
 
         .i-title {
             margin: 0;
             font-size: 1.2em;
+        }
+        .i-description {
+            margin: 0;
         }
     }
 
@@ -30,6 +30,7 @@
         margin: 0;
         padding: 0;
         list-style: none;
+        transition: opacity 0.3s;
 
         &.is-loading-example {
             opacity: 0.5;
@@ -39,9 +40,6 @@
         .i-example-item {
             position: relative;
             padding: 0.5em 0.75em;
-            display: flex;
-            gap: 0.5em;
-            align-items: center;
 
             &:not(:last-child)::after {
                 position: absolute;
@@ -50,6 +48,12 @@
                 right: 0.75em;
                 bottom: 0;
                 border-top: 1px solid var(--separator);
+            }
+
+            .i-inner {
+                display: flex;
+                gap: 0.5em;
+                align-items: center;
             }
 
             .i-details {

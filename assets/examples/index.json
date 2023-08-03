@@ -1,33 +1,33 @@
 {
-    "default.json": {
+    "default.pchost": {
         "title": "Style Inlining",
         "description": "Inline a CSS stylesheet into HTML."
     },
-    "lesscss-files.json": {
-        "title": "LessCSS Inline Files",
-        "description": "Use LessCSS to include files as background images."
+    "lesscss-files.pchost": {
+        "title": "LessCSS Variables",
+        "description": "Use LessCSS variables to include files as background images."
     },
-    "scss-files.json": {
-        "title": "Sass Inline Files and Modules",
+    "scss-files.pchost": {
+        "title": "Sass Modules",
         "description": "Use Sass modules to include files as background images."
     },
-    "svelte-templates.json": {
+    "svelte-templates.pchost": {
         "title": "Svelte Templating",
         "description": "Use Svelte components for various kinds of templating."
     },
-    "svelte-chat-log.json": {
-        "title": "Chat Log",
+    "svelte-chat-log.pchost": {
+        "title": "Svelte Chat Log",
         "description": "Use Svelte to create a simple chat log template."
     },
-    "katex-mathml.json": {
+    "katex-mathml.pchost": {
         "title": "KaTeX MathML",
         "description": "Use KaTeX to easily render TeX markup to MathML."
     },
-    "animated-svg-background.json": {
+    "animated-svg-background.pchost": {
         "title": "Animated SVG Background",
         "description": "Use @keyframes to animate SVG elements and embed them as a background image."
     },
-    "svg-conditional-css.json": {
+    "svg-conditional-css.pchost": {
         "title": "Conditional CSS inside SVG",
         "description": "Use SVG backgrounds to trigger CSS animation with a click interaction."
     }

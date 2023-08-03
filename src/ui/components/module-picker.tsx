@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
-import { Popover } from './popover';
+import { DirPopover } from '../../uikit/dir-popover';
 import { ModuleDef, MODULES } from '../../plugins';
 import { ModulePlugin, JsonValue } from '../../document';
 import './module-picker.less';
 
 export function ModulePicker({ open, anchor, onClose, onPick }: ModulePicker.Props) {
     return (
-        <Popover open={open} onClose={onClose} anchor={anchor}>
+        <DirPopover open={open} onClose={onClose} anchor={anchor}>
             <div className="module-picker-items">
                 {Object.keys(MODULES).map((moduleId) => (
                     <Module
@@ -18,7 +18,7 @@ export function ModulePicker({ open, anchor, onClose, onPick }: ModulePicker.Pro
                     />
                 ))}
             </div>
-        </Popover>
+        </DirPopover>
     );
 }
 namespace ModulePicker {

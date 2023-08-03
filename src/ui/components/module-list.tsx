@@ -7,8 +7,10 @@ import {
     JsonValue,
     NamedSends,
     MOD_OUTPUT,
+    ChangeType,
 } from '../../document';
-import { AnimationController, Spring } from '../animation';
+import { AnimationController, Spring } from '../../uikit/frame-animation';
+import { shouldReduceMotion } from '../../uikit/animation';
 import { ModulePicker } from './module-picker';
 import './module-list.less';
 
@@ -162,8 +164,11 @@ export class ModuleList extends PureComponent<ModuleList.Props, ModuleListState>
     }
 
     update(dt: number) {
+        const reducedMotion = shouldReduceMotion();
+
         let isDone = true;
         for (const item of this.listItems.values()) {
+            if (reducedMotion) item.position.value = item.position.target;
             isDone = item.position.update(dt) && isDone;
         }
         this.forceUpdate();
@@ -184,7 +189,6 @@ export class ModuleList extends PureComponent<ModuleList.Props, ModuleListState>
             if (i + delta < 0) return;
             if (i + delta >= document.modules.length) return;
 
-            document.beginChange();
             const modules = document.modules.slice();
             const tmp = modules[i + delta];
             modules[i + delta] = module;
@@ -194,7 +198,7 @@ export class ModuleList extends PureComponent<ModuleList.Props, ModuleListState>
             this.listItems.get(module.id)!.offsetTop = this.listItems.get(tmp.id)!.offsetTop;
             this.listItems.get(tmp.id)!.offsetTop = tmpTop;
 
-            document.setModules(modules);
+            document.pushModulesState(modules, { type: ChangeType.RearrangeModules });
         } else if (action === 'dragStart') {
             const moduleItem = this.listItems.get(module.id)!;
             const moveButton = moduleItem.ref.current!.moveButton.current!;
@@ -210,9 +214,11 @@ export class ModuleList extends PureComponent<ModuleList.Props, ModuleListState>
                 const m = modules[j];
                 const li = this.listItems.get(m.id)!;
                 const headerHeight = li.ref.current?.header?.current?.offsetHeight || 0;
+                const borderHeight = 2;
+                const totalHeight = headerHeight + borderHeight;
 
-                if (j < i) precedingHeight += headerHeight;
-                itemHeights.set(m.id, headerHeight);
+                if (j < i) precedingHeight += totalHeight;
+                itemHeights.set(m.id, totalHeight);
             }
             const topOffset = moduleTop - precedingHeight;
 
@@ -299,8 +305,7 @@ export class ModuleList extends PureComponent<ModuleList.Props, ModuleListState>
                     const newModules = modules.slice();
                     newModules.splice(i, 1);
                     newModules.splice(insertionPos, 0, module);
-                    this.props.document.beginChange();
-                    this.props.document.setModules(newModules);
+                    document.pushModulesState(newModules, { type: ChangeType.RearrangeModules });
                 }
             }
         }
@@ -342,11 +347,7 @@ export class ModuleList extends PureComponent<ModuleList.Props, ModuleListState>
                             module={module}
                             onSelect={() => this.props.onSelect(module.id)}
                             onChange={(m) => {
-                                // TODO: history coalescion
-                                document.beginChange();
-                                const modules = document.modules.slice();
-                                modules[i] = m;
-                                document.setModules(modules);
+                                document.insertModule(m);
                             }}
                             onMove={this.onModuleMove(module, i)}
                             state={this.listItems.get(module.id)!}
@@ -359,8 +360,7 @@ export class ModuleList extends PureComponent<ModuleList.Props, ModuleListState>
                     ))}
                     <AddModule
                         onAdd={(module) => {
-                            document.beginChange();
-                            document.setModules(document.modules.concat([module]));
+                            document.insertModule(module);
                         }}
                     />
                 </div>
@@ -401,7 +401,7 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
         collapsed: false,
     };
     node = createRef<HTMLDivElement>();
-    header = createRef<HTMLElement>();
+    header = createRef<HTMLDivElement>();
     moveButton = createRef<HTMLButtonElement>();
     nodeId = Math.random().toString(36);
     labelNodeId = Math.random().toString(36);
@@ -466,7 +466,7 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
                 style={{ top, transform }}
                 ref={this.node}
             >
-                <header className="i-header" ref={this.header}>
+                <div className="i-header" ref={this.header} role="group" aria-label="header">
                     <div className="i-title">
                         <button
                             className="i-remove"
@@ -490,7 +490,7 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
                             aria-valuenow={index + 1}
                             aria-valuemax={document.modules.length}
                             aria-valuetext={`${index + 1}${
-                                [, 'st', 'nd', 'rd'][(index + 1) % 10] || 'th'
+                                [null, 'st', 'nd', 'rd'][(index + 1) % 10] || 'th'
                             }`}
                             onFocus={() => onMove('focus', null)}
                             onBlur={() => onMove('blur', null)}
@@ -527,7 +527,7 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
                             {this.state.collapsed ? '▶' : '▼'}
                         </button>
                     </div>
-                </header>
+                </div>
                 <div className="i-editor">
                     <Editor
                         document={document}
@@ -543,7 +543,7 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
                         }}
                     />
                 </div>
-                <footer className="i-footer" aria-label="Connections">
+                <div className="i-footer" role="group" aria-label="Connections">
                     <ModuleSends
                         document={document}
                         sends={module.sends}
@@ -562,7 +562,7 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
                             onChange(newModule);
                         }}
                     />
-                </footer>
+                </div>
             </div>
         );
     }

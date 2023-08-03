@@ -1,0 +1,41 @@
+.uikit-text-field {
+    display: inline-flex;
+    width: 16em;
+    max-width: 100%;
+    background: rgb(var(--color-shade) / var(--color-shade-opacity));
+    border: 1px solid rgb(var(--color-soft-outline) / var(--color-soft-outline-opacity));
+    border-radius: 0.5em;
+    box-sizing: border-box;
+
+    .i-inner-field {
+        margin: 0;
+        background: none;
+        font: inherit;
+        color: inherit;
+        padding: 0.5em 1em;
+        border: none;
+        width: 0;
+        flex: 1;
+
+        &:focus {
+            outline: none;
+        }
+    }
+
+    &.is-focused {
+        box-shadow: 0 0 0 0.2em rgb(var(--color-accent) / 0.5);
+        animation: uikit-text-field-focus-in 0.3s var(--ease-default);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .uikit-text-field.is-focused {
+        animation: none;
+    }
+}
+
+@keyframes uikit-text-field-focus-in {
+    0% {
+        box-shadow: 0 0 0 1em rgb(var(--color-accent) / 0);
+    }
+}

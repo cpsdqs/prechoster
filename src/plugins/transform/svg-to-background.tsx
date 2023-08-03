@@ -58,6 +58,12 @@ export default {
 
         for (const svg of doc.querySelectorAll('svg[data-background]')) {
             const parent = svg.parentNode!;
+
+            // remove whitespace
+            if (svg.nextSibling?.nodeType === 3 && !svg.nextSibling?.textContent?.trim()) {
+                svg.nextSibling.remove();
+            }
+
             svg.remove();
             svg.removeAttribute('data-background');
             if (!svg.hasAttribute('xmlns')) svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');

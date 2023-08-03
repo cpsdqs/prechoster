@@ -76,8 +76,8 @@
         .i-config-button {
             display: inline-flex;
             opacity: 1;
-            border-color: var(--accent);
-            --active-bg: var(--accent);
+            border-color: rgb(var(--color-accent));
+            --active-bg: rgb(var(--color-accent));
             gap: 0.1em;
             padding: 0.1em;
             white-space: nowrap;
@@ -175,6 +175,17 @@
                 padding: 0.5em;
             }
 
+            .i-cohost-unavailable {
+                display: flex;
+                align-items: center;
+                gap: 0.5em;
+                padding: 0.5em;
+
+                .i-icon {
+                    flex-shrink: 0;
+                }
+            }
+
             .config-item {
                 padding: 0.5em;
                 border-top: 1px solid var(--separator);
@@ -221,7 +232,7 @@
             position: relative;
             font: inherit;
             background: none;
-            border: 1px solid var(--accent);
+            border: 1px solid rgb(var(--color-accent));
             border-radius: 0.5em;
             padding: 0.2em 0.3em;
             font-size: smaller;
@@ -233,19 +244,19 @@
             }
 
             &:active {
-                background: var(--accent);
-                color: var(--accent-content-fg);
+                background: rgb(var(--color-accent));
+                color: rgb(var(--color-accent-fg));
             }
 
             &.did-copy {
                 animation: post-preview-copy-to-clipboard-did-copy 1s;
                 @keyframes post-preview-copy-to-clipboard-did-copy {
                     0% {
-                        background: var(--accent);
+                        background: rgb(var(--color-accent));
                         color: transparent;
                     }
                     90% {
-                        background: var(--accent);
+                        background: rgb(var(--color-accent));
                         color: transparent;
                     }
                 }
@@ -256,7 +267,7 @@
                     top: 50%;
                     left: 50%;
                     transform: translate(-50%, -50%);
-                    color: var(--accent-content-fg);
+                    color: rgb(var(--color-accent-fg));
 
                     animation: post-preview-copy-to-clipboard-did-copy-after 1s;
                     @keyframes post-preview-copy-to-clipboard-did-copy-after {
@@ -272,7 +283,7 @@
                             transform: translate(-50%, -50%);
                         }
                         90% {
-                            color: var(--accent-content-fg);
+                            color: rgb(var(--color-accent-fg));
                         }
                         100% {
                             color: transparent;
@@ -345,7 +356,7 @@
 
             & > .prose-read-more {
                 background: inherit;
-                color: color-mix(in lab, var(--accent), white);
+                color: color-mix(in lab, rgb(var(--color-accent)), white);
             }
         }
     }

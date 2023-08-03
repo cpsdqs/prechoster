@@ -1,0 +1,149 @@
+{
+  version = 1;
+  title = "Conditional CSS inside SVG";
+  modules = [
+    {
+      plugin = "source.text";
+      data = {
+        contents = ''
+          ### triggering conditional CSS inside SVG backgrounds
+
+          The &lt;details&gt; element here has a size of 200×200 pixels, but when opened, it has a size of 200×201 pixels (because of the .inner-spacer element).
+
+          By using an SVG background that does not have a viewBox and a background-size of 100%, the browser will actually pass the size of the container to the SVG image. So, inside the SVG (module #6 LessCSS), we can check for the case where the container is larger than 200 pixels, and apply a simple animation (or a more complex animation…)
+
+          <details class="svg-container">
+            <summary></summary>
+            <div class="inner-spacer"></div>
+          </details>'';
+        language = "html";
+      };
+      sends = [2];
+    }
+    {
+      plugin = "source.lesscss";
+      data = {
+        contents = ''
+          .svg-container {
+            display: inline-block;
+            background: url("@{svg}") top left no-repeat;
+            background-size: 100% 100%;
+
+            & > summary {
+              width: 200px;
+              height: 200px;
+              font-size: 0; /* hide the arrow */
+            }
+
+            .inner-spacer {
+              height: 1px;
+            }
+          }'';
+      };
+      sends = [2];
+    }
+    {
+      plugin = "transform.style-inliner";
+      data = { mode = "attr"; };
+      sends = ["output"];
+    }
+    {
+      plugin = "transform.to-data-url";
+      data = { mime = "image/svg+xml"; };
+      namedSends = { "1" = ["svg"]; };
+    }
+    {
+      plugin = "source.text";
+      data = {
+        contents = ''
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="200"
+            height="200">
+            <foreignObject width="200" height="200">
+              <div class="container" xmlns="http://www.w3.org/1999/xhtml">
+                <div class="animation-fix"></div>
+                <div class="click-prompt">
+                  click me…
+                </div>
+                <div class="contents">
+                  click me to go back
+                </div>
+              </div>
+            </foreignObject>
+          </svg>'';
+        language = "html";
+      };
+      sends = [6];
+    }
+    {
+      plugin = "source.lesscss";
+      data = {
+        contents = ''
+          /*
+           in several browsers, animation does not work inside
+           svgs loaded as an image unless you have something
+           animating constantly.
+           if you don't need animation, you can remove this to
+           save resources!
+           */
+          .animation-fix {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 1px;
+            height: 1px;
+            animation: animation-fix 1s infinite;
+          }
+          @keyframes animation-fix {
+            100% { transform: rotate(360deg) }
+          }
+
+          .container {
+            font-family: sans-serif;
+          }
+
+          .click-prompt {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            padding: 1em;
+            box-sizing: border-box;
+            background: black;
+            color: white;
+            transition: all 1s;
+          }
+          .contents {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            padding: 1em;
+            box-sizing: border-box;
+            background: #4a0;
+            color: white;
+            transition: all 1s;
+            transform: translateY(100%);
+          }
+
+          /*
+           here we define what happens when the container is clicked,
+           i.e. when it's taller than 200px
+           */
+          @media (min-height: 201px) {
+            .click-prompt {
+              transform: scale(0);
+            }
+            .contents {
+              transform: none;
+            }
+          }'';
+      };
+      sends = [6];
+    }
+    {
+      plugin = "transform.style-inliner";
+      data = { mode = "element"; };
+      sends = [3];
+    }
+  ];
+}

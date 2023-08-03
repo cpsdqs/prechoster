@@ -1,0 +1,153 @@
+{
+  version = 1;
+  title = "Svelte Chat Log";
+  modules = [
+    {
+      plugin = "source.text";
+      data = {
+        contents = ''
+          eggbug: egg!
+          bug!
+          eggbug2: egg bug!'';
+        language = "text";
+      };
+      namedSends = { "2" = ["chat-log"]; };
+    }
+    {
+      plugin = "source.lesscss";
+      data = {
+        contents = ''
+          .sender-picture {
+            /*
+             * if you want to actually use this code,
+             * consider uploading your images to cohost
+             * and using a cohostcdn URL instead of
+             * inlining them into the CSS like this.
+             * you might hit the post size limit (~200kB)
+             * otherwise!
+             */
+            &[data-sender="eggbug"] {
+              background-image: url("@{eggbug}");
+            }
+            &[data-sender="eggbug2"] {
+              background-image: url("@{eggbug}");
+            }
+          }
+
+          .chat-log {
+            list-style: none;
+            padding: 0;
+          }
+          .chat-message {
+            margin: 0;
+            margin-top: 0.5em;
+            display: flex;
+            line-height: 1.2;
+            padding: 0;
+            @picture-size: 2em;
+            @gap: 0.5em;
+            gap: @gap;
+
+            &.is-continuation {
+              padding-left: @picture-size + @gap;
+              margin-top: 0;
+            }
+
+            .sender-picture {
+              width: @picture-size;
+              height: @picture-size;
+              border-radius: 50%;
+              background-size: cover;
+              background-position: center;
+              background-repeat: no-repeat;
+              flex-shrink: 0;
+            }
+
+            .sender-header {
+              font-weight: bold;
+            }
+            .message-contents {
+              line-height: 1.5;
+            }
+          }
+        '';
+      };
+      sends = [4];
+    }
+    {
+      plugin = "source.svelte";
+      data = {
+        contents = ''
+          <script>
+            import rawChatLogText from './chat-log';
+
+            const chatLogLines = rawChatLogText.split('\n');
+            const chatLogItems = [];
+            let lastSender = null;
+            for (const line of chatLogLines) {
+              const colonPos = line.indexOf(':');
+
+              if (colonPos === -1) {
+                chatLogItems.push({
+                  type: 'continuation',
+                  message: line,
+                });
+              } else {
+                const sender = line.substr(0, colonPos).trim();
+                const message = line.substr(colonPos + 1).trim();
+
+                if (sender === lastSender) {
+                  chatLogItems.push({
+                    type: 'continuation',
+                    message,
+                  })
+                } else {
+                  chatLogItems.push({
+                    type: 'message',
+                    sender,
+                    message,
+                  });
+                  lastSender = sender;
+                }
+              }
+            }
+          </script>
+
+          <ul class="chat-log">
+            {#each chatLogItems as item}
+              {#if item.type == 'message'}
+                <li class="chat-message">
+                  <div
+                    class="sender-picture"
+                    data-sender={item.sender}></div>
+                  <div class="inner-message">
+                    <div class="sender-header">{item.sender}</div>
+                    <div class="message-contents">{item.message}</div>
+                  </div>
+                </li>
+              {:else if item.type == 'continuation'}
+                <li class="chat-message is-continuation">
+                  <div class="message-contents">
+                    {item.message}
+                  </div>
+                </li>
+              {/if}
+            {/each}
+          </ul>'';
+      };
+      sends = [4];
+    }
+    {
+      plugin = "source.file-data-url";
+      data = {
+        url = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYzIiBoZWlnaHQ9IjE2NyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgeDE9IjUwJSIgeTE9IjAlIiB4Mj0iNTAlIiB5Mj0iMTAwJSIgaWQ9ImEiPjxzdG9wIHN0b3AtY29sb3I9IiNEQUFDOTMiIG9mZnNldD0iMCUiLz48c3RvcCBzdG9wLWNvbG9yPSIjNjQxRDM0IiBvZmZzZXQ9IjEwMCUiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGZpbGw9InVybCgjYSkiIGQ9Ik0wIDBoMTYzdjE2N0gweiIvPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0uNDYyIC0uMDEyKSI+PHBhdGggZD0iTTQxLjg4MiAxMDkuMTI1Yy00Ljg0Mi4wNi02LjgxMyAzLjA5NS03LjM1IDcuNjEzIiBzdHJva2U9IiMxOTE5MTkiIHN0cm9rZS13aWR0aD0iMi4yOTgiLz48cGF0aCBkPSJNNzAuNzMgNjYuMjhzMTkuNTAzLTQxLjE4Ny0xMS4wMzMtNDMuODZjLTMwLjUzNi0yLjY3MSA1LjUzOSA0NS45MSA2LjI5OCA0Ni4wOSIgc3Ryb2tlPSIjMTkxOTE5IiBzdHJva2Utd2lkdGg9IjIuMzM3Ii8+PHBhdGggZD0iTTkxLjgzOCAxMTcuMDJjLTguOTQ4IDIuNzA1LTE3LjQxNiAzLjg1OC0yNS40OSAzLjYyMy03Ljk4Ny0uNC0xNC45Ni0yLjM3NS0yMC43MDYtNi4xMjktNS44MzEtMy41ODctOS44NTUtOS4yNjktMTIuMTE3LTE2Ljc1LTIuMzAxLTcuNjEyLTIuMDYtMTQuNDQyLjc2OC0yMC43ODkgMi43NDMtNi4xNzkgNy40NTMtMTEuNjg2IDEzLjkyLTE2LjMxNiA2LjU5MS00LjY2OCAxNC4yOC04LjQgMjMuMjI3LTExLjEwNiA4Ljk0OC0yLjcwNSAxNy40MTYtMy44NTcgMjUuMzY1LTMuNTg2IDcuOTUuMjcyIDE0LjkyMSAyLjI0NyAyMC43OTIgNS45NjMgNS43MDcgMy42MjQgOS44NTYgOS4yNyAxMi4xMTggMTYuNzUxIDIuMjYyIDcuNDgyIDEuOTM2IDE0LjQ4LS44MDggMjAuNjU5LTIuODI4IDYuMzQ2LTcuNTM4IDExLjg1My0xMy45NjYgMTYuNjEyLTYuNDY3IDQuNjMtMTQuMTU1IDguMzYzLTIzLjEwMyAxMS4wNjhaIiBmaWxsPSIjODMyNTRGIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48ZWxsaXBzZSBzdHJva2U9IiMxOTE5MTkiIHN0cm9rZS13aWR0aD0iMi4yOTgiIGZpbGw9IiMxOTE5MTkiIHN0cm9rZS1saW5lY2FwPSJzcXVhcmUiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGN4PSI0NC40NCIgY3k9Ijg4LjkzMiIgcng9IjMuNDciIHJ5PSIzLjU5NCIvPjxlbGxpcHNlIHN0cm9rZT0iIzE5MTkxOSIgc3Ryb2tlLXdpZHRoPSIyLjI5OCIgZmlsbD0iIzE5MTkxOSIgc3Ryb2tlLWxpbmVjYXA9InNxdWFyZSIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgY3g9IjY0LjQ2OCIgY3k9IjkyLjUyNiIgcng9IjMuNDciIHJ5PSIzLjU5NCIvPjxwYXRoIGQ9Ik04NS4yMDYgNjUuMTIyczkuMTA2LTQ0LjQzOCAzNS4yODMtMjguMzY0YzI2LjE3OCAxNi4wNzQtMzIuMDk3IDMzLjI3My0zMi44MTUgMzIuOTYzIiBzdHJva2U9IiMxOTE5MTkiIHN0cm9rZS13aWR0aD0iMi4yOTkiLz48cGF0aCBkPSJNODEuNTMgMTE3LjAxM2M0Ljg0My4wNiA2LjgxNCAzLjA5NSA3LjM1MSA3LjYxM005OC44NzYgMTA5LjRjNC44NDIuMDYgNi44MTMgMy4wOTUgNy4zNSA3LjYxMyIgc3Ryb2tlPSIjMTkxOTE5IiBzdHJva2Utd2lkdGg9IjIuMjk4Ii8+PHBhdGggZD0iTTExMS44MDYgMTAzLjY3MWM0LjY5MS0xLjE4NCA3LjM3NSAxLjI0NiA5LjA1NSA1LjQ3OCIgc3Ryb2tlPSIjMTkxOTE5IiBzdHJva2Utd2lkdGg9IjIuMzE4Ii8+PHBhdGggZD0iTTQ4LjIxNyA5OC4xNGMwIC4xNSAxLjY2NyAyLjA3IDQuMDA0LjI5NS4wNy0uMDEzIDEuNzM0IDEuOTc5IDMuOTc4LjQxIiBzdHJva2U9IiMxOTE5MTkiIHN0cm9rZS13aWR0aD0iMi4yOTMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvZz48L2c+PC9zdmc+";
+      };
+      namedSends = { "1" = ["eggbug"]; };
+    }
+    {
+      plugin = "transform.style-inliner";
+      data = { mode = "attr"; };
+      sends = ["output"];
+    }
+  ];
+}

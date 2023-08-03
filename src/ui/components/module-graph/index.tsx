@@ -1,19 +1,20 @@
-import { createRef, lazy, Suspense, PureComponent } from 'react';
-import { Document, Module, ModuleId, MOD_OUTPUT, RenderState } from '../../../document';
+import { createRef, lazy, PureComponent, Suspense } from 'react';
+import { ChangeType, Document, MOD_OUTPUT, Module, ModuleId, RenderState } from '../../../document';
 import {
     Connection,
+    EdgeChange,
     NodeChange,
     NodePositionChange,
     NodeRemoveChange,
-    EdgeChange,
     OnConnectStartParams,
     ReactFlowInstance,
 } from 'reactflow';
 import { layoutNodes } from './auto-layout';
-import { MOD_BASE_WIDTH, MIN_COL_GAP, GRID_SIZE } from './consts';
+import { GRID_SIZE, MIN_COL_GAP, MOD_BASE_WIDTH } from './consts';
 import { ModulePicker } from '../module-picker';
 import 'reactflow/dist/style.css';
 import './index.less';
+import { Button } from '../../../uikit/button';
 
 export type EdgeId = string;
 
@@ -27,7 +28,7 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
     };
 
     containerNode = createRef<HTMLDivElement>();
-    addModuleButton = createRef<HTMLButtonElement>();
+    addModuleButton = createRef<Button>();
     reactFlow: ReactFlowInstance | null = null;
 
     onReactFlowInit = (instance: ReactFlowInstance) => {
@@ -35,8 +36,6 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
     };
 
     onConnect = ({ source, target, sourceHandle, targetHandle }: Connection) => {
-        const { document } = this.props;
-
         if (!source || !target || !targetHandle) return;
 
         if (targetHandle === 'in') {
@@ -49,7 +48,7 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
         }
     };
 
-    insertConnection(source: ModuleId, target: ModuleId, skipChange = false) {
+    insertConnection(source: ModuleId, target: ModuleId) {
         const { document } = this.props;
 
         let sourceModule = document.findModule(source);
@@ -58,17 +57,13 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
         if (sourceModule.sends.includes(target)) return;
         if (target !== 'output' && !targetModule?.plugin?.acceptsInputs) return;
 
-        if (!skipChange) document.beginChange();
-
         sourceModule = sourceModule.shallowClone();
         sourceModule.sends = [...sourceModule.sends];
         sourceModule.sends.push(target);
         document.insertModule(sourceModule);
-
-        if (!skipChange) document.emitChange();
     }
 
-    insertNewNamedConnection(source: ModuleId, target: ModuleId, skipChange = false) {
+    insertNewNamedConnection(source: ModuleId, target: ModuleId) {
         const { document } = this.props;
         let sourceModule = document.findModule(source);
         const targetModule = document.findModule(target);
@@ -78,8 +73,6 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
         const name = prompt('Enter side input name');
         if (!name) return;
 
-        if (!skipChange) document.beginChange();
-
         sourceModule = sourceModule.shallowClone();
         if (!sourceModule.namedSends.has(target)) {
             sourceModule.namedSends = new Map(sourceModule.namedSends);
@@ -88,8 +81,6 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
         sourceModule.namedSends.set(target, new Set(sourceModule.namedSends.get(target)));
         sourceModule.namedSends.get(target)!.add(name);
         document.insertModule(sourceModule);
-
-        if (!skipChange) document.emitChange();
     }
 
     currentConnectionParams: OnConnectStartParams | null = null;
@@ -147,7 +138,6 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
         const { document } = this.props;
 
         this.setState({ addingModule: false });
-        document.beginChange();
 
         const module = new Module(plugin);
         if (this.graphPosForNextAdd) {
@@ -157,22 +147,23 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
             };
             this.graphPosForNextAdd = null;
         }
-        document.setModules(document.modules.concat([module]));
+        document.insertModule(module);
 
         if (this.connectionForNextAdd) {
             const [type, otherModuleId] = this.connectionForNextAdd;
             this.connectionForNextAdd = null;
 
+            const batch = document.beginBatch();
             if (type === 'out') {
-                this.insertConnection(otherModuleId, module.id, true);
+                this.insertConnection(otherModuleId, module.id);
             } else if (type === 'in') {
-                this.insertConnection(module.id, otherModuleId, true);
+                this.insertConnection(module.id, otherModuleId);
             } else if (type === 'named') {
-                this.insertNewNamedConnection(module.id, otherModuleId, true);
+                this.insertNewNamedConnection(module.id, otherModuleId);
             }
+            batch.end();
         }
 
-        document.emitChange();
         this.props.onSelect(module.id);
     };
 
@@ -200,8 +191,6 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
         if (nodePositionChanges.length || nodeRemoveChanges.length) {
             const { document } = this.props;
 
-            if (nodeRemoveChanges.length) document.beginChange();
-
             for (const change of nodePositionChanges) {
                 const module = document.findModule(change.id);
                 if (!module || !change.position) continue;
@@ -211,8 +200,6 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
             for (const change of nodeRemoveChanges) {
                 document.removeModule(change.id);
             }
-
-            document.emitChange();
         }
     };
 
@@ -237,8 +224,6 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
         const { document } = this.props;
         if (edgesToRemove.length) {
             const edges = getConnections(document, null);
-
-            document.beginChange();
 
             for (const edgeId of edgesToRemove) {
                 const edge = edges.find((item) => item.id === edgeId);
@@ -265,8 +250,6 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
                     }
                 }
             }
-
-            document.emitChange();
         }
     };
 
@@ -276,17 +259,14 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
         const hasManualLayout = document.modules.find((m) => !!m.graphPos);
         if (!hasManualLayout) return;
 
-        document.beginChange();
-
-        document.setModules(
+        document.pushModulesState(
             document.modules.map((m) => {
                 m = m.shallowClone();
                 m.graphPos = null;
                 return m;
-            })
+            }),
+            { type: ChangeType.RearrangeModules }
         );
-
-        document.emitChange();
     };
 
     render() {
@@ -365,18 +345,18 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
                     />
                 </Suspense>
                 <div className="i-actions">
-                    <button onClick={this.runAutoLayout}>auto layout</button>{' '}
-                    <button
+                    <Button run={this.runAutoLayout}>auto layout</Button>{' '}
+                    <Button
                         ref={this.addModuleButton}
-                        onClick={() => {
+                        run={() => {
                             this.graphPosForNextAdd = this.getNewCenteredNodePos();
                             this.setState({ addingModule: true, modulePickerAnchor: null });
                         }}
                     >
                         add node
-                    </button>
+                    </Button>
                     <ModulePicker
-                        anchor={this.state.modulePickerAnchor || this.addModuleButton.current}
+                        anchor={this.state.modulePickerAnchor || this.addModuleButton.current?.node}
                         open={this.state.addingModule}
                         onClose={() => this.setState({ addingModule: false })}
                         onPick={this.onAddModule}
@@ -386,6 +366,7 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
         );
     }
 }
+
 namespace ModuleGraph {
     export interface Props {
         document: Document;

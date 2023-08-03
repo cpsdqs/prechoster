@@ -1,0 +1,126 @@
+.uikit-popout-anchor {
+    position: absolute;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    width: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.uikit-popout-satellite {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    pointer-events: none;
+    z-index: 1000;
+    --popout-bg: rgb(var(--color-bg));
+    --popout-outline: rgb(var(--color-soft-outline) / var(--color-soft-outline-opacity));
+    --popout-accent: rgb(var(--color-accent));
+
+    .popout-satellite-inner {
+        position: absolute;
+        width: 100%;
+    }
+
+    .popout-pointer {
+        position: absolute;
+        background: var(--popout-bg);
+        border: 1px solid var(--popout-outline);
+        border-top-left-radius: 0.5em;
+        border-right-color: transparent;
+        border-bottom-color: transparent;
+        transform-origin: 0 0;
+        width: 1em;
+        height: 1em;
+        z-index: 1;
+    }
+
+    .popout-container {
+        position: absolute;
+        max-width: 100vw;
+        background: var(--popout-bg);
+        border-radius: 0.5em;
+        border: 1px solid var(--popout-outline);
+        pointer-events: all;
+
+        .popout-contents {
+            flex: 1;
+            display: flex;
+
+            .popout-close {
+                display: none;
+                border: none;
+                background: none;
+                margin: 0;
+                padding: 0.5em 1em;
+                font: inherit;
+                color: inherit;
+                line-height: 0;
+                transition: opacity 0.3s var(--ease-default);
+
+                .popout-close-icon {
+                    display: inline-block;
+                    position: relative;
+                    width: 1em;
+                    height: 1em;
+                    --hw: 0.07em;
+
+                    &::before,
+                    &::after {
+                        position: absolute;
+                        content: '';
+                        width: 1em;
+                        height: calc(var(--hw) * 2);
+                        border-radius: var(--hw);
+                        top: 50%;
+                        left: 50%;
+                        background: currentColor;
+                    }
+                    &::before {
+                        transform: translate(-50%, -50%) rotate(45deg);
+                    }
+                    &::after {
+                        transform: translate(-50%, -50%) rotate(-45deg);
+                    }
+                }
+
+                &:active {
+                    opacity: 0.5;
+                    transition: opacity 0.05s var(--ease-default);
+                }
+            }
+            .popout-text {
+                position: relative;
+                z-index: 1;
+                padding: 0.5em 1em;
+
+                &:empty {
+                    display: none;
+                }
+            }
+
+            .popout-text:not(:empty) + .popout-action {
+                border-left: 1px solid var(--popout-outline);
+            }
+
+            .popout-action {
+                .popout-action-button {
+                    background: none;
+                    border: none;
+                    padding: 0.5em 1em;
+                    margin: 0;
+                    font: inherit;
+                    color: var(--popout-accent);
+                    transition: opacity 0.3s var(--ease-default);
+
+                    &:active {
+                        opacity: 0.5;
+                        transition: opacity 0.05s var(--ease-default);
+                    }
+                }
+            }
+        }
+    }
+}

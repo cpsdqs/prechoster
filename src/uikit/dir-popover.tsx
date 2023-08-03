@@ -1,12 +1,14 @@
 import React, { createRef, PureComponent } from 'react';
-import { AnimationController, Spring } from '../animation';
-import './popover.less';
+import { AnimationController, Spring } from './frame-animation';
+import { shouldReduceMotion } from './animation';
+import './dir-popover.css';
+import { LayoutRootContext } from './layout-root-context';
 
 const WINDOW_MARGIN = 16;
 const ARROW_SIZE = 16;
 const ARROW_MARGIN = 10;
 
-export class Popover extends PureComponent<Popover.Props> {
+export class DirPopover extends PureComponent<DirPopover.Props> {
     animCtrl = new AnimationController();
     presence = new Spring({
         target: this.props.open ? 1 : 0,
@@ -28,6 +30,7 @@ export class Popover extends PureComponent<Popover.Props> {
         if (node) this.resizeObserver.observe(node);
     };
     shouldRenderContents = false;
+    isReadyToShow = false;
 
     snapToNextContentSize = false;
     resizeObserver = new ResizeObserver((entries) => {
@@ -140,6 +143,7 @@ export class Popover extends PureComponent<Popover.Props> {
             this.positionX.value = this.positionX.target;
             this.positionY.value = this.positionY.target;
             this.snapToNextPosition = false;
+            this.isReadyToShow = true;
         }
 
         let done = true;
@@ -180,6 +184,7 @@ export class Popover extends PureComponent<Popover.Props> {
             this.shouldRenderContents = true;
         } else if (!shouldShow && this.dialog.current?.open) {
             this.dialog.current?.close();
+            this.isReadyToShow = false;
         }
 
         return done;
@@ -198,7 +203,7 @@ export class Popover extends PureComponent<Popover.Props> {
         }
     }
 
-    componentDidUpdate(prevProps: Popover.Props) {
+    componentDidUpdate(prevProps: DirPopover.Props) {
         if (prevProps.open !== this.props.open) {
             if (this.props.open) {
                 this.presence.target = 1;
@@ -229,16 +234,27 @@ export class Popover extends PureComponent<Popover.Props> {
 
     render() {
         const { children } = this.props;
+        const reduceMotion = shouldReduceMotion();
+
         const presence = this.presence.value;
-        const popoverOpacity = this.props.open ? 1 : this.presence.value;
+
+        const popoverOpacity = this.props.open
+            ? this.isReadyToShow
+                ? reduceMotion
+                    ? presence
+                    : 1
+                : 0
+            : presence;
+
         const anchorLoc = this.anchorLoc;
         const popoverLoc = [this.positionX.value, this.positionY.value];
-        const popoverTransform = `translate(${popoverLoc[0]}px, ${
-            popoverLoc[1]
-        }px) scale(${Math.max(0, presence)})`;
+
+        const popoverTransform = `translate(${popoverLoc[0]}px, ${popoverLoc[1]}px)`;
+        const popoverTransformScale = ` scale(${Math.max(0, presence)})`;
         const popoverTransformOrigin = `${anchorLoc[0] - popoverLoc[0]}px ${
             anchorLoc[1] - popoverLoc[1]
         }px`;
+
         let arrow = null;
 
         if (this.arrowLoc[0] !== 'none') {
@@ -248,7 +264,7 @@ export class Popover extends PureComponent<Popover.Props> {
                     data-type={this.arrowLoc[0]}
                     style={{
                         transform: [
-                            popoverTransform,
+                            popoverTransform + (reduceMotion ? '' : popoverTransformScale),
                             `translate(${this.arrowLoc[1]}px, ${this.arrowLoc[2]}px)`,
                         ].join(' '),
                         transformOrigin: popoverTransformOrigin,
@@ -259,7 +275,7 @@ export class Popover extends PureComponent<Popover.Props> {
         }
 
         return (
-            <dialog className="popover-dialog" ref={this.dialog}>
+            <dialog className="dir-popover-dialog" ref={this.dialog}>
                 <div
                     className="inner-backdrop"
                     onClick={this.onDialogClose}
@@ -271,21 +287,24 @@ export class Popover extends PureComponent<Popover.Props> {
                     style={{
                         width: this.width.value + 'px',
                         height: this.height.value + 'px',
-                        transform: popoverTransform,
+                        transform: popoverTransform + (reduceMotion ? '' : popoverTransformScale),
                         transformOrigin: popoverTransformOrigin,
                         opacity: popoverOpacity,
                     }}
                 >
-                    <div className="i-content" ref={this.popoverContentRef}>
-                        {this.shouldRenderContents && children}
-                    </div>
+                    <LayoutRootContext.Provider value={this.dialog}>
+                        <div className="i-content" ref={this.popoverContentRef}>
+                            {this.shouldRenderContents && children}
+                        </div>
+                    </LayoutRootContext.Provider>
                 </div>
                 {arrow}
             </dialog>
         );
     }
 }
-namespace Popover {
+
+namespace DirPopover {
     export interface Props {
         /** Anchor where the popover will appear from. Either an element or client coordinates */
         anchor?: HTMLElement | [number, number] | null;

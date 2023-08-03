@@ -1,0 +1,141 @@
+@property --uikit-button-color {
+    syntax: '<color>';
+    inherits: true;
+    initial-value: black;
+}
+@property --uikit-button-fg {
+    syntax: '<color>';
+    inherits: true;
+    initial-value: white;
+}
+
+.uikit-button {
+    display: inline-flex;
+    position: relative;
+    transition: --uikit-button-color 0.3s var(--ease-default),
+        --uikit-button-fg 0.3s var(--ease-default);
+
+    --uikit-button-color: rgb(var(--color-accent));
+    --uikit-button-fg: rgb(var(--color-accent-fg));
+    --button-outline: rgb(var(--color-soft-outline) / var(--color-soft-outline-opacity));
+    --button-spin: rgb(var(--color-fg));
+
+    .button-inner {
+        min-width: inherit;
+        background: var(--uikit-button-color);
+        color: var(--uikit-button-fg);
+        border-radius: 100em;
+        padding: 0.2em 0.8em;
+        margin: 0;
+        border: 1px solid var(--button-outline);
+        font: inherit;
+        font-weight: 500;
+        transition: opacity 0.3s var(--ease-default);
+        white-space: nowrap;
+        -webkit-tap-highlight-color: transparent;
+
+        &:focus {
+            outline: none;
+        }
+        &:focus-visible {
+            box-shadow: 0 0 0 0.2em rgb(var(--color-accent) / 0.5);
+            animation: uikit-button-focus-in 0.3s var(--ease-default);
+        }
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: inherit;
+            background: #000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s var(--ease-default);
+        }
+
+        &:active::before {
+            opacity: 0.3;
+            transition: none;
+        }
+    }
+
+    .button-loading {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        border-radius: 100em;
+        border: 0.2em solid var(--uikit-button-color);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s var(--ease-default);
+    }
+
+    .button-loading-spin {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        transition: opacity 0.2s var(--ease-default);
+        opacity: 0;
+    }
+
+    .button-loading-spin-inner {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        height: 100%;
+        border: 0.2em solid transparent;
+        border-bottom-color: var(--button-spin);
+        border-radius: 100em;
+        box-sizing: border-box;
+        transform: translate(-50%, -50%);
+        transition: opacity 0.2s var(--ease-default);
+    }
+
+    &.is-loading {
+        .button-loading-spin-inner {
+            animation: uikit-button-loading-inner 0.8s linear infinite;
+        }
+    }
+
+    &.is-disabled {
+        --uikit-button-fg: rgb(var(--color-accent-fg) / 0.5);
+    }
+
+    &.is-muted {
+        --uikit-button-color: rgb(var(--color-shade) / var(--color-shade-opacity));
+        --uikit-button-fg: rgb(var(--color-fg));
+
+        &.is-disabled {
+            --uikit-button-fg: rgb(var(--color-fg) / 0.5);
+        }
+    }
+
+    &.is-danger {
+        --uikit-button-color: rgb(var(--color-danger));
+        --uikit-button-fg: rgb(var(--color-danger-fg));
+    }
+}
+
+@keyframes uikit-button-loading-inner {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+@keyframes uikit-button-focus-in {
+    0% {
+        box-shadow: 0 0 0 1em rgb(var(--color-accent) / 0);
+    }
+}
