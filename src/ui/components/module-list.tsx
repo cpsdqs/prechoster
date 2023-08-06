@@ -761,7 +761,7 @@ function ModuleNamedSends({ document, namedSends, onChange }: ModuleNamedSends.P
 
     // FIXME: this is super hacky and bad
     return (
-        <div className="i-sends">
+        <div className={'i-sends is-named-sends' + (namedSends.size ? ' has-sends' : '')}>
             <div className="i-label">Provide to</div>
             <ul className="i-list">
                 {[...namedSends.keys()].map((target, i) => (
@@ -776,12 +776,12 @@ function ModuleNamedSends({ document, namedSends, onChange }: ModuleNamedSends.P
                             onChange(newSends);
                         })}
                         {' as '}
-                        <input
+                        <TextField
+                            narrow
                             value={[...namedSends.get(target)!][0]}
-                            onChange={(e) => {
-                                const input = e.target as HTMLInputElement;
+                            onChange={(value) => {
                                 const newSends = new Map(namedSends);
-                                newSends.set(target, new Set([input.value]));
+                                newSends.set(target, new Set([value]));
                                 onChange(newSends);
                             }}
                         />
@@ -795,6 +795,7 @@ function ModuleNamedSends({ document, namedSends, onChange }: ModuleNamedSends.P
                             onChange(newSends);
                         }
                     })}
+                    <span className="text-field-placeholder" />
                 </li>
             </ul>
         </div>

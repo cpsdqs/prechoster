@@ -111,7 +111,7 @@ export function Preview({
         const module = modules[i];
         outputTargets.push(
             <option value={module.id} key={module.id}>
-                {i + 1}. {module.plugin.description(module.data)}
+                {i + 1}. {module.title || module.plugin.description(module.data)}
             </option>
         );
     }

@@ -195,8 +195,8 @@ function addStyleProperties(node: Element, properties: StyleData[], useLegacyMet
     });
 
     // set of properties that were specified in the style attribute. these should be preserved in most cases
-    const styleAttrDecls = new Set(Object.keys(decls));
-    const importantStyleAttrDecls = new Set(Object.keys(decls));
+    const styleAttrDecls = new Set(decls.keys());
+    const importantStyleAttrDecls = new Set(importantDecls.keys());
 
     for (const item of properties) {
         for (const [k, v] of item.decls.entries()) {

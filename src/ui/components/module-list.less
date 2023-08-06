@@ -281,6 +281,12 @@
                     }
                 }
             }
+
+            @media (hover: hover) {
+                &:hover > .i-title > .i-label > .i-title .i-edit-icon {
+                    opacity: 0.3;
+                }
+            }
         }
 
         & > .i-editor {
@@ -295,25 +301,71 @@
 
         & > .i-footer {
             position: relative;
+            margin-top: 0.5em;
+            padding-top: 0.5em;
+
+            &::before {
+                content: '';
+                position: absolute;
+                left: 0.5em;
+                right: 0.5em;
+                top: 0;
+                border-top: 1px solid var(--separator);
+            }
 
             & > .i-sends {
-                padding: 0.3em 0.5em;
+                padding: 0.5em;
                 display: flex;
+                gap: 0.5em;
 
                 & > .i-label {
-                    margin-right: 0.5em;
+                    min-width: 5em;
+                    padding-top: 0.1em;
                 }
 
                 & > .i-list {
                     margin: 0;
                     padding: 0;
                     list-style: none;
+                    line-height: 1.5;
 
                     & > .i-send-target {
                         display: inline-block;
 
                         select {
                             width: 8em;
+                        }
+                    }
+                }
+
+                &.is-named-sends {
+                    & > .i-label {
+                        padding-top: 0;
+                    }
+                    &.has-sends > .i-label {
+                        padding-top: 0.25em;
+                    }
+                }
+
+                &.is-named-sends > .i-list {
+                    flex: 1;
+
+                    & > .i-send-target {
+                        display: flex;
+                        justify-content: stretch;
+                        align-items: center;
+                        gap: 0.5em;
+
+                        select {
+                            flex: 1;
+                        }
+                        .uikit-text-field,
+                        .text-field-placeholder {
+                            flex: 2;
+                        }
+
+                        & + .i-send-target {
+                            margin-top: 0.5em;
                         }
                     }
                 }

@@ -5,6 +5,7 @@ export namespace TextField {
     export interface Props extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
         value: string;
         onChange: (v: string) => void;
+        narrow?: boolean;
     }
 }
 export class TextField extends PureComponent<TextField.Props> {
@@ -36,6 +37,7 @@ export class TextField extends PureComponent<TextField.Props> {
         const { className: pClassName, value, onChange, ...extra } = this.props;
         let className = 'uikit-text-field ';
         if (this.state.focused) className += 'is-focused ';
+        if (this.props.narrow) className += 'is-narrow ';
         className += pClassName || '';
 
         return (

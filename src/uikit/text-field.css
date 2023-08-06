@@ -30,6 +30,10 @@
         box-shadow: 0 0 0 0.2em rgb(var(--color-accent) / 0.5);
         animation: uikit-text-field-focus-in 0.3s var(--ease-default);
     }
+
+    &.is-narrow .i-inner-field {
+        padding: 0.1em 0.5em;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
