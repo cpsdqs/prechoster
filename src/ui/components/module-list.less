@@ -73,9 +73,12 @@
         & > .i-header {
             padding: 0.3em 0.5em;
             display: flex;
-            justify-content: space-between;
 
             & > .i-title {
+                display: flex;
+                align-items: center;
+                flex: 1;
+
                 & > .i-remove {
                     font: inherit;
                     margin: 0;
@@ -107,6 +110,8 @@
                 }
 
                 & > .i-label {
+                    display: contents;
+
                     & > .i-index {
                         display: inline-block;
                         font-weight: bold;
@@ -114,8 +119,64 @@
                         text-align: right;
                         font-feature-settings: 'tnum' 1;
                     }
-                    & > .i-label {
-                        margin-left: 0.5em;
+                    & > .i-title {
+                        flex: 1;
+                        margin: 0 0.5em;
+
+                        .i-display-title {
+                            display: inline-block;
+                            text-align: inherit;
+                            border: 1px solid transparent;
+                            border-radius: 0.4em;
+                            padding: 0.2em;
+                            margin: calc(-0.2em - 1px);
+                            background: none;
+                            color: inherit;
+                            font: inherit;
+                            cursor: text;
+                            transition: border-color 0.2s;
+
+                            &:hover {
+                                border-color: var(--separator);
+                            }
+
+                            .i-edit-icon {
+                                display: inline-flex;
+                                position: relative;
+                                width: 1em;
+                                height: 1em;
+                                background: none;
+                                border: none;
+                                font: inherit;
+                                color: inherit;
+                                vertical-align: -0.15em;
+                                margin-left: 0.4em;
+                                transition: opacity 0.2s;
+
+                                svg {
+                                    position: absolute;
+                                    top: 50%;
+                                    left: 50%;
+                                    transform: translate(-50%, -50%);
+                                }
+                            }
+
+                            @media (hover: hover) {
+                                .i-edit-icon {
+                                    opacity: 0;
+                                }
+                                &:hover .i-edit-icon,
+                                &:focus-within .i-edit-icon,
+                                .i-edit-icon:focus {
+                                    opacity: 1;
+                                }
+                            }
+                        }
+
+                        .i-description {
+                            font-size: smaller;
+                            opacity: 0.5;
+                        }
                     }
                 }
             }

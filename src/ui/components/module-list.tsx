@@ -1,4 +1,4 @@
-import React, { createRef, RefObject, PureComponent, useState, useRef } from 'react';
+import React, { createRef, RefObject, PureComponent, useState, useRef, useEffect } from 'react';
 import {
     Document,
     Module,
@@ -13,6 +13,8 @@ import { AnimationController, Spring } from '../../uikit/frame-animation';
 import { shouldReduceMotion } from '../../uikit/animation';
 import { ModulePicker } from './module-picker';
 import './module-list.less';
+import { TextField } from '../../uikit/text-field';
+import { EditIcon } from './icons';
 
 type ModuleSelection = {
     selected: ModuleId | null;
@@ -28,11 +30,13 @@ const NONE_SELECTION: ModuleSelection = {
     sends: [],
     namedSends: new Map(),
 };
+
 interface ModuleListState {
     selection: ModuleSelection;
     focusedMove: ModuleId | null;
     moveDragging: ModDraggingState | null;
 }
+
 interface ModDraggingState {
     module: ModuleId;
     topOffset: number;
@@ -40,6 +44,7 @@ interface ModDraggingState {
     itemHeights: Map<ModuleId, number>;
     pointerCapture: [HTMLElement, number];
 }
+
 interface ListItemState {
     position: Spring;
     ref: RefObject<ModuleItem>;
@@ -99,6 +104,7 @@ export class ModuleList extends PureComponent<ModuleList.Props, ModuleListState>
         this.props.document.addEventListener('change', this.onDocumentChange);
         this.select(this.props.selected);
     }
+
     componentDidUpdate(prevProps: ModuleList.Props) {
         if (this.props.document !== prevProps.document) {
             prevProps.document.removeEventListener('change', this.onDocumentChange);
@@ -122,6 +128,7 @@ export class ModuleList extends PureComponent<ModuleList.Props, ModuleListState>
 
         this.layoutItems();
     }
+
     componentWillUnmount() {
         this.props.document.removeEventListener('change', this.onDocumentChange);
         this.listItemResizeObserver.disconnect();
@@ -368,6 +375,7 @@ export class ModuleList extends PureComponent<ModuleList.Props, ModuleListState>
         );
     }
 }
+
 namespace ModuleList {
     export interface Props {
         document: Document;
@@ -475,9 +483,7 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
                         />
                         <span className="i-label" id={this.labelNodeId}>
                             <span className="i-index">{index + 1}</span>
-                            <span className="i-label">
-                                {module.plugin.description(module.data)}
-                            </span>
+                            <ModuleTitle module={module} onChange={onChange} />
                         </span>
                     </div>
                     <div className="i-header-controls">
@@ -567,6 +573,7 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
         );
     }
 }
+
 namespace ModuleItem {
     export interface Props {
         document: Document;
@@ -580,6 +587,77 @@ namespace ModuleItem {
         onRemove: () => void;
         selection: ModuleSelection;
     }
+}
+
+function ModuleTitle({
+    module,
+    onChange,
+}: {
+    module: AnyModule;
+    onChange: (m: AnyModule) => void;
+}) {
+    const [editing, setEditing] = useState(false);
+    const description = module.plugin.description(module.data);
+
+    const textField = useRef<TextField>(null);
+    useEffect(() => {
+        if (textField.current) {
+            textField.current.focus();
+            textField.current.input.current?.select();
+        }
+    }, [textField.current]);
+
+    if (editing) {
+        return (
+            <TextField
+                ref={textField}
+                className="i-title is-editing"
+                placeholder={description}
+                value={module.title}
+                onChange={(title) => {
+                    const m = module.shallowClone();
+                    m.title = title;
+                    onChange(m);
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === 'Escape' || e.key === 'Enter') e.currentTarget.blur();
+                }}
+                onBlur={() => {
+                    if (module.title.trim() !== module.title) {
+                        const m = module.shallowClone();
+                        m.title = m.title.trim();
+                        onChange(m);
+                    }
+                    setEditing(false);
+                }}
+            />
+        );
+    }
+
+    if (module.title) {
+        return (
+            <div className="i-title has-custom is-static">
+                <div className="i-display-title" onClick={() => setEditing(true)}>
+                    {module.title}
+                    <button className="i-edit-icon" aria-label="edit name">
+                        <EditIcon />
+                    </button>
+                </div>
+                <div className="i-description">{description}</div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="i-title is-static">
+            <div className="i-display-title" onClick={() => setEditing(true)}>
+                {description}
+                <button className="i-edit-icon" aria-label="edit name">
+                    <EditIcon />
+                </button>
+            </div>
+        </div>
+    );
 }
 
 function ModuleSends({ document, sends, onChange }: ModuleSends.Props) {
@@ -640,6 +718,7 @@ function ModuleSends({ document, sends, onChange }: ModuleSends.Props) {
         </div>
     );
 }
+
 namespace ModuleSends {
     export interface Props {
         document: Document;
@@ -721,6 +800,7 @@ function ModuleNamedSends({ document, namedSends, onChange }: ModuleNamedSends.P
         </div>
     );
 }
+
 namespace ModuleNamedSends {
     export interface Props {
         document: Document;

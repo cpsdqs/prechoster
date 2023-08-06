@@ -455,6 +455,8 @@ export class Module<T extends JsonValue> {
     namedSends: NamedSends = new Map();
     /** Manually set location in the graph */
     graphPos: { x: number; y: number } | null = null;
+    /** Customizable module title */
+    title: string = '';
 
     static genModuleId(): string {
         const bytes = window.crypto.getRandomValues(new Uint8Array(8));
@@ -472,6 +474,7 @@ export class Module<T extends JsonValue> {
         mod.sends = this.sends;
         mod.namedSends = this.namedSends;
         mod.graphPos = this.graphPos;
+        mod.title = this.title;
         return mod as this;
     }
 }

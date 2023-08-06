@@ -169,3 +169,14 @@ export function PreviewRenderIcon() {
         </svg>
     );
 }
+
+export function EditIcon() {
+    return (
+        <svg width="24" height="24">
+            <g fill="none" fillRule="evenodd" stroke="currentColor">
+                <path d="M17.5 6.5a2.121 2.121 0 0 0-3 0L6 15l-1 4 4-1 8.5-8.5a2.121 2.121 0 0 0 0-3Z" />
+                <path d="M13 8c.5 1 2 2.5 3 3" />
+            </g>
+        </svg>
+    );
+}

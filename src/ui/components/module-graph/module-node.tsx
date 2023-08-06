@@ -19,7 +19,7 @@ export function ModuleNode({ data }: { data: ModuleNode.NodeData }) {
         updateNodeInternals(module.id);
     }, [namedInputs]);
 
-    const modDesc = module.plugin.description(module.data);
+    const modDesc = module.title || module.plugin.description(module.data);
 
     return (
         <div

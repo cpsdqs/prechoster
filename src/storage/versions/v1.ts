@@ -76,8 +76,10 @@ export function serializeV1(doc: Document, format?: string): string {
                     )
                 );
             }
-            if (module.graphPos)
+            if (module.title) modData.title = module.title;
+            if (module.graphPos) {
                 modData.graphPos = tomlInline([module.graphPos.x, module.graphPos.y]);
+            }
 
             modules.push(TomlSection(modData));
         } else {
@@ -87,6 +89,7 @@ export function serializeV1(doc: Document, format?: string): string {
             };
             if (sends.length) modData.sends = sends;
             if (Object.keys(namedSends).length) modData.namedSends = namedSends;
+            if (module.title) modData.title = module.title;
             if (module.graphPos) modData.graphPos = [module.graphPos.x, module.graphPos.y];
 
             modules.push(modData);
@@ -169,6 +172,9 @@ export function deserializeV1(input: string): Document {
             }
         }
 
+        if (moduleData.title) {
+            module.title = moduleData.title;
+        }
         if (moduleData.graphPos) {
             module.graphPos = { x: moduleData.graphPos[0], y: moduleData.graphPos[1] };
         }
