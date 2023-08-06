@@ -10,7 +10,7 @@ import {
 
 export type ToBlobData = {
     mime: string;
-    override: string | null;
+    override?: string;
     useOverride: boolean;
 };
 
@@ -80,10 +80,11 @@ function ToBlob({ id, data, onChange, document }: ModulePluginProps<ToBlobData>)
                         placeholder="https://staging.cohostcdn.org/..."
                         value={data.override || ''}
                         onChange={(e) => {
-                            onChange({
-                                ...data,
-                                override: (e.target as HTMLInputElement).value || null,
-                            });
+                            const newData = { ...data };
+                            const override = e.target.value;
+                            if (override) newData.override = override;
+                            else delete newData.override;
+                            onChange(newData);
                         }}
                     />
                 </div>
@@ -98,7 +99,7 @@ export default {
     acceptsNamedInputs: false,
     component: ToBlob as unknown,
     initialData() {
-        return { mime: 'image/svg+xml', override: null, useOverride: false };
+        return { mime: 'image/svg+xml', useOverride: false };
     },
     description() {
         return 'To blob';

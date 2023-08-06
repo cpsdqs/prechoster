@@ -1,16 +1,44 @@
 import { DBSchema, IDBPDatabase, IDBPTransaction, StoreNames } from 'idb';
 import { Document, Module, JsonValue, UnloadedPlugin, ModuleId } from '../../document';
 import { parse as parseON, stringify as stringifyON } from './onv1';
+import {
+    parse as parseToml,
+    stringify as stringifyToml,
+    Section as TomlSection,
+    multiline as tomlMultiline,
+    inline as tomlInline,
+} from '@ltd/j-toml';
 import { deserializeV0 } from './v0';
 
-interface SerializedModuleV1 {
-    data: JsonValue;
-}
-interface SerializedDocumentV1 {
-    modules: SerializedModuleV1[];
+type TomlValue =
+    | null
+    | boolean
+    | number
+    | string
+    | ReturnType<typeof tomlMultiline>
+    | TomlValue[]
+    | {
+          [k: string]: TomlValue;
+      };
+
+function markTomlMultiline(data: JsonValue): TomlValue {
+    if (Array.isArray(data)) {
+        return data.map(markTomlMultiline);
+    } else if (data && typeof data === 'object') {
+        const newData: Record<string, TomlValue> = {};
+        for (const k in data) {
+            newData[k] = markTomlMultiline(data[k]);
+        }
+        return newData;
+    } else if (typeof data === 'string' && data.includes('\n')) {
+        return tomlMultiline(data);
+    }
+    return data;
 }
 
-export function serializeV1(doc: Document): string {
+export function serializeV1(doc: Document, format?: string): string {
+    format = format || 'toml';
+
     const modules = [];
     const moduleIndices = new Map<ModuleId, number>();
     for (let i = 0; i < doc.modules.length; i++) {
@@ -35,34 +63,72 @@ export function serializeV1(doc: Document): string {
             }
         }
 
-        const modData: Record<string, JsonValue> = {
-            plugin: module.plugin.id,
-            data: module.data,
-        };
-        if (sends.length) modData.sends = sends;
-        if (Object.keys(namedSends).length) modData.namedSends = namedSends;
-        if (module.graphPos) modData.graphPos = [module.graphPos.x, module.graphPos.y];
+        if (format === 'toml') {
+            const modData: Record<string, TomlValue> = {
+                plugin: module.plugin.id,
+                data: markTomlMultiline(module.data),
+            };
+            if (sends.length) modData.sends = tomlInline(sends);
+            if (Object.keys(namedSends).length) {
+                modData.namedSends = tomlMultiline(
+                    Object.fromEntries(
+                        Object.entries(namedSends).map(([k, v]) => [k, tomlInline(v)])
+                    )
+                );
+            }
+            if (module.graphPos)
+                modData.graphPos = tomlInline([module.graphPos.x, module.graphPos.y]);
 
-        modules.push(modData);
+            modules.push(TomlSection(modData));
+        } else {
+            const modData: Record<string, JsonValue> = {
+                plugin: module.plugin.id,
+                data: module.data,
+            };
+            if (sends.length) modData.sends = sends;
+            if (Object.keys(namedSends).length) modData.namedSends = namedSends;
+            if (module.graphPos) modData.graphPos = [module.graphPos.x, module.graphPos.y];
+
+            modules.push(modData);
+        }
     }
 
-    const docData: Record<string, JsonValue> = {
-        version: 1,
-        modules,
-    };
+    const docData: Record<string, any> = { version: 1 };
     if (doc.title) docData.title = doc.title;
     if (doc.titleInPost) docData.titleInPost = doc.titleInPost;
+    docData.modules = modules;
 
-    return stringifyON(docData);
+    switch (format) {
+        case 'json':
+            return JSON.stringify(docData);
+        case 'pchost':
+            return stringifyON(docData);
+        default:
+            return stringifyToml(docData, {
+                integer: Number.MAX_SAFE_INTEGER,
+                newline: '\n',
+                newlineAround: 'section',
+                indent: '   ',
+                forceInlineArraySpacing: 0,
+                xNull: true,
+            }).trimStart();
+    }
 }
 
 export function deserializeV1(input: string): Document {
     let data;
-    try {
-        // no real way to distinguish whether it's JSON or not. try JSON first, then V1 object notation
-        data = JSON.parse(input);
-    } catch {}
-    if (!data) data = parseON(input);
+    if (input.match(/^\s*\{/)) {
+        try {
+            // no real way to distinguish whether it's JSON or not. try JSON first, then V1 object notation
+            data = JSON.parse(input);
+        } catch {}
+        if (!data) data = parseON(input);
+    } else {
+        data = parseToml(input, {
+            joiner: '\n',
+            bigint: false,
+        });
+    }
 
     if (!data.version) {
         return deserializeV0(data);

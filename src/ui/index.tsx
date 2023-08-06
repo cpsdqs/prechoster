@@ -3,6 +3,7 @@ import { Document } from '../document';
 import { StorageContext } from '../storage-context';
 import React, {
     createRef,
+    forwardRef,
     PureComponent,
     useContext,
     useEffect,
@@ -10,7 +11,7 @@ import React, {
     useRef,
     useState,
 } from 'react';
-import { deserialize, serialize, Storage, V1_FILE_EXT } from '../storage';
+import { deserialize, serialize, Storage } from '../storage';
 import { ApplicationSidebar } from './sidebar';
 import './index.css';
 import {
@@ -210,18 +211,18 @@ export default function ApplicationFrame({ storage }: { storage: Storage }) {
         setVirtualOpenDoc(doc);
         setCurrentTab(null);
     };
-    const save = () => {
+    const save = (format?: string) => {
         if (!tabState) return;
         const doc = tabState.save();
 
         const title = doc.title || 'Untitled';
 
         const a = window.document.createElement('a');
-        const file = new File([serialize(doc)], title, {
+        const file = new File([serialize(doc, format)], title, {
             type: 'application/octet-stream',
         });
         const objectURL = (a.href = URL.createObjectURL(file));
-        a.download = title + '.' + V1_FILE_EXT;
+        a.download = title + '.' + (format || 'toml');
         a.click();
         URL.revokeObjectURL(objectURL);
     };
@@ -298,9 +299,7 @@ export default function ApplicationFrame({ storage }: { storage: Storage }) {
 
                         <ToolbarButton onClick={newFile}>new</ToolbarButton>
                         <LoadButton onLoad={load} />
-                        <ToolbarButton disabled={!tabState} onClick={save}>
-                            save
-                        </ToolbarButton>
+                        <SaveButton disabled={!tabState} onSave={save} />
 
                         <span className="i-spacer"></span>
 
@@ -540,17 +539,15 @@ namespace ContentSplit {
     }
 }
 
-function ToolbarButton({
-    children,
-    className,
-    ...extra
-}: {} & React.ButtonHTMLAttributes<HTMLButtonElement>) {
-    return (
-        <button className={'i-toolbar-button ' + (className || '')} {...extra}>
-            {children}
-        </button>
-    );
-}
+const ToolbarButton = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement>>(
+    ({ children, className, ...extra }: React.ButtonHTMLAttributes<HTMLButtonElement>, ref) => {
+        return (
+            <button ref={ref} className={'i-toolbar-button ' + (className || '')} {...extra}>
+                {children}
+            </button>
+        );
+    }
+);
 
 function LoadButton({ onLoad }: { onLoad: (doc: Document) => void }) {
     const [hoveringWithFile, setHoveringWithFile] = useState(false);
@@ -585,7 +582,7 @@ function LoadButton({ onLoad }: { onLoad: (doc: Document) => void }) {
     const load = () => {
         const input = window.document.createElement('input');
         input.type = 'file';
-        input.accept = 'application/json,.pchost';
+        input.accept = 'application/json,.pchost,.toml';
         input.click();
         input.addEventListener('change', () => {
             const file = input.files![0];
@@ -647,6 +644,84 @@ function LoadButton({ onLoad }: { onLoad: (doc: Document) => void }) {
         >
             load
         </ToolbarButton>
+    );
+}
+
+function SaveButton({
+    disabled,
+    onSave,
+}: {
+    disabled: boolean;
+    onSave: (format?: string) => void;
+}) {
+    const [optHeld, setOptHeld] = useState(false);
+    const [isMouseOver, setMouseOver] = useState(false);
+    const [formatPickerOpen, setFormatPickerOpen] = useState(false);
+
+    const setOptHeldRef = useRef(setOptHeld);
+    setOptHeldRef.current = setOptHeld;
+    useEffect(() => {
+        const onKeyDown = (e: KeyboardEvent) => {
+            setOptHeldRef.current(e.altKey);
+        };
+        const onKeyUp = (e: KeyboardEvent) => {
+            setOptHeldRef.current(e.altKey);
+        };
+
+        window.addEventListener('keydown', onKeyDown);
+        window.addEventListener('keyup', onKeyUp);
+        return () => {
+            window.removeEventListener('keydown', onKeyDown);
+            window.removeEventListener('keyup', onKeyUp);
+        };
+    }, []);
+
+    const save = (e: React.MouseEvent) => {
+        if (e.altKey) {
+            setFormatPickerOpen(true);
+        } else {
+            onSave();
+        }
+    };
+    const saveAs = (format: string) => {
+        onSave(format);
+        setFormatPickerOpen(false);
+    };
+
+    const onMouseOver = () => setMouseOver(true);
+    const onMouseOut = () => setMouseOver(false);
+    const button = useRef<HTMLButtonElement>(null);
+
+    return (
+        <>
+            <ToolbarButton
+                ref={button}
+                disabled={disabled}
+                onClick={save}
+                onMouseOver={onMouseOver}
+                onMouseOut={onMouseOut}
+            >
+                {isMouseOver && optHeld ? 'save…' : 'save'}
+            </ToolbarButton>
+            <DirPopover
+                anchor={button.current}
+                open={formatPickerOpen}
+                onClose={() => setFormatPickerOpen(false)}
+            >
+                <h1 className="i-save-formats-title">Pick Format</h1>
+                <ul className="i-save-formats">
+                    <li>
+                        <button onClick={() => saveAs('json')}>JSON</button>
+                    </li>
+                    <li>
+                        <button onClick={() => saveAs('pchost')}>PChost</button>
+                    </li>
+                    <li>
+                        <button onClick={() => saveAs('toml')}>TOML</button>
+                    </li>
+                </ul>
+            </DirPopover>
+        </>
     );
 }
 

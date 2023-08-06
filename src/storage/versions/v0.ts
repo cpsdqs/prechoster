@@ -1,10 +1,10 @@
-import { Document, JsonValue, Module, UnloadedPlugin } from '../../document';
+import { Document, SerValue, Module, UnloadedPlugin } from '../../document';
 
-export function deserializeV0(_data: JsonValue) {
+export function deserializeV0(_data: SerValue) {
     const data = _data as any; // just assume it's fine
 
     const doc = new Document();
-    const modules = data.modules.map((module: JsonValue) => deserializeModule(doc, module));
+    const modules = data.modules.map((module: SerValue) => deserializeModule(doc, module));
     doc.init({
         title: '',
         titleInPost: false,
@@ -12,7 +12,7 @@ export function deserializeV0(_data: JsonValue) {
     });
     return doc;
 }
-function deserializeModule(document: Document, _data: JsonValue) {
+function deserializeModule(document: Document, _data: SerValue) {
     // just assume it's fine
     const data = _data as any;
 
@@ -26,21 +26,4 @@ function deserializeModule(document: Document, _data: JsonValue) {
         module.graphPos = { x: data.graphPos[0], y: data.graphPos[1] };
     }
     return module;
-}
-
-export function serializeV0(self: Document): JsonValue {
-    return { modules: self.modules.map((module) => serializeModule(module)) };
-}
-function serializeModule<T extends JsonValue>(self: Module<T>): JsonValue {
-    const namedSends: JsonValue = {};
-    for (const [k, v] of self.namedSends) namedSends[k] = [...v];
-
-    return {
-        id: self.id,
-        data: self.data,
-        pluginId: self.plugin.id,
-        sends: self.sends,
-        namedSends,
-        graphPos: self.graphPos ? [self.graphPos.x, self.graphPos.y] : null,
-    };
 }

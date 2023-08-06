@@ -23,7 +23,6 @@ export async function initStorage(): Promise<Storage> {
 }
 
 export { deserialize, serialize };
-export const V1_FILE_EXT = 'pchost';
 
 export interface DocumentInfo {
     id: string;

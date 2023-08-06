@@ -182,6 +182,38 @@ html {
                 color: rgb(var(--toolbar-fg) / 0.7);
             }
         }
+
+        .i-save-formats-title {
+            margin: 0.3em 0;
+            text-align: center;
+            font-size: 1.2em;
+        }
+        .i-save-formats {
+            display: flex;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+            border-top: 1px solid var(--separator);
+
+            & li {
+                flex: 1;
+
+                & button {
+                    background: none;
+                    border: none;
+                    color: inherit;
+                    font: inherit;
+
+                    &:active {
+                        opacity: 0.5;
+                    }
+                }
+
+                & + li {
+                    border-left: 1px solid var(--separator);
+                }
+            }
+        }
     }
 
     > .i-content-split {

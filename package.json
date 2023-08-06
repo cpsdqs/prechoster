@@ -39,6 +39,7 @@
     "@codemirror/lang-less": "^6.0.1",
     "@codemirror/lang-sass": "^6.0.2",
     "@codemirror/view": "^6.1.0",
+    "@ltd/j-toml": "^1.38.0",
     "@uiw/codemirror-theme-xcode": "^4.11.4",
     "@uiw/react-codemirror": "^4.11.4",
     "@vitejs/plugin-react": "^4.0.3",
