@@ -234,13 +234,13 @@
     }
 
     & > .post-footer {
-        --color-fg: 0 0 0;
+        --size-meter-fg: 0 0 0;
 
         .post-size-meter {
             --size-of-max: 0;
             color: color-mix(
                 in oklab,
-                rgb(var(--color-fg)),
+                rgb(var(--size-meter-fg)),
                 rgb(var(--color-warning)) calc(var(--size-of-max) * 100%)
             );
 
@@ -356,7 +356,7 @@
         color: #fff;
 
         & > .post-footer {
-            --color-fg: 255 255 255;
+            --size-meter-fg: 255 255 255;
         }
 
         & > .post-header .config-preview-item {
