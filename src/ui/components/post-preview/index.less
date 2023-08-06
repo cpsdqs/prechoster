@@ -27,6 +27,7 @@
             overflow-wrap: break-word;
             max-width: 65ch;
             user-select: text;
+            contain: layout;
 
             &.is-error {
                 border: 2px dashed red;
@@ -228,6 +229,8 @@
     }
 
     & > .post-footer {
+        --color-fg: 0 0 0;
+
         .post-size-meter {
             --size-of-max: 0;
             color: color-mix(
@@ -327,16 +330,6 @@
         }
     }
 
-    .cohost-message-box {
-        margin: 1em;
-        padding: 1em;
-        border-radius: 0.5em;
-
-        &[data-level='warning'] {
-            color: var(--error-text);
-        }
-    }
-
     .prose-read-more {
         font-weight: 700;
         color: rgb(131 37 79);
@@ -404,4 +397,26 @@
 }
 .p-prose-outer .p-prose {
     .cohost-prose();
+}
+
+.cohost-message-box {
+    position: relative;
+    z-index: 5;
+    margin: 1em;
+    padding: 1em;
+    border-radius: 0.5em;
+    background: rgb(var(--color-bg));
+    color: rgb(var(--color-fg));
+    box-shadow: 0 0.5em 1em #0009;
+
+    :first-child {
+        margin-top: 0;
+    }
+    :last-child {
+        margin-bottom: 0;
+    }
+
+    &[data-level='warning'] {
+        color: var(--error-text);
+    }
 }

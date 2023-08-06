@@ -1,9 +1,27 @@
 .data-preview {
+    display: grid;
+    grid-template-columns: 100%;
+    grid-template-rows: 100%;
     box-sizing: border-box;
-    overflow: auto;
-    contain: layout;
 
-    & > .preview-header {
+    & > .i-preview-area {
+        grid-area: 1 / 1;
+        overflow: auto;
+        isolation: isolate;
+    }
+
+    & > .i-error-area {
+        grid-area: 1 / 1;
+        margin-top: 2em;
+        position: relative;
+        overflow: auto;
+
+        &:empty {
+            display: none;
+        }
+    }
+
+    & > .i-preview-area > .preview-header {
         padding: 0.5em 1em;
         display: flex;
         justify-content: space-between;
@@ -63,14 +81,21 @@
         }
     }
 
-    & > .preview-error {
+    & > .i-preview-area > .preview-error-placeholder {
         background: rgb(var(--card-bg));
-        border: 2px solid var(--error);
         border-radius: 0.5em;
         padding: 0.5em 1em;
         margin: 1em;
         user-select: text;
         box-sizing: border-box;
+    }
+
+    & > .i-error-area > .preview-error {
+        background: rgb(var(--card-bg));
+        border: 2px solid var(--error);
+        margin: 1em;
+        padding: 0.5em 1em;
+        border-radius: 0.5em;
 
         .error-title {
             font-weight: bold;
@@ -96,18 +121,19 @@
         }
     }
 
-    & > .i-post-preview {
+    & > .i-preview-area > .i-post-preview {
         margin: 1em;
     }
 
-    & > .i-data-preview {
+    & > .i-preview-area > .i-data-preview {
         margin: 1em;
         border-radius: 0.5em;
         background: rgb(var(--card-bg));
         user-select: text;
+        contain: layout;
     }
 
-    & > .i-preview-click-to-render {
+    & > .i-preview-area > .i-preview-click-to-render {
         display: flex;
         flex-direction: column;
         gap: 0.5em;

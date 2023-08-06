@@ -19,16 +19,30 @@ import {
     renderMarkdown,
 } from './basic-renderer';
 import { Button } from '../../../uikit/button';
+import { createPortal } from 'react-dom';
 
 const RESET_ON_RENDER = true;
 
-function BasicRenderer({ html }: { html: string }) {
+function BasicRenderer({
+    html,
+    error,
+    errorPortal,
+}: {
+    html: string;
+    error: React.ReactNode | null;
+    errorPortal: HTMLDivElement | null;
+}) {
     return (
-        <div
-            className="inner-prose p-prose basic-renderer"
-            role="article"
-            dangerouslySetInnerHTML={{ __html: html }}
-        />
+        <>
+            <div
+                className="inner-prose p-prose basic-renderer"
+                role="article"
+                dangerouslySetInnerHTML={{ __html: html }}
+            />
+            {error && errorPortal
+                ? createPortal(<div className="inner-cohost-error">{error}</div>, errorPortal)
+                : null}
+        </>
     );
 }
 
@@ -75,6 +89,13 @@ function useCohostRenderer(): RenderFn | null {
     return renderer.current;
 }
 
+function getCohostErrorMessage(rendered: any): React.ReactNode | null {
+    if (rendered?.props?.className === 'not-prose' && rendered?.props?.children?.type === 'p') {
+        return rendered;
+    }
+    return null;
+}
+
 function MarkdownRenderer({
     renderId,
     cohostRenderer,
@@ -83,6 +104,7 @@ function MarkdownRenderer({
     fallbackHtml,
     readMore,
     onReadMoreChange,
+    errorPortal,
 }: {
     renderId: string;
     cohostRenderer: RenderFn | null;
@@ -91,9 +113,10 @@ function MarkdownRenderer({
     fallbackHtml: string;
     readMore: boolean;
     onReadMoreChange: (b: boolean) => void;
+    errorPortal: HTMLDivElement | null;
 }) {
     const [rendered, setRendered] = useState<RenderResult | null>(null);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<React.ReactNode | null>(null);
 
     useEffect(() => {
         if (cohostRenderer) {
@@ -102,15 +125,24 @@ function MarkdownRenderer({
             cohostRenderer(markdown, config)
                 .then((result) => {
                     if (renderId !== thisRenderId) return;
-                    setError(null);
-                    setRendered(result);
+
+                    const error =
+                        getCohostErrorMessage(result.initial) ||
+                        getCohostErrorMessage(result.expanded);
+                    setError(error);
+
+                    if (error) {
+                        setRendered(null);
+                    } else {
+                        setRendered(result);
+                    }
                 })
                 .catch((error) => {
                     if (renderId !== thisRenderId) return;
                     // oh well
                     console.error('cohost renderer error', error);
                     setRendered(null);
-                    setError(error);
+                    setError(<div className="cohost-message-box">{error.toString()}</div>);
                 });
         }
     }, [cohostRenderer, config, markdown]);
@@ -126,7 +158,7 @@ function MarkdownRenderer({
         );
     }
 
-    return <BasicRenderer html={fallbackHtml} />;
+    return <BasicRenderer html={fallbackHtml} error={error} errorPortal={errorPortal} />;
 }
 
 export interface PreviewConfig {
@@ -157,6 +189,9 @@ export function PostPreview({
     stale,
     config,
     onConfigChange,
+    readMore,
+    onReadMoreChange,
+    errorPortal,
 }: PostPreview.Props) {
     let html = '';
     const renderErrors: ErrorMessage[] = [];
@@ -167,7 +202,6 @@ export function PostPreview({
     }
 
     const cohostRenderer = useCohostRenderer();
-    const [readMore, setReadMore] = useState(false);
 
     const proseContainer = useRef<HTMLDivElement>(null);
     const errorBtn = useRef<HTMLButtonElement>(null);
@@ -247,7 +281,8 @@ export function PostPreview({
                         markdown={markdown}
                         fallbackHtml={html}
                         readMore={readMore}
-                        onReadMoreChange={setReadMore}
+                        onReadMoreChange={onReadMoreChange}
+                        errorPortal={errorPortal}
                     />
                 </div>
             )}
@@ -268,6 +303,9 @@ namespace PostPreview {
         stale?: boolean;
         config: PreviewConfig;
         onConfigChange: (c: PreviewConfig) => void;
+        readMore: boolean;
+        onReadMoreChange: (b: boolean) => void;
+        errorPortal: HTMLDivElement | null;
     }
 }
 

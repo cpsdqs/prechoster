@@ -16,6 +16,7 @@ export function Preview({
 }: Preview.Props) {
     let contents = null;
     const [previewConfig, onPreviewConfigChange] = useState<PreviewConfig>(DEFAULT_PREVIEW_CONFIG);
+    const [readMore, setReadMore] = useState(false);
     const lastPostPreviewHeight = useRef(0);
     const previewContainer = useRef<HTMLDivElement>(null);
 
@@ -24,6 +25,9 @@ export function Preview({
         if (!preview) return;
         lastPostPreviewHeight.current = preview.offsetHeight;
     });
+
+    const postErrorPortal = useRef<HTMLDivElement>(null);
+    let errorContents = null;
 
     if (clickToRender) {
         contents = (
@@ -50,6 +54,9 @@ export function Preview({
                         markdown={render.output.markdownOutput!}
                         config={previewConfig}
                         onConfigChange={onPreviewConfigChange}
+                        readMore={readMore}
+                        onReadMoreChange={setReadMore}
+                        errorPortal={postErrorPortal.current}
                     />
                 </div>
             );
@@ -71,11 +78,15 @@ export function Preview({
 
         contents = (
             <div
-                className="preview-error"
+                className="preview-error-placeholder"
                 style={{
                     minHeight: lastPostPreviewHeight.current,
                 }}
-            >
+            ></div>
+        );
+
+        errorContents = (
+            <div className="preview-error">
                 {moduleIndex !== null ? (
                     <div className="error-title">
                         Error in {moduleIndex + 1}. {moduleLabel}
@@ -109,43 +120,51 @@ export function Preview({
 
     return (
         <div className="data-preview" aria-label="Preview">
-            <div className="preview-header">
-                <div className="preview-config">
-                    <select
-                        className="output-select"
-                        value={render.target || 'output'}
-                        onChange={(e) => {
-                            const target = (e.target as HTMLSelectElement).value;
-                            if (target === 'output') onTargetChange(null);
-                            else onTargetChange(target);
-                        }}
-                    >
-                        {outputTargets}
-                        <option value="output">output</option>
-                    </select>
-                    <span className="live-update">
-                        <input
-                            id={liveCheckbox}
-                            checked={render.live}
+            <div className="i-preview-area">
+                <div className="preview-header">
+                    <div className="preview-config">
+                        <select
+                            className="output-select"
+                            value={render.target || 'output'}
                             onChange={(e) => {
-                                onLiveChange((e.target as HTMLInputElement).checked);
+                                const target = (e.target as HTMLSelectElement).value;
+                                if (target === 'output') onTargetChange(null);
+                                else onTargetChange(target);
                             }}
-                            type="checkbox"
-                        />{' '}
-                        <label htmlFor={liveCheckbox}>Live Update</label>
-                    </span>
-                    {!render.live && (
-                        <button className="render-button" onClick={onRender}>
-                            Render
-                        </button>
-                    )}
+                        >
+                            {outputTargets}
+                            <option value="output">output</option>
+                        </select>
+                        <span className="live-update">
+                            <input
+                                id={liveCheckbox}
+                                checked={render.live}
+                                onChange={(e) => {
+                                    onLiveChange((e.target as HTMLInputElement).checked);
+                                }}
+                                type="checkbox"
+                            />{' '}
+                            <label htmlFor={liveCheckbox}>Live Update</label>
+                        </span>
+                        {!render.live && (
+                            <button className="render-button" onClick={onRender}>
+                                Render
+                            </button>
+                        )}
+                    </div>
+                    <span
+                        className={'render-indicator' + (render.rendering ? ' is-rendering' : '')}
+                    />
                 </div>
-                <span className={'render-indicator' + (render.rendering ? ' is-rendering' : '')} />
+                {contents}
             </div>
-            {contents}
+            <div className="i-error-area" ref={postErrorPortal}>
+                {errorContents}
+            </div>
         </div>
     );
 }
+
 namespace Preview {
     export interface Props {
         document: Document;
