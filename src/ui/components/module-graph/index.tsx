@@ -20,6 +20,7 @@ export type EdgeId = string;
 
 const ReactFlow = lazy(() => import('./reactflow'));
 
+const SNAP_GRID = [GRID_SIZE, GRID_SIZE];
 export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
     state = {
         draggingNode: false,
@@ -194,7 +195,9 @@ export class ModuleGraph extends PureComponent<ModuleGraph.Props> {
             for (const change of nodePositionChanges) {
                 const module = document.findModule(change.id);
                 if (!module || !change.position) continue;
-                module.graphPos = change.position;
+                const newModule = module.shallowClone();
+                newModule.graphPos = change.position;
+                document.insertModule(newModule);
             }
 
             for (const change of nodeRemoveChanges) {
