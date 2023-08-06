@@ -32,22 +32,24 @@ function StyleInliner({ data, onChange }: ModulePluginProps<StyleInlinerData>) {
                     <option value="element">as a &lt;style&gt; element</option>
                 </select>
             </FormItem>
-            <FormItem
-                label="strip classes"
-                description="Removes the `class` property from all HTML elements, because it’ll be removed by cohost anyway."
-                itemId={id2}
-            >
-                <Checkbox
-                    id={id2}
-                    checked={!data.keepClasses}
-                    onChange={(strip) => {
-                        const newData = { ...data };
-                        if (strip) delete newData.keepClasses;
-                        else newData.keepClasses = true;
-                        onChange(newData);
-                    }}
-                />
-            </FormItem>
+            {data.mode === 'attr' ? (
+                <FormItem
+                    label="strip classes"
+                    description="Removes the `class` property from all HTML elements, because it’ll be removed by cohost anyway."
+                    itemId={id2}
+                >
+                    <Checkbox
+                        id={id2}
+                        checked={!data.keepClasses}
+                        onChange={(strip) => {
+                            const newData = { ...data };
+                            if (strip) delete newData.keepClasses;
+                            else newData.keepClasses = true;
+                            onChange(newData);
+                        }}
+                    />
+                </FormItem>
+            ) : null}
         </Form>
     );
 }

@@ -120,46 +120,44 @@ export function Preview({
 
     return (
         <div className="data-preview" aria-label="Preview">
-            <div className="i-preview-area">
-                <div className="preview-header">
-                    <div className="preview-config">
-                        <select
-                            className="output-select"
-                            value={render.target || 'output'}
+            <div className="preview-header">
+                <div className="preview-config">
+                    <select
+                        className="output-select"
+                        value={render.target || 'output'}
+                        onChange={(e) => {
+                            const target = (e.target as HTMLSelectElement).value;
+                            if (target === 'output') onTargetChange(null);
+                            else onTargetChange(target);
+                        }}
+                    >
+                        {outputTargets}
+                        <option value="output">output</option>
+                    </select>
+                    <span className="live-update">
+                        <input
+                            id={liveCheckbox}
+                            checked={render.live}
                             onChange={(e) => {
-                                const target = (e.target as HTMLSelectElement).value;
-                                if (target === 'output') onTargetChange(null);
-                                else onTargetChange(target);
+                                onLiveChange((e.target as HTMLInputElement).checked);
                             }}
-                        >
-                            {outputTargets}
-                            <option value="output">output</option>
-                        </select>
-                        <span className="live-update">
-                            <input
-                                id={liveCheckbox}
-                                checked={render.live}
-                                onChange={(e) => {
-                                    onLiveChange((e.target as HTMLInputElement).checked);
-                                }}
-                                type="checkbox"
-                            />{' '}
-                            <label htmlFor={liveCheckbox}>Live Update</label>
-                        </span>
-                        {!render.live && (
-                            <button className="render-button" onClick={onRender}>
-                                Render
-                            </button>
-                        )}
-                    </div>
-                    <span
-                        className={'render-indicator' + (render.rendering ? ' is-rendering' : '')}
-                    />
+                            type="checkbox"
+                        />{' '}
+                        <label htmlFor={liveCheckbox}>Live Update</label>
+                    </span>
+                    {!render.live && (
+                        <button className="render-button" onClick={onRender}>
+                            Render
+                        </button>
+                    )}
                 </div>
-                {contents}
+                <span className={'render-indicator' + (render.rendering ? ' is-rendering' : '')} />
             </div>
-            <div className="i-error-area" ref={postErrorPortal}>
-                {errorContents}
+            <div className="i-contents">
+                <div className="i-preview-area">{contents}</div>
+                <div className="i-error-area" ref={postErrorPortal}>
+                    {errorContents}
+                </div>
             </div>
         </div>
     );

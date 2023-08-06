@@ -105,6 +105,7 @@ function MarkdownRenderer({
     readMore,
     onReadMoreChange,
     errorPortal,
+    onRender,
 }: {
     renderId: string;
     cohostRenderer: RenderFn | null;
@@ -114,9 +115,12 @@ function MarkdownRenderer({
     readMore: boolean;
     onReadMoreChange: (b: boolean) => void;
     errorPortal: HTMLDivElement | null;
+    onRender: () => void;
 }) {
     const [rendered, setRendered] = useState<RenderResult | null>(null);
     const [error, setError] = useState<React.ReactNode | null>(null);
+
+    const [triggerOnRender, setTriggerOnRender] = useState(0);
 
     useEffect(() => {
         if (cohostRenderer) {
@@ -143,9 +147,18 @@ function MarkdownRenderer({
                     console.error('cohost renderer error', error);
                     setRendered(null);
                     setError(<div className="cohost-message-box">{error.toString()}</div>);
+                })
+                .finally(() => {
+                    setTriggerOnRender(triggerOnRender + 1);
                 });
+        } else {
+            setTriggerOnRender(triggerOnRender + 1);
         }
     }, [cohostRenderer, config, markdown]);
+
+    useEffect(() => {
+        onRender();
+    }, [triggerOnRender]);
 
     if (cohostRenderer && rendered) {
         return (
@@ -208,20 +221,29 @@ export function PostPreview({
     const [errorsOpen, setErrorsOpen] = useState(false);
     const [asyncErrors, setAsyncErrors] = useState<ErrorMessage[]>([]);
 
+    const newAsyncErrors = asyncErrors.slice();
     const pushAsyncError = (id: keyof typeof ERRORS, props: any) => {
         // we mutate to fix janky update coalescion issues
-        asyncErrors.push({ id, props });
-        setAsyncErrors([...asyncErrors]);
+        newAsyncErrors.push({ id, props });
+        setAsyncErrors(newAsyncErrors);
     };
 
-    useEffect(() => {
-        asyncErrors.splice(0);
-        setAsyncErrors([...asyncErrors]);
+    const pushAsyncErrorRef = useRef(pushAsyncError);
+    pushAsyncErrorRef.current = pushAsyncError;
+    const asyncErrorRenderId = useRef(0);
+
+    const onRender = () => {
+        newAsyncErrors.splice(0);
+        setAsyncErrors(newAsyncErrors);
+        const thisRenderId = ++asyncErrorRenderId.current;
 
         if (proseContainer.current) {
-            handleAsyncErrors(proseContainer.current, pushAsyncError);
+            handleAsyncErrors(proseContainer.current, (id, props) => {
+                if (thisRenderId !== asyncErrorRenderId.current) return;
+                pushAsyncErrorRef.current(id, props);
+            });
         }
-    }, [html]);
+    };
 
     const errorCount = renderErrors.length + asyncErrors.length;
 
@@ -283,6 +305,7 @@ export function PostPreview({
                         readMore={readMore}
                         onReadMoreChange={onReadMoreChange}
                         errorPortal={errorPortal}
+                        onRender={onRender}
                     />
                 </div>
             )}

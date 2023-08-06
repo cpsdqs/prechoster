@@ -184,7 +184,34 @@
 
             & > .i-header-controls {
                 display: flex;
-                align-items: stretch;
+                align-items: center;
+
+                button {
+                    font: inherit;
+                    background: none;
+                    border: 1px solid var(--separator);
+                    color: rgb(var(--color-fg));
+                    min-width: 2em;
+                    min-height: 2em;
+                    transition: opacity 0.3s;
+
+                    &:not(:first-child) {
+                        border-left: none;
+                    }
+                    &:first-child {
+                        border-top-left-radius: 0.5em;
+                        border-bottom-left-radius: 0.5em;
+                    }
+                    &:last-child {
+                        border-top-right-radius: 0.5em;
+                        border-bottom-right-radius: 0.5em;
+                    }
+
+                    &:active {
+                        color: rgb(var(--color-fg) / 0.5);
+                        transition: opacity 0.05s;
+                    }
+                }
 
                 .i-drag-button {
                     position: relative;
@@ -203,6 +230,7 @@
                             right: 0;
                             top: 50%;
                             height: 2px;
+                            border-radius: 1px;
                             background: currentColor;
 
                             &:nth-child(1) {
@@ -223,21 +251,27 @@
                         position: absolute;
                         pointer-events: none;
                         border: 0.7em solid transparent;
-                        transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+                        transition: transform 0.3s var(--ease-default), opacity 0.3s ease-out;
                         opacity: 0;
                         left: 50%;
                     }
                     &::before {
-                        border-bottom-color: currentColor;
+                        border-bottom-color: rgb(var(--color-fg));
                         bottom: calc(100% + 0.5em);
                         transform: translate(-50%, 0.5em);
                     }
                     &::after {
-                        border-top-color: currentColor;
+                        border-top-color: rgb(var(--color-fg));
                         top: calc(100% + 0.5em);
                         transform: translate(-50%, -0.5em);
                     }
 
+                    &:active {
+                        &::before,
+                        &::after {
+                            opacity: 0.5;
+                        }
+                    }
                     &:focus {
                         &::before,
                         &::after {
