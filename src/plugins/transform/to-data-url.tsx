@@ -6,6 +6,8 @@ import {
     Data,
 } from '../../document';
 import base64js from 'base64-js';
+import { Form, FormItem } from '../../uikit/form';
+import { TextField } from '../../uikit/text-field';
 
 export type ToDataUrlData = {
     mime: string;
@@ -15,20 +17,19 @@ function ToDataUrl({ data, onChange }: ModulePluginProps<ToDataUrlData>) {
     const mimeId = Math.random().toString(36);
 
     return (
-        <div>
-            <div>
-                <label htmlFor={mimeId}>MIME type:</label>{' '}
-                <input
+        <Form>
+            <FormItem label="MIME type" itemId={mimeId}>
+                <TextField
                     id={mimeId}
                     type="text"
                     placeholder="text/plain"
                     value={data.mime}
-                    onChange={(e) => {
-                        onChange({ ...data, mime: (e.target as HTMLInputElement).value });
+                    onChange={(mime) => {
+                        onChange({ ...data, mime });
                     }}
                 />
-            </div>
-        </div>
+            </FormItem>
+        </Form>
     );
 }
 

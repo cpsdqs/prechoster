@@ -1,0 +1,157 @@
+.uikit-checkbox {
+    display: inline-block;
+    position: relative;
+    width: 1em;
+    height: 1em;
+    border-radius: 0.3em;
+    background: rgb(var(--color-bg));
+    border: 1px solid rgb(var(--color-soft-outline) / var(--color-soft-outline-opacity));
+    margin: 0.1em;
+    vertical-align: middle;
+    transition: background 0.3s var(--ease-default);
+
+    .inner-checkbox {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        opacity: 0;
+    }
+
+    &.is-checked {
+        background: rgb(var(--color-accent));
+        transition: background 0.1s var(--ease-default);
+    }
+
+    &.is-focused {
+        box-shadow: 0 0 0 0.2em rgb(var(--color-accent) / 0.5);
+        animation: uikit-checkbox-focus-ring-in 0.3s var(--ease-default);
+    }
+
+    --hw: 1px;
+    --cdx: -0.08em;
+    --cdy: 0.17em;
+    --cos135: -0.7071067812;
+    --sin135: -0.7071067812;
+    --short: 0.35em;
+    --actual-short: calc(var(--short) - (1.5 * var(--hw)));
+    --long: 0.6em;
+    --cross: 0.7em;
+
+    .inner-check {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        pointer-events: none;
+        color: rgb(var(--color-accent-fg));
+
+        &::before,
+        &::after {
+            content: '';
+            position: absolute;
+            background: currentColor;
+            margin-top: calc(var(--hw) * -1);
+            margin-left: calc(var(--hw) * -1);
+            height: calc(var(--hw) * 2);
+            transform-origin: var(--hw) var(--hw);
+            border-radius: var(--hw);
+        }
+
+        &::before {
+            width: var(--short);
+            --cpdx: calc(var(--cdx) + (var(--cos135) * var(--actual-short)));
+            --cpdy: calc(var(--cdy) + (var(--sin135) * var(--actual-short)));
+            transform: translate(var(--cpdx), var(--cpdy)) rotate(45deg);
+        }
+        &::after {
+            width: var(--long);
+            transform: translate(var(--cdx), var(--cdy)) rotate(-45deg);
+        }
+    }
+
+    &.is-checked:not(.was-checked) .inner-check {
+        &::before {
+            animation: uikit-checkbox-inner-check-in-a 0.1s linear;
+        }
+        &::after {
+            animation: uikit-checkbox-inner-check-in-a 0.2s cubic-bezier(0.1, 0.5, 0.2, 1) 0.1s
+                backwards;
+        }
+    }
+
+    &:not(.is-checked) .inner-check {
+        opacity: 0;
+        transform: scale(0.2);
+    }
+
+    &:not(.is-checked).was-checked .inner-check {
+        animation: uikit-checkbox-inner-check-out 0.3s var(--ease-default);
+    }
+
+    .inner-cross {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        pointer-events: none;
+        color: rgb(var(--color-accent-fg));
+
+        &::before,
+        &::after {
+            content: '';
+            position: absolute;
+            background: currentColor;
+            top: 50%;
+            left: 50%;
+            width: var(--cross);
+            border-radius: var(--hw);
+            height: calc(var(--hw) * 2);
+            --rot: 45deg;
+            transform: translate(-50%, -50%) rotate(var(--rot));
+        }
+        &::after {
+            --rot: -45deg;
+        }
+    }
+    &.is-checked .inner-cross {
+        opacity: 0;
+        transform: scale(0.2);
+    }
+    &:not(.is-checked).was-checked .inner-cross {
+        &::before,
+        &::after {
+            animation: uikit-checkbox-inner-cross-in-a 0.3s var(--ease-default) backwards;
+        }
+        &::after {
+            animation-delay: 0.1s;
+        }
+    }
+}
+
+@keyframes uikit-checkbox-focus-ring-in {
+    0% {
+        box-shadow: 0 0 0 1em rgb(var(--color-accent) / 0);
+    }
+}
+@keyframes uikit-checkbox-inner-check-in-a {
+    0% {
+        width: 0;
+    }
+}
+@keyframes uikit-checkbox-inner-check-out {
+    0% {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes uikit-checkbox-inner-cross-in-a {
+    0% {
+        transform: translate(-50%, -50%) rotate(var(--rot)) translateX(calc(var(--cross) / -2))
+            scaleX(0);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(var(--rot)) translateX(0) scaleX(1);
+    }
+}

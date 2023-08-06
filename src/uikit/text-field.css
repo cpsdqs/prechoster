@@ -17,6 +17,10 @@
         width: 0;
         flex: 1;
 
+        &::placeholder {
+            color: rgb(var(--color-fg) / 0.5);
+        }
+
         &:focus {
             outline: none;
         }

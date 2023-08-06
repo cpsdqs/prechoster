@@ -29,6 +29,9 @@ html {
 
     --monospace: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, liberation mono, courier new,
         monospace;
+    --font-size-ui: 14px;
+    --font-size-content: 16px;
+    --font-size-code: 13px;
 
     --ease-default: cubic-bezier(0.2, 0.3, 0, 1);
 
@@ -45,6 +48,8 @@ html {
 
     --color-soft-outline: var(--color-fg);
     --color-soft-outline-opacity: 0.2;
+    --color-form-item-bg: var(--color-fg);
+    --color-form-item-bg-opacity: 0.1;
 
     --cohost-bg: rgb(255 249 242);
     --cohost-dark-bg: rgb(25 25 25);

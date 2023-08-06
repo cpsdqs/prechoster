@@ -1,28 +1,63 @@
-import { parse as cssParse, walk as cssWalk, generate as cssGenerate } from 'css-tree';
+import { parse as cssParse, walk as cssWalk, generate as cssGenerate, CssNode } from 'css-tree';
 import Specificity from '@bramus/specificity';
 import { ModulePlugin, ModulePluginProps, HtmlData, CssData, Data } from '../../document';
+import { Form, FormItem } from '../../uikit/form';
+import Checkbox from '../../uikit/checkbox';
+import { useMemo } from 'react';
 
 type StyleInlinerMode = 'attr' | 'element';
 export type StyleInlinerData = {
     mode: StyleInlinerMode;
+    keepClasses?: boolean;
 };
 
 function StyleInliner({ data, onChange }: ModulePluginProps<StyleInlinerData>) {
+    const id1 = useMemo(() => Math.random().toString(36), []);
+    const id2 = useMemo(() => Math.random().toString(36), []);
+
     return (
-        <select
-            value={data.mode}
-            onChange={(e) => {
-                onChange({
-                    ...data,
-                    mode: (e.target as HTMLSelectElement).value as StyleInlinerMode,
-                });
-            }}
-        >
-            <option value="attr">as style attributes</option>
-            <option value="element">as a &lt;style&gt; element</option>
-        </select>
+        <Form>
+            <FormItem label="mode" itemId={id1}>
+                <select
+                    id={id1}
+                    value={data.mode}
+                    onChange={(e) => {
+                        onChange({
+                            ...data,
+                            mode: e.target.value as StyleInlinerMode,
+                        });
+                    }}
+                >
+                    <option value="attr">as style attributes</option>
+                    <option value="element">as a &lt;style&gt; element</option>
+                </select>
+            </FormItem>
+            <FormItem
+                label="strip classes"
+                description="Removes the `class` property from all HTML elements, because it’ll be removed by cohost anyway."
+                itemId={id2}
+            >
+                <Checkbox
+                    id={id2}
+                    checked={!data.keepClasses}
+                    onChange={(strip) => {
+                        const newData = { ...data };
+                        if (strip) delete newData.keepClasses;
+                        else newData.keepClasses = true;
+                        onChange(newData);
+                    }}
+                />
+            </FormItem>
+        </Form>
     );
 }
+
+type StyleData = {
+    // type Specificity (for some reason typescript complains when you use this type)
+    specificity: any;
+    decls: Map<string, string>;
+    importantDecls: Map<string, string>;
+};
 
 function stylesToAttrs(doc: Document) {
     const styles = [];
@@ -32,12 +67,6 @@ function stylesToAttrs(doc: Document) {
     }
 
     // collect all element styles
-    type StyleData = {
-        // type Specificity (for some reason typescript complains when you use this type)
-        specificity: any;
-        decls: { [k: string]: string };
-        importantDecls: { [k: string]: string };
-    };
     const nodes: Map<Element, StyleData[]> = new Map();
     for (const style of styles) {
         let ast;
@@ -48,32 +77,34 @@ function stylesToAttrs(doc: Document) {
         }
 
         cssWalk(ast, {
-            enter(node: any) {
+            enter(node: CssNode) {
                 // we dont know what could happen inside @-rules.
                 // they definitely don't work inline, though
                 if (node.type === 'Atrule') return (this as any).skip;
             },
-            leave(node: any) {
+            leave(node: CssNode) {
                 if (node.type === 'Rule') {
                     if (node.prelude.type === 'SelectorList') {
                         // collect style declarations
-                        const decls: { [k: string]: string } = {};
-                        const importantDecls: { [k: string]: string } = {};
-                        for (const decl of node.block.children) {
+                        const decls = new Map<string, string>();
+                        const importantDecls = new Map<string, string>();
+                        node.block.children.forEach((decl) => {
                             if (decl.type === 'Declaration') {
                                 const value = cssGenerate(decl.value);
                                 if (decl.important) {
-                                    importantDecls[decl.property] = value;
+                                    importantDecls.delete(decl.property);
+                                    importantDecls.set(decl.property, value);
                                 } else {
-                                    decls[decl.property] = value;
+                                    decls.delete(decl.property);
+                                    decls.set(decl.property, value);
                                 }
                             } else {
                                 throw new Error(`invalid CSS declaration “${cssGenerate(decl)}”`);
                             }
-                        }
+                        });
 
                         // apply declarations to selector targets
-                        for (const sel of node.prelude.children) {
+                        node.prelude.children.forEach((sel) => {
                             if (sel.type === 'Selector') {
                                 const selText = cssGenerate(sel);
                                 const specificity = Specificity.calculate(sel)[0];
@@ -94,7 +125,7 @@ function stylesToAttrs(doc: Document) {
                             } else {
                                 throw new Error(`invalid CSS selector “${cssGenerate(sel)}”`);
                             }
-                        }
+                        });
                     }
                 }
             },
@@ -107,17 +138,96 @@ function stylesToAttrs(doc: Document) {
             .slice()
             .sort((a, b) => Specificity.compare(a.specificity, b.specificity));
 
-        for (const item of sorted) {
-            for (const [k, v] of Object.entries(item.decls)) {
+        addStyleProperties(node, sorted);
+    }
+
+    // version mark. data-_ps="2" is 12 bytes, so it should be negligible
+    for (const node of nodes.keys()) {
+        if (!(node instanceof HTMLElement || node instanceof SVGElement)) continue;
+        if (node.dataset._ps) break;
+        node.dataset._ps = '2';
+        break;
+    }
+}
+
+function addStyleProperties(node: Element, properties: StyleData[], useLegacyMethod = false) {
+    if (useLegacyMethod) {
+        for (const item of properties) {
+            for (const [k, v] of item.decls.entries()) {
                 (node as HTMLElement).style.setProperty(k, v);
             }
         }
-        for (const item of sorted) {
-            for (const [k, v] of Object.entries(item.importantDecls)) {
+        for (const item of properties) {
+            for (const [k, v] of item.importantDecls.entries()) {
                 (node as HTMLElement).style.setProperty(k, v);
             }
+        }
+        return;
+    }
+
+    let ast;
+    try {
+        const styleAttr = node.getAttribute('style') || '';
+        ast = cssParse(styleAttr, {
+            context: 'declarationList',
+        });
+    } catch (err) {
+        throw new Error(`error parsing style attribute in ${node.tagName.toLowerCase()}: ${err}`);
+    }
+
+    // collect existing rules
+    const decls = new Map<string, string>();
+    const importantDecls = new Map<string, string>();
+    cssWalk(ast, {
+        leave(node: CssNode) {
+            if (node.type === 'Declaration') {
+                if (node.important) {
+                    importantDecls.delete(node.property); // delete first to reorder
+                    importantDecls.set(node.property, cssGenerate(node.value));
+                } else {
+                    decls.delete(node.property);
+                    decls.set(node.property, cssGenerate(node.value));
+                }
+            }
+        },
+    });
+
+    // set of properties that were specified in the style attribute. these should be preserved in most cases
+    const styleAttrDecls = new Set(Object.keys(decls));
+    const importantStyleAttrDecls = new Set(Object.keys(decls));
+
+    for (const item of properties) {
+        for (const [k, v] of item.decls.entries()) {
+            if (styleAttrDecls.has(k) || importantStyleAttrDecls.has(k)) continue; // style property wins
+            decls.delete(k); // delete first to reorder
+            decls.set(k, v);
+        }
+        for (const [k, v] of item.importantDecls.entries()) {
+            if (importantStyleAttrDecls.has(k)) continue; // style property wins
+            importantDecls.delete(k); // delete first to reorder
+            importantDecls.set(k, v);
         }
     }
+
+    for (const k of importantDecls.keys()) {
+        if (decls.has(k)) {
+            // overridden by !important declaration anyway
+            decls.delete(k);
+        }
+    }
+
+    let styleStr = '';
+    for (const [k, v] of decls.entries()) {
+        if (styleStr) styleStr += ';';
+        styleStr += `${k}:${v}`;
+    }
+    for (const [k, v] of importantDecls.entries()) {
+        // we do not add back “!important” here because cohost strips all properties marked !important
+        if (styleStr) styleStr += ';';
+        styleStr += `${k}:${v}`;
+    }
+
+    node.setAttribute('style', styleStr);
 }
 
 function stylesToBody(doc: Document) {
@@ -176,9 +286,10 @@ export default {
             stylesToAttrs(doc);
 
             // cleanup for cohost
-            // TODO: this should probably be a separate module
-            for (const node of doc.querySelectorAll('[class]')) {
-                node.removeAttribute('class');
+            if (!data.keepClasses) {
+                for (const node of doc.querySelectorAll('[class]')) {
+                    node.removeAttribute('class');
+                }
             }
         } else if (data.mode === 'element') {
             stylesToBody(doc);

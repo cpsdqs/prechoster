@@ -7,6 +7,10 @@ import {
     PlainTextData,
     Data,
 } from '../../document';
+import { Form, FormFooter, FormItem } from '../../uikit/form';
+import Checkbox from '../../uikit/checkbox';
+import { TextField } from '../../uikit/text-field';
+import { Button } from '../../uikit/button';
 
 export type ToBlobData = {
     mime: string;
@@ -41,55 +45,51 @@ function ToBlob({ id, data, onChange, document }: ModulePluginProps<ToBlobData>)
     };
 
     return (
-        <div>
-            <div>
-                <label htmlFor={mimeId}>MIME type:</label>{' '}
-                <input
+        <Form>
+            <FormItem label="MIME type" itemId={mimeId}>
+                <TextField
                     id={mimeId}
                     type="text"
                     placeholder="text/plain"
                     value={data.mime}
-                    onChange={(e) => {
-                        onChange({ ...data, mime: (e.target as HTMLInputElement).value });
+                    onChange={(mime) => {
+                        onChange({ ...data, mime });
                     }}
                 />
-            </div>
-            <div>
-                <button onClick={download} disabled={loading}>
+            </FormItem>
+            <FormFooter>
+                <span></span>
+                <Button run={download} disabled={loading}>
                     download file
-                </button>
-            </div>
+                </Button>
+            </FormFooter>
             <hr />
-            <div>
-                <input
+            <FormItem label="Override with uploaded file" itemId={useOverrideId}>
+                <Checkbox
                     id={useOverrideId}
-                    type="checkbox"
                     checked={data.useOverride}
-                    onChange={(e) => {
-                        onChange({ ...data, useOverride: (e.target as HTMLInputElement).checked });
+                    onChange={(useOverride) => {
+                        onChange({ ...data, useOverride });
                     }}
-                />{' '}
-                <label htmlFor={useOverrideId}>Override with uploaded file</label>
-            </div>
+                />
+            </FormItem>
             {data.useOverride && (
-                <div>
-                    <label htmlFor={overrideId}>URL:</label>{' '}
-                    <input
+                <FormItem label="Override URL" itemId={overrideId}>
+                    <TextField
                         id={overrideId}
                         type="text"
                         placeholder="https://staging.cohostcdn.org/..."
                         value={data.override || ''}
-                        onChange={(e) => {
+                        onChange={(override) => {
                             const newData = { ...data };
-                            const override = e.target.value;
                             if (override) newData.override = override;
                             else delete newData.override;
                             onChange(newData);
                         }}
                     />
-                </div>
+                </FormItem>
             )}
-        </div>
+        </Form>
     );
 }
 
