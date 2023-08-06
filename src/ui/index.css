@@ -37,6 +37,7 @@ html {
 
     --color-accent: 121 96 223;
     --color-accent-fg: 255 255 255;
+    --color-warning: 240 126 0;
     --color-danger: 255 68 51;
     --color-danger-fg: 255 255 255;
     --color-shade: var(--color-fg);

@@ -1,4 +1,4 @@
-@import '../../cohost-inherited.less';
+@import '../../../cohost-inherited.less';
 
 .post-preview {
     background: var(--cohost-bg);
@@ -41,15 +41,15 @@
         opacity: 0.5;
     }
 
-    .post-header,
-    .post-footer {
+    & > .post-header,
+    & > .post-footer {
         display: flex;
         justify-content: space-between;
         align-items: center;
         padding: 0.5em 0.75em;
     }
 
-    .post-header {
+    & > .post-header {
         .render-config {
             display: flex;
         }
@@ -227,7 +227,23 @@
         }
     }
 
-    .post-footer {
+    & > .post-footer {
+        .post-size-meter {
+            --size-of-max: 0;
+            color: color-mix(
+                in oklab,
+                rgb(var(--color-fg)),
+                rgb(var(--color-warning)) calc(var(--size-of-max) * 100%)
+            );
+
+            .i-warning {
+                border: 1px solid;
+                border-radius: 0.5em;
+                padding: 0.1em 0.4em;
+                font-size: smaller;
+            }
+        }
+
         .copy-to-clipboard {
             position: relative;
             font: inherit;
@@ -292,6 +308,25 @@
                 }
             }
         }
+        .copy-to-clipboard-warnings {
+            .i-warnings {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+                width: 80vw;
+                max-width: 32ch;
+
+                li {
+                    padding: 0.5em 1em;
+                    border-bottom: 1px solid var(--separator);
+                }
+            }
+            .i-buttons {
+                padding: 0.5em 1em;
+                display: flex;
+                justify-content: space-between;
+            }
+        }
     }
 
     .cohost-message-box {
@@ -323,6 +358,10 @@
     &.simulate-userstyles {
         background: #435;
         color: #fff;
+
+        & > .post-footer {
+            --color-fg: 255 255 255;
+        }
 
         & > .post-header .config-preview-item {
             background: #fff2;
