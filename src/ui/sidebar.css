@@ -117,6 +117,7 @@
 
             > .i-file {
                 flex: 1;
+                width: 0;
                 display: block;
                 background: none;
                 color: inherit;
