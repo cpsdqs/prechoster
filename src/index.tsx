@@ -21,7 +21,7 @@ if (canInit) {
             reactRoot.render(<ApplicationFrame storage={storage} />);
         })
         .catch((err) => {
-            alert('Error during initialization\n\n' + err);
+            alert('Error initializing application storage\n\n' + err);
             console.error(err);
         });
 }

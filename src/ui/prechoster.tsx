@@ -3,7 +3,7 @@ import { SplitPanel } from './components/split-panel';
 import { ModuleList } from './components/module-list';
 import { ModuleGraph, EdgeId } from './components/module-graph';
 import { Preview } from './components/preview';
-import { Document, ModuleId, RenderState } from '../document';
+import { Document, ModuleId, RenderOutput, RenderState } from '../document';
 import { RenderContext } from './render-context';
 // @ts-ignore
 import { homepage as sourceLink } from '../../package.json';
@@ -22,7 +22,7 @@ export class Prechoster extends PureComponent<Prechoster.Props, PrechosterState>
             target: null,
             live: true,
             rendering: false,
-            output: null,
+            output: null as RenderOutput | null,
             error: null,
         },
         clickToRender: false,
@@ -175,6 +175,7 @@ export class Prechoster extends PureComponent<Prechoster.Props, PrechosterState>
                                 document={doc}
                                 selected={this.state.selected}
                                 onSelect={(selected) => this.setState({ selected })}
+                                userData={this.state.render.output?.userData}
                             />
                         </div>
                         <SplitPanel vertical initialPos={Math.max(0.6, 1 - 300 / innerHeight)}>

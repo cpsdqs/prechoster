@@ -7,6 +7,7 @@ import {
     PlainTextData,
     CssData,
     Class,
+    EvalOptions,
 } from '../../document';
 import { CodeEditor } from '../../ui/components/code-editor';
 import { sass as cmSass } from '@codemirror/lang-sass';
@@ -42,6 +43,12 @@ export type SassPluginData = {
     syntax: Syntax;
 };
 
+enum ImportType {
+    Styles,
+    Value,
+}
+type AvailableImports = Map<string, ImportType>;
+
 function extensionForSyntax(syntax: Syntax): string {
     switch (syntax) {
         case 'scss':
@@ -53,8 +60,9 @@ function extensionForSyntax(syntax: Syntax): string {
     }
 }
 
-class SassEditor extends PureComponent<ModulePluginProps<SassPluginData>> {
+class SassEditor extends PureComponent<ModulePluginProps<SassPluginData> & { isModule?: boolean }> {
     memoizedExtensions: any = null;
+    modeSelectId = Math.random().toString(36);
 
     get extensions() {
         if (!this.memoizedExtensions) {
@@ -68,13 +76,16 @@ class SassEditor extends PureComponent<ModulePluginProps<SassPluginData>> {
     }
 
     render() {
-        const { data, onChange } = this.props;
+        const { data, onChange, userData } = this.props;
+
+        const imports = userData.imports as AvailableImports | undefined;
 
         const footer = (
             <div className="i-footer">
                 <span>
-                    <label>Mode:</label>
+                    <label htmlFor={this.modeSelectId}>Mode: </label>
                     <select
+                        id={this.modeSelectId}
                         value={data.syntax}
                         onChange={(e) => {
                             this.memoizedExtensions = null;
@@ -96,34 +107,79 @@ class SassEditor extends PureComponent<ModulePluginProps<SassPluginData>> {
                     extensions={this.extensions}
                     footer={footer}
                 />
+
+                {!this.props.isModule ? (
+                    <details>
+                        <summary>see available imports</summary>
+                        {imports?.size ? (
+                            <>
+                                <p>
+                                    These can be imported in this module, or in any Sass module sent
+                                    here.
+                                </p>
+                                <ul>
+                                    {[...imports].map(([item, type], i) => (
+                                        <li key={i}>
+                                            <code>@use {JSON.stringify('./' + item)}</code>
+                                            {type === ImportType.Value &&
+                                            item.match(/^[a-zA-Z_-][\w-_]*$/) ? (
+                                                <p>
+                                                    Use the value: <code>${item}.$value</code>
+                                                </p>
+                                            ) : null}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </>
+                        ) : imports ? (
+                            <p>nothing available</p>
+                        ) : (
+                            <p>this module was not rendered, so we don’t know</p>
+                        )}
+                    </details>
+                ) : null}
             </div>
         );
     }
 }
 
-function sassImporter(namedInputs: NamedInputData): Importer {
+function SassModuleEditor(props: ModulePluginProps<SassPluginData>) {
+    return <SassEditor {...props} isModule={true} />;
+}
+
+function sassImporter(namedInputs: NamedInputData, { userData }: EvalOptions): Importer {
     const modules: Map<string, ImporterResult> = new Map();
+    const imports: AvailableImports = new Map();
+
     for (const [name, value] of namedInputs) {
         let data;
         if ((data = value.into(SassModuleData))) {
             const fileName = `${name}.${extensionForSyntax(data.syntax)}`;
             if (modules.has(fileName)) throw new Error(`duplicate input ${fileName}`);
+
             modules.set(fileName, { contents: data.contents, syntax: data.syntax });
+            imports.set(fileName, ImportType.Styles);
         } else if ((data = value.into(CssData))) {
             const fileName = `${name}.css`;
             if (modules.has(fileName)) throw new Error(`duplicate input ${fileName}`);
+
             modules.set(fileName, { contents: data.contents, syntax: 'css' });
+            imports.set(fileName, ImportType.Styles);
         } else if ((data = value.into(PlainTextData))) {
             const fileName = `${name}`;
             if (modules.has(fileName)) throw new Error(`duplicate input ${fileName}`);
+
             modules.set(fileName, {
                 contents: `$value: ${JSON.stringify(data.contents)};`,
                 syntax: 'scss',
             });
+            imports.set(fileName, ImportType.Value);
         } else {
             throw new Error(`don’t know how to deal with input ${name} of type ${value.typeId}`);
         }
     }
+
+    userData.imports = imports;
 
     return {
         canonicalize(url: string): URL | null {
@@ -148,13 +204,18 @@ export default {
         if (data.syntax === 'scss') return 'SCSS';
         return 'Sass';
     },
-    async eval(data: SassPluginData, inputs: Data[], namedInputs: NamedInputData) {
+    async eval(
+        data: SassPluginData,
+        inputs: Data[],
+        namedInputs: NamedInputData,
+        options: EvalOptions
+    ) {
         // don't collide with user variables for the entry point
         const entryName = `sass-source-${Math.random().toString(36).replace(/[^\w]/g, '')}`;
         const entryUrl = new URL(`file:///${entryName}.${extensionForSyntax(data.syntax)}`);
 
         const result = compileString(data.contents, {
-            importer: sassImporter(namedInputs),
+            importer: sassImporter(namedInputs, options),
             url: entryUrl,
             syntax: data.syntax,
         });
@@ -166,7 +227,7 @@ export const sassModule = {
     id: 'source.sass-module',
     acceptsInputs: false,
     acceptsNamedInputs: false,
-    component: SassEditor as unknown, // typescript cant figure it out
+    component: SassModuleEditor as unknown, // typescript cant figure it out
     initialData(): SassPluginData {
         return { contents: '', syntax: 'scss' };
     },

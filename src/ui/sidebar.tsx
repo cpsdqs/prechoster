@@ -344,16 +344,22 @@ function formatRelativeDate(date: Date): string {
     }
 
     const deltaDays = deltaHours / 24;
-    if (deltaDays < 7) return `${Math.floor(deltaDays)} days ago`;
+    if (deltaDays < 7) {
+        const v = Math.floor(deltaDays);
+        return `${v} day${v === 1 ? '' : 's'} ago`;
+    }
 
     const deltaWeeks = deltaDays / 7;
-    if (deltaWeeks < 5) return `${Math.floor(deltaWeeks)} weeks ago`;
+    if (deltaWeeks < 5) {
+        const v = Math.floor(deltaWeeks);
+        return `${v} week${v === 1 ? '' : 's'} ago`;
+    }
 
     const todayMonthIndex = today.getFullYear() * 12 + today.getMonth();
     const dateMonthIndex = date.getFullYear() * 12 + date.getMonth();
     const deltaMonths = todayMonthIndex - dateMonthIndex;
 
-    return `${deltaMonths} months ago`;
+    return `${deltaMonths} month${deltaMonths === 1 ? '' : 's'} ago`;
 }
 
 function Extras() {

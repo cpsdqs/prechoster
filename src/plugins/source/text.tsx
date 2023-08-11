@@ -43,6 +43,7 @@ class TextEditor extends PureComponent<ModulePluginProps<TextPluginData>> {
     };
 
     memoizedExtensions: any = null;
+    modeSelectId = Math.random().toString(36);
 
     get extensions() {
         if (!this.memoizedExtensions) {
@@ -58,8 +59,9 @@ class TextEditor extends PureComponent<ModulePluginProps<TextPluginData>> {
         const footer = (
             <div className="i-footer">
                 <span>
-                    <label>Mode:</label>
+                    <label htmlFor={this.modeSelectId}>Mode: </label>
                     <select
+                        id={this.modeSelectId}
                         value={data.language}
                         onChange={(e) => {
                             this.memoizedExtensions = null;

@@ -1,9 +1,18 @@
 import { parse as cssParse, walk as cssWalk, generate as cssGenerate, CssNode } from 'css-tree';
 import Specificity from '@bramus/specificity';
-import { ModulePlugin, ModulePluginProps, HtmlData, CssData, Data } from '../../document';
+import {
+    ModulePlugin,
+    ModulePluginProps,
+    HtmlData,
+    CssData,
+    Data,
+    NamedInputData,
+    EvalOptions,
+} from '../../document';
 import { Form, FormItem } from '../../uikit/form';
 import Checkbox from '../../uikit/checkbox';
 import { useMemo } from 'react';
+import { ModuleStatus } from '../../ui/components/module-status';
 
 type StyleInlinerMode = 'attr' | 'element';
 export type StyleInlinerData = {
@@ -11,9 +20,20 @@ export type StyleInlinerData = {
     keepClasses?: boolean;
 };
 
-function StyleInliner({ data, onChange }: ModulePluginProps<StyleInlinerData>) {
+const STYLES_TO_ATTR_VERSION = 2;
+const SAFE_CONTAINER_TAGS = ['div', 'span', 'a', 'ul', 'ol', 'li', 'math', 'svg', 'g'];
+
+interface StyleInlinerStats {
+    mode: StyleInlinerMode;
+    inlinedToNodes: number;
+    styleTagBytes: number;
+}
+
+function StyleInliner({ data, onChange, userData }: ModulePluginProps<StyleInlinerData>) {
     const id1 = useMemo(() => Math.random().toString(36), []);
     const id2 = useMemo(() => Math.random().toString(36), []);
+
+    const stats = userData.stats as StyleInlinerStats | undefined;
 
     return (
         <Form>
@@ -50,6 +70,18 @@ function StyleInliner({ data, onChange }: ModulePluginProps<StyleInlinerData>) {
                     />
                 </FormItem>
             ) : null}
+            <ModuleStatus>
+                {stats?.mode === 'attr' ? (
+                    <div>
+                        affected {stats.inlinedToNodes} node{stats.inlinedToNodes === 1 ? '' : 's'}
+                    </div>
+                ) : stats?.mode === 'element' ? (
+                    <div>
+                        inlined {stats.styleTagBytes.toLocaleString('en-US')} byte
+                        {stats.styleTagBytes === 1 ? '' : 's'}
+                    </div>
+                ) : null}
+            </ModuleStatus>
         </Form>
     );
 }
@@ -61,7 +93,7 @@ type StyleData = {
     importantDecls: Map<string, string>;
 };
 
-function stylesToAttrs(doc: Document) {
+function stylesToAttrs(doc: Document, stats: StyleInlinerStats) {
     const styles = [];
     for (const style of doc.querySelectorAll('style')) {
         styles.push(style);
@@ -141,32 +173,20 @@ function stylesToAttrs(doc: Document) {
             .sort((a, b) => Specificity.compare(a.specificity, b.specificity));
 
         addStyleProperties(node, sorted);
+        stats.inlinedToNodes++;
     }
 
-    // version mark. data-_ps="2" is 12 bytes, so it should be negligible
+    // version mark. <!--ps=X--> is 11 bytes, so it should be negligible
     for (const node of nodes.keys()) {
         if (!(node instanceof HTMLElement || node instanceof SVGElement)) continue;
-        if (node.dataset._ps) break;
-        node.dataset._ps = '2';
+        if (!SAFE_CONTAINER_TAGS.includes(node.tagName.toLowerCase())) continue;
+        const comment = document.createComment(`ps=${STYLES_TO_ATTR_VERSION}`);
+        node.insertBefore(comment, node.firstChild);
         break;
     }
 }
 
-function addStyleProperties(node: Element, properties: StyleData[], useLegacyMethod = false) {
-    if (useLegacyMethod) {
-        for (const item of properties) {
-            for (const [k, v] of item.decls.entries()) {
-                (node as HTMLElement).style.setProperty(k, v);
-            }
-        }
-        for (const item of properties) {
-            for (const [k, v] of item.importantDecls.entries()) {
-                (node as HTMLElement).style.setProperty(k, v);
-            }
-        }
-        return;
-    }
-
+function addStyleProperties(node: Element, properties: StyleData[]) {
     let ast;
     try {
         const styleAttr = node.getAttribute('style') || '';
@@ -232,7 +252,7 @@ function addStyleProperties(node: Element, properties: StyleData[], useLegacyMet
     node.setAttribute('style', styleStr);
 }
 
-function stylesToBody(doc: Document) {
+function stylesToBody(doc: Document, stats: StyleInlinerStats) {
     const styles = [];
     for (const style of doc.querySelectorAll('style')) {
         styles.push(style);
@@ -242,6 +262,8 @@ function stylesToBody(doc: Document) {
     const styleText = styles.map((style) => style.innerHTML).join('\n');
     const styleEl = document.createElement('style');
     styleEl.innerHTML = styleText;
+
+    stats.styleTagBytes += styleText.length;
 
     if (doc.body.children.length === 1 && doc.body.children[0].tagName === 'svg') {
         doc.body.children[0].append(styleEl);
@@ -261,7 +283,12 @@ export default {
     description() {
         return 'Style Inliner';
     },
-    async eval(data: StyleInlinerData, inputs: Data[]) {
+    async eval(
+        data: StyleInlinerData,
+        inputs: Data[],
+        named: NamedInputData,
+        { userData }: EvalOptions
+    ) {
         let htmlInput = '';
         let cssInput = '';
         for (const input of inputs) {
@@ -284,8 +311,14 @@ export default {
         ].join('');
         const doc = new DOMParser().parseFromString(htmlSource, 'text/html');
 
+        const stats: StyleInlinerStats = {
+            mode: data.mode,
+            inlinedToNodes: 0,
+            styleTagBytes: 0,
+        };
+
         if (data.mode === 'attr') {
-            stylesToAttrs(doc);
+            stylesToAttrs(doc, stats);
 
             // cleanup for cohost
             if (!data.keepClasses) {
@@ -294,8 +327,11 @@ export default {
                 }
             }
         } else if (data.mode === 'element') {
-            stylesToBody(doc);
+            stylesToBody(doc, stats);
         }
+
+        userData.stats = stats;
+
         return new HtmlData(doc.body.innerHTML);
     },
 } as ModulePlugin<StyleInlinerData>;

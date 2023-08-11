@@ -7,7 +7,10 @@ type DocEvalState = {
     steps: number;
     asyncCache: Map<ModuleId, Promise<Data>>;
     cache: Map<ModuleId, Data>;
+    userData: Map<ModuleId, UserData>;
 };
+
+export type UserData = Record<string, unknown>;
 
 export const MAX_EVAL_STEPS = 1024;
 export const MAX_HISTORY_LEN = 300;
@@ -236,8 +239,17 @@ export class Document extends EventTarget {
                     }
 
                     try {
-                        const output = await mod.plugin.eval(mod.data, resInputs, resNamedInputs);
+                        const options: EvalOptions = {
+                            userData: {},
+                        };
+                        const output = await mod.plugin.eval(
+                            mod.data,
+                            resInputs,
+                            resNamedInputs,
+                            options
+                        );
                         state.cache.set(mod.id, output);
+                        state.userData.set(mod.id, options.userData);
                         return output;
                     } catch (err) {
                         throw new ModuleError(err, mod.id);
@@ -295,22 +307,33 @@ export class Document extends EventTarget {
     }
 
     /** Evaluates the final output of this document. */
-    async evalOutput(): Promise<{ inputs: Data[]; nodes: Map<ModuleId, Data> }> {
+    async evalOutput(): Promise<{
+        inputs: Data[];
+        nodes: Map<ModuleId, Data>;
+        userData: Map<ModuleId, UserData>;
+    }> {
         const cache = new Map();
+        const userData = new Map();
         const { inputs } = this.evalModuleInputs(MOD_OUTPUT, {
             steps: 0,
             asyncCache: new Map(),
             cache,
+            userData,
         });
         return {
             inputs: await Promise.all(inputs),
             nodes: cache,
+            userData,
         };
     }
 
     /** Calls eval() and converts it to one markdown string. */
-    async evalMdOutput(): Promise<{ markdown: string; nodes: Map<ModuleId, Data> }> {
-        const { inputs, nodes } = await this.evalOutput();
+    async evalMdOutput(): Promise<{
+        markdown: string;
+        nodes: Map<ModuleId, Data>;
+        userData: Map<ModuleId, UserData>;
+    }> {
+        const { inputs, nodes, userData } = await this.evalOutput();
         const markdown = inputs
             .map((item, i) => {
                 const output = item.asMdOutput();
@@ -325,17 +348,19 @@ export class Document extends EventTarget {
             })
             .join('\n');
 
-        return { markdown, nodes };
+        return { markdown, nodes, userData };
     }
 
     async eval(target: ModuleId | null): Promise<RenderOutput | RenderError> {
         try {
             let nodes = new Map();
+            let userData = new Map();
             let mdOutput = null;
             if (!target) {
                 const output = await this.evalMdOutput();
                 mdOutput = output.markdown;
                 nodes = output.nodes;
+                userData = output.userData;
             } else {
                 const module = this.findModule(target);
                 if (!module) throw new Error('Invalid render target: module not found');
@@ -343,6 +368,7 @@ export class Document extends EventTarget {
                     steps: 0,
                     asyncCache: new Map(),
                     cache: nodes,
+                    userData,
                 });
             }
 
@@ -351,6 +377,7 @@ export class Document extends EventTarget {
                 target,
                 outputs: nodes,
                 markdownOutput: mdOutput,
+                userData,
                 drop() {
                     for (const data of this.outputs.values()) data.drop();
                 },
@@ -431,6 +458,8 @@ export interface RenderOutput {
     outputs: Map<ModuleId, Data>;
     /** The final markdown output, if the render target is the output */
     markdownOutput: string | null;
+    /** Evaluated module user data */
+    userData: Map<ModuleId, UserData>;
 
     /** Drops all resources allocated by the render output */
     drop(): void;
@@ -503,7 +532,11 @@ export interface ModulePlugin<T> {
     /** Returns a text description of the module. */
     description(data: T): string;
 
-    eval(data: T, inputs: Data[], namedInputs: NamedInputData): Promise<Data>;
+    eval(data: T, inputs: Data[], namedInputs: NamedInputData, options: EvalOptions): Promise<Data>;
+}
+
+export interface EvalOptions {
+    userData: UserData;
 }
 
 export class UnloadedPlugin implements ModulePlugin<JsonValue> {
@@ -538,6 +571,7 @@ export interface ModulePluginProps<T> {
     document: Document;
     id: ModuleId;
     data: T;
+    userData: UserData;
     namedInputKeys: Set<string>;
     onChange: (v: T) => void;
 }

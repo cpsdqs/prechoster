@@ -7,6 +7,7 @@ import {
     PlainTextData,
     HtmlData,
     JavascriptData,
+    EvalOptions,
 } from '../../document';
 import { CodeEditor } from '../../ui/components/code-editor';
 import { SvelteComponentData } from './svelte-component';
@@ -70,18 +71,46 @@ export type SveltePluginData = {
     contents: string;
 };
 
+type AvailableImports = Set<string>;
+
 class SvelteEditor extends PureComponent<ModulePluginProps<SveltePluginData>> {
     extensions = [html(), EditorView.lineWrapping];
 
     render() {
-        const { data, onChange } = this.props;
+        const { data, onChange, userData } = this.props;
+
+        const imports = userData.imports as AvailableImports | undefined;
+
         return (
-            <div className="plugin-less-editor">
+            <div className="plugin-svelte-editor">
                 <CodeEditor
                     value={data.contents}
                     onChange={(contents) => onChange({ ...data, contents })}
                     extensions={this.extensions}
                 />
+
+                <details>
+                    <summary>see available imports</summary>
+                    {imports?.size ? (
+                        <>
+                            <p>
+                                These can be imported in this module, or in any Svelte or Javascript
+                                module sent here.
+                            </p>
+                            <ul>
+                                {[...imports].map((item, i) => (
+                                    <li key={i}>
+                                        <code>{JSON.stringify('./' + item)}</code>
+                                    </li>
+                                ))}
+                            </ul>
+                        </>
+                    ) : imports ? (
+                        <p>nothing available</p>
+                    ) : (
+                        <p>this module was not rendered, so we don’t know</p>
+                    )}
+                </details>
             </div>
         );
     }
@@ -101,7 +130,12 @@ export default {
     description() {
         return 'Svelte';
     },
-    async eval(data: SveltePluginData, inputs: Data[], namedInputs: NamedInputData) {
+    async eval(
+        data: SveltePluginData,
+        inputs: Data[],
+        namedInputs: NamedInputData,
+        { userData }: EvalOptions
+    ) {
         // don't collide with user variables for the entry point
         const componentName = `Main${Math.random().toString(36).replace(/[^\w]/g, '')}`;
 
@@ -134,6 +168,10 @@ export default {
                 );
             }
         }
+
+        const imports = new Set(modules.keys());
+        imports.delete(`${componentName}.svelte`);
+        userData.imports = imports;
 
         let script = await bundleModules(modules, componentName + '.svelte', componentName);
         script += `window.${componentName}_init(${componentName});`;

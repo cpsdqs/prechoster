@@ -1,28 +1,46 @@
-import { ModulePlugin, ModulePluginProps, HtmlData, Data } from '../../document';
+import {
+    ModulePlugin,
+    ModulePluginProps,
+    HtmlData,
+    Data,
+    EvalOptions,
+    NamedInputData,
+} from '../../document';
 // @ts-ignore
 import { optimize } from 'svgo/dist/svgo.browser';
+import Checkbox from '../../uikit/checkbox';
+import { Form, FormItem } from '../../uikit/form';
+import { ModuleStatus } from '../../ui/components/module-status';
 
 export type SvgToBackgroundData = {
     useSvgo: boolean;
 };
 
-function SvgToBackground({ data, onChange }: ModulePluginProps<SvgToBackgroundData>) {
+function SvgToBackground({ data, onChange, userData }: ModulePluginProps<SvgToBackgroundData>) {
     const useSvgoId = Math.random().toString(36);
 
     return (
-        <div>
-            <div>
-                <input
+        <Form>
+            <FormItem
+                label="Use SVG Optimizer"
+                description="Optimizes the SVG before inlining it. May cause slight artifacts."
+                itemId={useSvgoId}
+            >
+                <Checkbox
                     id={useSvgoId}
-                    type="checkbox"
                     checked={data.useSvgo}
-                    onChange={(e) => {
-                        onChange({ ...data, useSvgo: (e.target as HTMLInputElement).checked });
-                    }}
-                />{' '}
-                <label htmlFor={useSvgoId}>Use SVG Optimizer</label>
-            </div>
-        </div>
+                    onChange={(useSvgo) => onChange({ ...data, useSvgo })}
+                />
+            </FormItem>
+            <ModuleStatus>
+                {typeof userData.svgCount === 'number' ? (
+                    <>
+                        converted {userData.svgCount.toString()} &lt;svg&gt; element
+                        {userData.svgCount === 1 ? '' : 's'}
+                    </>
+                ) : null}
+            </ModuleStatus>
+        </Form>
     );
 }
 
@@ -37,7 +55,12 @@ export default {
     description() {
         return 'SVG to backgrounds';
     },
-    async eval(data: SvgToBackgroundData, inputs: Data[]) {
+    async eval(
+        data: SvgToBackgroundData,
+        inputs: Data[],
+        _: NamedInputData,
+        { userData }: EvalOptions
+    ) {
         let htmlInput = '';
         for (const input of inputs) {
             let data;
@@ -56,6 +79,7 @@ export default {
         const doc = new DOMParser().parseFromString(htmlSource, 'text/html');
         const body = doc.body;
 
+        let svgCount = 0;
         for (const svg of doc.querySelectorAll('svg[data-background]')) {
             const parent = svg.parentNode!;
 
@@ -84,7 +108,10 @@ export default {
 
             const url = 'data:image/svg+xml;base64,' + btoa(`<?xml version="1.0"?>${svgMarkup}`);
             (parent as HTMLElement).style.backgroundImage = `url(${url})`;
+            svgCount++;
         }
+
+        userData.svgCount = svgCount;
 
         return new HtmlData(body.innerHTML);
     },

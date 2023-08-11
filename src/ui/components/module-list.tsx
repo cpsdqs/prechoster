@@ -8,6 +8,8 @@ import {
     NamedSends,
     MOD_OUTPUT,
     ChangeType,
+    ModulePluginProps,
+    UserData,
 } from '../../document';
 import { AnimationController, Spring } from '../../uikit/frame-animation';
 import { shouldReduceMotion } from '../../uikit/animation';
@@ -363,6 +365,7 @@ export class ModuleList extends PureComponent<ModuleList.Props, ModuleListState>
                                 dragging: this.state.moveDragging,
                             }}
                             onRemove={() => document.removeModule(module.id)}
+                            userData={this.props.userData?.get(module.id)}
                         />
                     ))}
                     <AddModule
@@ -381,6 +384,7 @@ namespace ModuleList {
         document: Document;
         selected: ModuleId | null;
         onSelect: (m: ModuleId | null) => void;
+        userData?: Map<ModuleId, UserData>;
     }
 }
 
@@ -436,8 +440,11 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
             moveState,
             onRemove,
             selection,
+            userData,
         } = this.props;
-        const Editor = module.plugin.component as any; // typescript is yelling at me :(
+        const Editor = module.plugin.component as React.FunctionComponent<
+            ModulePluginProps<JsonValue>
+        >;
 
         let className = 'module-item';
         if (selection.selected === module.id) className += ' is-selected';
@@ -547,6 +554,7 @@ class ModuleItem extends PureComponent<ModuleItem.Props> {
                             mod.data = data;
                             onChange(mod);
                         }}
+                        userData={userData || {}}
                     />
                 </div>
                 <div className="i-footer" role="group" aria-label="Connections">
@@ -586,6 +594,7 @@ namespace ModuleItem {
         moveState: ModuleMoveState;
         onRemove: () => void;
         selection: ModuleSelection;
+        userData?: UserData;
     }
 }
 
@@ -680,7 +689,7 @@ function ModuleSends({ document, sends, onChange }: ModuleSends.Props) {
                     .map((mod, i) => {
                         if (!mod.plugin.acceptsInputs) return null;
 
-                        const label = `${i + 1}. ${mod.plugin.description(mod.data)}`;
+                        const label = `${i + 1}. ${mod.title || mod.plugin.description(mod.data)}`;
                         return (
                             <option key={i} value={mod.id}>
                                 {label}
@@ -747,7 +756,7 @@ function ModuleNamedSends({ document, namedSends, onChange }: ModuleNamedSends.P
                     .map((mod, i) => {
                         if (!mod.plugin.acceptsNamedInputs) return null;
 
-                        const label = `${i + 1}. ${mod.plugin.description(mod.data)}`;
+                        const label = `${i + 1}. ${mod.title || mod.plugin.description(mod.data)}`;
                         return (
                             <option key={i} value={mod.id}>
                                 {label}

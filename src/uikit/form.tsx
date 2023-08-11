@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { createRef, PureComponent } from 'react';
 import './form.css';
 
 export class Form extends PureComponent<Form.Props> {
@@ -20,6 +20,23 @@ namespace Form {
 
 /** Renders a form item. Must be inside a <Form>! */
 export class FormItem extends PureComponent<FormItem.Props> {
+    innerNode = createRef<HTMLDivElement>();
+    contentsNode = createRef<HTMLDivElement>();
+
+    onItemClick = (e: React.MouseEvent) => {
+        if (e.target !== this.innerNode.current) return;
+
+        // clicked the background of the form item
+        const contents = this.contentsNode.current;
+        if (!contents) return;
+
+        if (contents.children.length === 1) {
+            // try forwarding to whatever input may be inside
+            const input = contents.querySelector('input, select, button');
+            if (input) (input as HTMLElement).click();
+        }
+    };
+
     render() {
         const { stack, label, description, children, itemId } = this.props;
         let className = 'form-item';
@@ -31,13 +48,15 @@ export class FormItem extends PureComponent<FormItem.Props> {
         }
 
         return (
-            <div className={className}>
-                <div className="item-inner">
+            <div className={className} onClick={this.onItemClick}>
+                <div className="item-inner" ref={this.innerNode}>
                     <div className="item-label">
                         <label htmlFor={itemId}>{label}</label>
                     </div>
                     {stack && desc}
-                    <div className="item-contents">{children}</div>
+                    <div className="item-contents" ref={this.contentsNode}>
+                        {children}
+                    </div>
                 </div>
                 {!stack && desc}
             </div>

@@ -8,6 +8,7 @@ import {
 import { useMemo } from 'react';
 import { SassModuleData } from './sass';
 import { TextField } from '../../uikit/text-field';
+import { Form, FormItem } from '../../uikit/form';
 
 export type ExternalUrlPluginData = {
     url: string;
@@ -19,19 +20,19 @@ function ExternalUrlEditor({ data, onChange }: ModulePluginProps<ExternalUrlPlug
     const typeSelect = useMemo(() => Math.random().toString(36), []);
 
     return (
-        <div className="plugin-external-url-editor">
-            <div>
-                <label htmlFor={urlInput}>URL</label>{' '}
+        <Form>
+            <FormItem label="URL" itemId={urlInput} stack>
                 <TextField
+                    id={urlInput}
                     value={data.url}
                     onChange={(url) => {
                         onChange({ ...data, url });
                     }}
                 />
-            </div>
-            <div>
-                <label htmlFor={typeSelect}>Type</label>{' '}
+            </FormItem>
+            <FormItem label="Type" itemId={typeSelect}>
                 <select
+                    id={typeSelect}
                     value={data.type}
                     onChange={(e) => {
                         onChange({ ...data, type: e.target.value as any });
@@ -41,8 +42,8 @@ function ExternalUrlEditor({ data, onChange }: ModulePluginProps<ExternalUrlPlug
                     <option value="css">CSS</option>
                     <option value="scss">SCSS Module</option>
                 </select>
-            </div>
-        </div>
+            </FormItem>
+        </Form>
     );
 }
 
@@ -77,15 +78,16 @@ export default {
     },
     async eval(data: ExternalUrlPluginData) {
         const result = await fetchCached(data);
-        if (data.type === 'javascript') {
-            return new JavascriptData(result);
+
+        switch (data.type) {
+            case 'javascript':
+                return new JavascriptData(result);
+            case 'css':
+                return new CssData(result);
+            case 'scss':
+                return new SassModuleData(result, 'scss');
+            default:
+                return new PlainTextData(result);
         }
-        if (data.type === 'css') {
-            return new CssData(result);
-        }
-        if (data.type === 'scss') {
-            return new SassModuleData(result, 'scss');
-        }
-        return new PlainTextData(result);
     },
 } as ModulePlugin<ExternalUrlPluginData>;

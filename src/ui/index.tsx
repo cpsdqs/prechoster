@@ -91,7 +91,7 @@ export default function ApplicationFrame({ storage }: { storage: Storage }) {
         const id = virtualIds.get(doc);
         if (!id) throw new Error('could not realize virtual document because it has no id');
         storage.saveDocument(id, doc).then(() => {
-            setVirtualOpenDoc(null);
+            if (virtualOpenDoc === doc) setVirtualOpenDoc(null);
             openDocument(id);
             setCurrentTab(id);
         });
