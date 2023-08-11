@@ -124,7 +124,7 @@ class SassEditor extends PureComponent<ModulePluginProps<SassPluginData> & { isM
                                             {type === ImportType.Value &&
                                             item.match(/^[a-zA-Z_-][\w-_]*$/) ? (
                                                 <p>
-                                                    Use the value: <code>${item}.$value</code>
+                                                    Use the value: <code>{item}.$value</code>
                                                 </p>
                                             ) : null}
                                         </li>
