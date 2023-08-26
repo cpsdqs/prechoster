@@ -145,7 +145,8 @@
                 }
             }
 
-            &:not(.is-selected) > .i-file:hover {
+            &:not(.is-selected) > .i-file:hover,
+            > .i-file.actions-open {
                 background: var(--sidebar-item-hover);
             }
 
@@ -223,6 +224,33 @@
                     > .i-label:hover {
                         background: var(--danger-content-fg);
                         color: var(--danger);
+                    }
+                }
+            }
+
+            .i-actions {
+                display: flex;
+                padding: 0;
+                margin: 0;
+                list-style: none;
+                border-top: 1px solid var(--separator);
+
+                & li {
+                    flex: 1;
+
+                    & button {
+                        background: none;
+                        border: none;
+                        color: inherit;
+                        font: inherit;
+
+                        &:active {
+                            opacity: 0.5;
+                        }
+                    }
+
+                    & + li {
+                        border-left: 1px solid var(--separator);
                     }
                 }
             }
