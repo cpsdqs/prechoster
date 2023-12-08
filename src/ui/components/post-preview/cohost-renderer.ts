@@ -3,9 +3,9 @@ import { createRoot } from 'react-dom/client';
 // @ts-ignore
 import { staticUrlPrefix } from 'prechoster:config';
 
-export const COHOST_RENDERER_VERSION = '2023-08-06';
+export const COHOST_RENDERER_VERSION = '2023-11-30';
 const CONFIG = {
-    chunks: [staticUrlPrefix + 'client.bfc5b576f11ae771b797.js'],
+    chunks: [staticUrlPrefix + 'client.f2154449135515dd1a2a.js'],
     modules: {
         react: 94159,
         markdown: 84717,
