@@ -8,11 +8,23 @@
         0 2px 4px rgba(0, 0, 0, 0.2);
     user-select: none;
 
+    &.dark-mode {
+        box-shadow:  rgba(0, 0, 0, 0.14) 0px 4px 5px 0px, rgba(0, 0, 0, 0.12) 0px 1px 10px 0px, rgba(0, 0, 0, 0.2) 0px 2px 4px 0px;
+        border: 1px solid rgb(74, 72, 71);
+    }
+
     & > hr {
         height: 0;
         margin: 0 0.75rem;
         border: none;
         border-top: 1px solid rgb(191 186 181);
+    }
+
+    &.dark-mode > hr {
+        height: 0;
+        margin: 0 0;
+        border: none;
+        border-top: 1px solid rgb(74, 72, 71);
     }
 
     .prose-container {
@@ -21,6 +33,7 @@
         position: relative;
         background: white;
         font-size: var(--font-size-content);
+        border: 1px solid var(--tw-border-opacity);
 
         .inner-prose {
             margin: 1rem 0;
@@ -393,6 +406,61 @@
                 background: inherit;
                 color: color-mix(in lab, rgb(var(--color-accent)), white);
             }
+        }
+    }
+
+    &.dark-mode {
+        background: #191919;
+        color: #fff;
+        --tw-border-opacity: 1;
+
+        & > .post-footer {
+            --size-meter-fg: 255 255 255;
+        }
+
+        & > .post-header .config-preview-item {
+            background: #020202;
+        }
+
+        & > hr {
+            border-color: #fff2;
+        }
+
+        & > .p-prose-outer {
+            background: #000;
+
+            & > .p-prose {
+                color: rgb(255, 249, 242);
+                --tw-prose-body: #d1d5db;
+                --tw-prose-headings: #fff;
+                --tw-prose-lead: #e1e0e3;
+                --tw-prose-links: #fff;
+                --tw-prose-bold: #fff;
+                --tw-prose-counters: #9ca3af;
+                --tw-prose-bullets: #fff9f2;
+                --tw-prose-hr: #374151;
+                --tw-prose-quotes: #f3f4f6;
+                --tw-prose-quote-borders: #374151;
+                --tw-prose-code: #fff;
+                --tw-prose-pre-code: #d1d5db;
+                --tw-prose-pre-bg: rgb(0 0 0 / 50%);
+                --tw-prose-th-borders: #374151;
+                --tw-prose-td-borders: #4b5563;
+            }
+
+            & > .prose-read-more {
+                background: inherit;
+                color: color-mix(in lab, #000, white);
+            }
+        }
+
+        .post-size-meter {
+            --size-of-max: 0;
+            color: color-mix(
+                in oklab,
+                rgb(rgb(191, 186, 181)),
+                rgb(var(--color-warning)) calc(var(--size-of-max) * 100%)
+            );
         }
     }
 }
