@@ -22,6 +22,7 @@ import {
     SidebarIcon,
     UndoIcon,
 } from './components/icons';
+import { useOptHeld } from './opt-held';
 import { shouldReduceMotion } from '../uikit/animation';
 import { DirPopover } from '../uikit/dir-popover';
 import { Button } from '../uikit/button';
@@ -654,27 +655,9 @@ function SaveButton({
     disabled: boolean;
     onSave: (format?: string) => void;
 }) {
-    const [optHeld, setOptHeld] = useState(false);
+    const optHeld = useOptHeld();
     const [isMouseOver, setMouseOver] = useState(false);
     const [formatPickerOpen, setFormatPickerOpen] = useState(false);
-
-    const setOptHeldRef = useRef(setOptHeld);
-    setOptHeldRef.current = setOptHeld;
-    useEffect(() => {
-        const onKeyDown = (e: KeyboardEvent) => {
-            setOptHeldRef.current(e.altKey);
-        };
-        const onKeyUp = (e: KeyboardEvent) => {
-            setOptHeldRef.current(e.altKey);
-        };
-
-        window.addEventListener('keydown', onKeyDown);
-        window.addEventListener('keyup', onKeyUp);
-        return () => {
-            window.removeEventListener('keydown', onKeyDown);
-            window.removeEventListener('keyup', onKeyUp);
-        };
-    }, []);
 
     const save = (e: React.MouseEvent) => {
         if (e.altKey) {

@@ -1,6 +1,6 @@
 import './sidebar.css';
 import React, { useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { DocumentInfo } from '../storage';
+import { DocumentInfo, Storage } from '../storage';
 import { Document } from '../document';
 import { StorageContext } from '../storage-context';
 import { ExamplesMenu } from './examples';
@@ -8,6 +8,7 @@ import { ExamplesMenu } from './examples';
 import { homepage as sourceLink } from '../../package.json';
 // @ts-ignore
 import { gitCommitHash } from 'prechoster:config';
+import { useOptHeld } from './opt-held';
 import { Button } from '../uikit/button';
 import { DirPopover } from '../uikit/dir-popover';
 import { TextField } from '../uikit/text-field';
@@ -214,6 +215,11 @@ function FileItem({
     isEditing: boolean;
 }) {
     const storage = useContext(StorageContext);
+
+    const optHeld = useOptHeld();
+    const [isMouseOver, setMouseOver] = useState(false);
+    const [actionsOpen, setActionsOpen] = useState(false);
+
     const [isDeleting, setDeleting] = useState(false);
     const [deleteProgress, setDeleteProgress] = useState(0);
 
@@ -234,15 +240,53 @@ function FileItem({
         });
     }, [isDeleting, deleteProgress]);
 
+    const onClick = (e: React.MouseEvent) => {
+        if (e.altKey) {
+            setActionsOpen(true);
+        } else {
+            onOpen(id);
+        }
+    };
+
+    const duplicate = () => {
+        storage.getDocument(id).then((document) => {
+            if (!document) return;
+
+            storage.saveDocument(Storage.nextDocumentId(), document);
+        });
+        setActionsOpen(false);
+    };
+
+    const onMouseOver = () => setMouseOver(true);
+    const onMouseOut = () => setMouseOver(false);
+    const button = useRef<HTMLButtonElement>(null);
+
     return (
         <li
             className={
                 'i-item' + (isCurrent ? ' is-selected' : '') + (isDeleting ? ' is-deleting' : '')
             }
         >
-            <button className="i-file" onClick={() => onOpen(id)}>
+            <button
+                ref={button}
+                className={'i-file' + (actionsOpen ? ' actions-open' : '')}
+                onClick={onClick}
+                onMouseOver={onMouseOver}
+                onMouseOut={onMouseOut}
+            >
                 <FileDetails id={id} cache={cache} version={version} requestLoad={requestLoad} />
             </button>
+            <DirPopover
+                anchor={button.current}
+                open={actionsOpen}
+                onClose={() => setActionsOpen(false)}
+            >
+                <ul className="i-actions">
+                    <li>
+                        <button onClick={duplicate}>duplicate</button>
+                    </li>
+                </ul>
+            </DirPopover>
 
             {isEditing ? (
                 <Button
