@@ -179,6 +179,7 @@ export interface PreviewConfig {
     cohostRenderer: boolean;
     prefersReducedMotion: boolean;
     simulateUserstyles: boolean;
+    darkMode: boolean;
 }
 
 const DEFAULT_RENDER_CONFIG: RenderConfig = {
@@ -193,6 +194,7 @@ export const DEFAULT_PREVIEW_CONFIG: PreviewConfig = {
     cohostRenderer: true,
     prefersReducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
     simulateUserstyles: false,
+    darkMode: false
 };
 
 export function PostPreview({
@@ -252,7 +254,8 @@ export function PostPreview({
             className={
                 'post-preview' +
                 (stale ? ' is-stale' : '') +
-                (config.simulateUserstyles ? ' simulate-userstyles' : '')
+                (config.simulateUserstyles ? ' simulate-userstyles' : '') +
+                (config.darkMode ? ' dark-mode' : '')
             }
         >
             <div className="post-header">
@@ -395,6 +398,12 @@ const RENDER_CONFIG_ITEMS: { [k: string]: RenderConfigItem } = {
         description:
             'Changes a bunch of colors to a dark theme, for testing the effects of some cohost userstyles.',
     },
+    darkMode: {
+        short: [null, 'dark mode ✓'],
+        label: 'Dark Mode',
+        description:
+            'Switches over to cohost\'s dark mode colors.',
+    }
 };
 
 function RenderConfigEditor({
